@@ -37,11 +37,11 @@
 
 | Role | Swatch | Color | Hex |
 |---|---|---|---|
-| Document input | <sub><sup>#6B7280</sup></sub>![#6B7280](https://placehold.co/20x20/6B7280/6B7280.svg) | Gray | `#6B7280` |
-| Layout encoder | <sub><sup>#2563EB</sup></sub>![#2563EB](https://placehold.co/20x20/2563EB/2563EB.svg) | Blue | `#2563EB` |
-| Structure parser | <sub><sup>#16A34A</sup></sub>![#16A34A](https://placehold.co/20x20/16A34A/16A34A.svg) | Green | `#16A34A` |
-| Language decoder | <sub><sup>#F97316</sup></sub>![#F97316](https://placehold.co/20x20/F97316/F97316.svg) | Orange | `#F97316` |
-| Extraction loss | <sub><sup>#DC2626</sup></sub>![#DC2626](https://placehold.co/20x20/DC2626/DC2626.svg) | Red | `#DC2626` |
+| Document input | ![#6B7280](https://placehold.co/20x20/6B7280/6B7280.svg) | Gray | `#6B7280` |
+| Layout encoder | ![#2563EB](https://placehold.co/20x20/2563EB/2563EB.svg) | Blue | `#2563EB` |
+| Structure parser | ![#16A34A](https://placehold.co/20x20/16A34A/16A34A.svg) | Green | `#16A34A` |
+| Language decoder | ![#F97316](https://placehold.co/20x20/F97316/F97316.svg) | Orange | `#F97316` |
+| Extraction loss | ![#DC2626](https://placehold.co/20x20/DC2626/DC2626.svg) | Red | `#DC2626` |
 
 ### Design Notes
 

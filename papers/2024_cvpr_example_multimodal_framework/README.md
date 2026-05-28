@@ -37,11 +37,11 @@
 
 | Role | Swatch | Color | Hex |
 |---|---|---|---|
-| Input / context | <sub><sup>#6B7280</sup></sub>![#6B7280](https://placehold.co/20x20/6B7280/6B7280.svg) | Gray | `#6B7280` |
-| Vision encoder | <sub><sup>#2563EB</sup></sub>![#2563EB](https://placehold.co/20x20/2563EB/2563EB.svg) | Blue | `#2563EB` |
-| Projector / adapter | <sub><sup>#16A34A</sup></sub>![#16A34A](https://placehold.co/20x20/16A34A/16A34A.svg) | Green | `#16A34A` |
-| LLM / reasoning | <sub><sup>#F97316</sup></sub>![#F97316](https://placehold.co/20x20/F97316/F97316.svg) | Orange | `#F97316` |
-| Supervision signal | <sub><sup>#DC2626</sup></sub>![#DC2626](https://placehold.co/20x20/DC2626/DC2626.svg) | Red | `#DC2626` |
+| Input / context | ![#6B7280](https://placehold.co/20x20/6B7280/6B7280.svg) | Gray | `#6B7280` |
+| Vision encoder | ![#2563EB](https://placehold.co/20x20/2563EB/2563EB.svg) | Blue | `#2563EB` |
+| Projector / adapter | ![#16A34A](https://placehold.co/20x20/16A34A/16A34A.svg) | Green | `#16A34A` |
+| LLM / reasoning | ![#F97316](https://placehold.co/20x20/F97316/F97316.svg) | Orange | `#F97316` |
+| Supervision signal | ![#DC2626](https://placehold.co/20x20/DC2626/DC2626.svg) | Red | `#DC2626` |
 
 ### Design Notes
 
@@ -64,11 +64,11 @@
 
 | Role | Swatch | Color | Hex |
 |---|---|---|---|
-| Feature tokens | <sub><sup>#3B82F6</sup></sub>![#3B82F6](https://placehold.co/20x20/3B82F6/3B82F6.svg) | Blue | `#3B82F6` |
-| Fusion block | <sub><sup>#22C55E</sup></sub>![#22C55E](https://placehold.co/20x20/22C55E/22C55E.svg) | Green | `#22C55E` |
-| Reasoning block | <sub><sup>#EA580C</sup></sub>![#EA580C](https://placehold.co/20x20/EA580C/EA580C.svg) | Orange | `#EA580C` |
-| Loss head | <sub><sup>#EF4444</sup></sub>![#EF4444](https://placehold.co/20x20/EF4444/EF4444.svg) | Red | `#EF4444` |
-| Frozen branch | <sub><sup>#9CA3AF</sup></sub>![#9CA3AF](https://placehold.co/20x20/9CA3AF/9CA3AF.svg) | Gray | `#9CA3AF` |
+| Feature tokens | ![#3B82F6](https://placehold.co/20x20/3B82F6/3B82F6.svg) | Blue | `#3B82F6` |
+| Fusion block | ![#22C55E](https://placehold.co/20x20/22C55E/22C55E.svg) | Green | `#22C55E` |
+| Reasoning block | ![#EA580C](https://placehold.co/20x20/EA580C/EA580C.svg) | Orange | `#EA580C` |
+| Loss head | ![#EF4444](https://placehold.co/20x20/EF4444/EF4444.svg) | Red | `#EF4444` |
+| Frozen branch | ![#9CA3AF](https://placehold.co/20x20/9CA3AF/9CA3AF.svg) | Gray | `#9CA3AF` |
 
 ### Design Notes
 
