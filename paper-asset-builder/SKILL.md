@@ -5,13 +5,16 @@ description: Build or update a PaperFigureAssets paper entry when the user asks 
 
 # Paper Asset Builder
 
-Use this skill when the user mentions `paper-asset-builder`, `$paper-asset-builder`, or asks to create/update a PaperFigureAssets paper entry from a material directory.
+Use this skill when the user mentions `paper-asset-builder`, `$paper-asset-builder`, `/paper-asset-builder` in Claude Code, or asks to create/update a PaperFigureAssets paper entry from a material directory.
 
 ## Invocation
 
-Codex skills are not slash commands. Do not instruct the user to start the request with `/paper-asset-builder`; that prefix is reserved for built-in UI commands.
+Invocation depends on the host:
 
-Preferred call style:
+- In Codex, skills are not UI slash commands. Use natural language or `$paper-asset-builder`.
+- In Claude Code, skills installed under `.claude/skills/` or `~/.claude/skills/` can be invoked directly with `/paper-asset-builder`.
+
+Codex call style:
 
 ```text
 使用 paper-asset-builder material_dir=/path/to/material_dir paper=https://arxiv.org/abs/2501.01234
@@ -29,7 +32,7 @@ Accepted parameters:
 material_dir=...      Required. Directory containing method_figures/, result_figures/, and tables/.
 paper=...             Required unless discoverable. arXiv URL, paper URL, or local PDF path.
 paper_id=...          Optional. Output folder name under papers/.
-update_index=true     Optional. Update root README paper index.
+update_index=false    Optional. Skip root README paper index update only when explicitly false.
 force=true            Optional. Overwrite an existing paper README when intentional.
 ```
 
@@ -37,6 +40,12 @@ Also accept positional style:
 
 ```text
 使用 paper-asset-builder /path/to/material_dir https://arxiv.org/abs/2501.01234
+```
+
+Claude Code call style:
+
+```text
+/paper-asset-builder material_dir=/path/to/material_dir paper=https://arxiv.org/abs/2501.01234
 ```
 
 ## Material Directory
@@ -97,7 +106,7 @@ Use the template as the visual contract, not as disposable output.
 5. Create or update `papers/<paper_id>/`.
 6. Copy images and method `.pptx` files into the corresponding paper asset folders.
 7. Generate `README.md` following `templates/canonical_paper_readme.md`.
-8. Update root `README.md` only when requested by `update_index=true` or by the user.
+8. Update the root `README.md` Paper Index by default unless `update_index=false`.
 9. Validate local links and report the generated paper path.
 
 ## Asset Processing
@@ -146,7 +155,39 @@ For each table image:
 - Do not create `plot.py`, `table.tex`, `palette.json`, CSV files, or per-figure READMEs by default.
 - Use the existing repository style and canonical template.
 - Do not tell the user to run a Python command for normal skill usage.
-- Do not present this skill as a slash command. Use natural language or `$paper-asset-builder`.
+- For Codex usage, do not present this skill as a slash command. Use natural language or `$paper-asset-builder`.
+- For Claude Code usage, `/paper-asset-builder ...` is valid after the skill is installed in a Claude skills directory.
+
+## Root README Update
+
+Always update the root `README.md` after creating or updating a paper entry, unless the user explicitly sets `update_index=false`.
+
+Update the `## Paper Index` table, not `## Asset Types`. `Asset Types` describes the repository schema and should not list papers.
+
+If these markers exist, replace only the marked region:
+
+```markdown
+<!-- PAPER_INDEX_START -->
+...
+<!-- PAPER_INDEX_END -->
+```
+
+Use this table format:
+
+```markdown
+| Paper | Venue | Year | Topic | Assets |
+|---|---:|---:|---|---|
+| [Paper Title](papers/<paper_id>/README.md) | Venue | Year | Topic summary | N method figures, N result figures, N tables |
+```
+
+For each paper row:
+
+- read `Title`, `Venue`, `Year`, and `Topic` from that paper's README;
+- count image files in `method_figures/`, `result_figures/`, and `tables/`;
+- preserve all existing valid paper rows;
+- add the new paper row if absent;
+- replace the row if the paper already exists;
+- keep paper links relative to the repository root.
 
 ## Validation Checklist
 
@@ -161,4 +202,4 @@ Before finishing, verify:
 - result figures have fenced `python` code blocks;
 - tables have fenced `latex` source and required packages;
 - all local README links resolve;
-- root `README.md` is updated if the user asked for an index update.
+- root `README.md` Paper Index is updated unless `update_index=false`.
