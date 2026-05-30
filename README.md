@@ -9,7 +9,7 @@ Each paper lives in a self-contained directory with method figure previews, edit
 <!-- PAPER_INDEX_START -->
 | Paper | Venue | Year | Topic | Assets |
 |---|---:|---:|---|---|
-| [Example Document AI System](papers/2025_neurips_example_document_ai/README.md) | NeurIPS | 2025 | Document understanding, layout analysis, structured extraction | 1 method figure, 2 result figures, 1 table |
+| [Emulating Human-like Adaptive Vision for Efficient and Flexible Machine Visual Perception](papers/AdaptiveNN/README.md) | Nature Machine Intelligence | 2025 | Adaptive visual perception, sequential fixation policies, efficient and interpretable computer vision | 3 method figures, 3 result figures, 0 tables |
 | [Perception Encoder: The best visual embeddings are not at the output of the network](papers/Perception_Encoder/README.md) | NeurIPS | 2025 | Vision-language contrastive pretraining, intermediate visual embeddings, language and spatial alignment | 2 method figures, 2 result figures, 1 table |
 <!-- PAPER_INDEX_END -->
 
