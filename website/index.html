@@ -6,9 +6,9 @@
   <meta name="description" content="Figarium 图圃：人工策展的论文视觉档案。收藏图表，带走代码与可编辑 PPT。">
   <meta name="theme-color" content="#f7f8fa">
   <title>Figarium · 图圃 — Curate the figure. Keep the recipe.</title>
-  <link rel="stylesheet" href="styles.css?v=20261014-visual-index">
-  <script src="catalog.js?v=20261014-visual-index" defer></script>
-  <script src="app.js?v=20261014-visual-index" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261014-category-modules">
+  <script src="catalog.js?v=20261014-category-modules" defer></script>
+  <script src="app.js?v=20261014-category-modules" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -41,9 +41,26 @@
     </section>
     <section class="collection-section" id="collection" aria-labelledby="collection-heading">
       <div class="section-title"><div><p class="eyebrow" id="collection-eyebrow">THE VISUAL INDEX</p><h2 id="collection-heading">图表收藏</h2></div><p class="section-aside" id="collection-aside">为下一次创作，留一份好参考。</p></div>
+      <div class="category-modules" id="category-modules" role="group" aria-label="按图表类型浏览">
+        <button class="category-module method-module" data-type="method" aria-pressed="false">
+          <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="11" y="3" width="10" height="7" rx="2"/><rect x="2" y="22" width="10" height="7" rx="2"/><rect x="20" y="22" width="10" height="7" rx="2"/><path d="M16 10v6M7 22v-6h18v6"/><path d="m5 20 2 2 2-2m14 0 2 2 2-2"/></svg></span>
+          <span class="category-copy"><strong>方法框架</strong><small>METHOD FIGURES</small></span><span class="category-count" id="count-method">—</span>
+          <span class="category-description">模型结构与流程 · PPTX 与配色参考</span><span class="category-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="category-module result-module" data-type="result" aria-pressed="false">
+          <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 3v24h24M9 22l6-7 5 3 8-11"/><circle cx="9" cy="22" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="28" cy="7" r="1.5" fill="currentColor" stroke="none"/><path d="M10 8h5M10 11h9" opacity=".4"/></svg></span>
+          <span class="category-copy"><strong>结果分析</strong><small>RESULT FIGURES</small></span><span class="category-count" id="count-result">—</span>
+          <span class="category-description">实验曲线与对比 · Python 重建参考</span><span class="category-arrow" aria-hidden="true">↗</span>
+        </button>
+        <button class="category-module table-module" data-type="table" aria-pressed="false">
+          <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="2"/><path d="M3 12h26M3 19h26M12 12v15M21 12v15"/><path d="M6 8h20" stroke-width="2" opacity=".4"/></svg></span>
+          <span class="category-copy"><strong>论文表格</strong><small>PAPER TABLES</small></span><span class="category-count" id="count-table">—</span>
+          <span class="category-description">指标与数据汇总 · LaTeX 排版参考</span><span class="category-arrow" aria-hidden="true">↗</span>
+        </button>
+      </div>
       <div class="collection-tools" id="collection-tools">
         <div class="search-row">
-          <div class="type-filters" role="group" aria-label="配图分类"><button data-type="all" class="type-filter active" aria-pressed="true">全部 <span id="count-all">—</span></button><button data-type="method" class="type-filter" aria-pressed="false">方法框架 <span id="count-method">—</span></button><button data-type="result" class="type-filter" aria-pressed="false">结果分析 <span id="count-result">—</span></button><button data-type="table" class="type-filter" aria-pressed="false">论文表格 <span id="count-table">—</span></button></div>
+          <div class="type-filters" role="group" aria-label="图表总览"><button data-type="all" class="type-filter active" aria-pressed="true">全部图表 <span id="count-all">—</span></button></div>
           <label class="search-field"><span data-icon="search"></span><input id="search" type="search" placeholder="搜索论文、图名、研究方向" aria-label="搜索配图"><kbd>/</kbd></label><button class="icon-button export-saved" id="export-saved" title="导出收藏清单" aria-label="导出收藏清单" hidden><span data-icon="download"></span></button>
         </div>
         <div class="filter-row">

@@ -275,12 +275,60 @@ test('card metadata is below the image and palette dots accept at most four stri
     asset, papers: samplePapers, saved: new Set(), shortPaper: (paper) => paper.title,
     safeUrl: (url) => url, icon: () => '', typeLabels: {method: 'METHOD'},
   });
-  const preview = context.html.split('<div class="asset-info">')[0];
+  const preview = context.html.split('<div class="asset-info">')[0].split('<div class="asset-preview">')[1];
   assert.match(preview, /<img /); assert.match(preview, /data-save=/);
   assert.doesNotMatch(preview, /asset-type|asset-kicker|palette-dots/);
   assert.match(context.html, /asset-kicker/); assert.match(context.html, /Figure &lt;1&gt;/);
   assert.equal((context.html.match(/class="palette-dot"/g) || []).length, 4);
   assert.doesNotMatch(context.html, /onclick=|javascript:|<script>/);
+});
+
+test('card category attributes use a strict whitelist and each known category has its Chinese label', () => {
+  const escaping = between('const esc = ', 'const safeUrl = ');
+  const labels = source.match(/const typeLabels = [^\n]+/)[0];
+  const definition = `${escaping}\n${hasSourceDefinition}\n${labels}\n${between('function card(', 'function renderPapers(')}`;
+  const bindings = {papers: samplePapers, saved: new Set(), shortPaper: (paper) => paper.title, safeUrl: String, icon: () => ''};
+  for (const [type, label] of [['method', '方法框架'], ['result', '结果分析'], ['table', '论文表格']]) {
+    const context = evaluate(`${definition}\nhtml = card(asset);`, {...bindings, asset: {...sampleAssets[0], type}});
+    assert.match(context.html, new RegExp(`<article class="asset-card" data-asset-type="${type}">`));
+    assert.match(context.html, new RegExp(`<span class="asset-type ${type}">${label}</span>`));
+  }
+  for (const type of ['unknown', '__proto__', 'method" onclick="unsafe()', '<script>unsafe()</script>', null]) {
+    const context = evaluate(`${definition}\nhtml = card(asset);`, {...bindings, asset: {...sampleAssets[0], type}});
+    assert.match(context.html, /<article class="asset-card" data-asset-type="figure">/);
+    assert.match(context.html, /<span class="asset-type figure">图表<\/span>/);
+    assert.doesNotMatch(context.html, /onclick=|<script>|__proto__/);
+  }
+});
+
+test('category rendering synchronizes modules, grid category and honest resource descriptions', () => {
+  const nodes = new Map();
+  const get = (id) => { if (!nodes.has(id)) nodes.set(id, nodeStub()); return nodes.get(id); };
+  const buttons = ['all', 'method', 'result', 'table'].map((type) => nodeStub({dataset: {type}}));
+  const state = {view: 'explore', type: 'all', limit: 18};
+  const context = evaluate(`${between('function render()', 'function resetFilters()')}\nrun = render;`, {
+    state, $: get, catalog: {papers: []}, saved: new Set(),
+    syncCollectionControls: () => {}, renderPapers: () => {}, card: (asset) => asset.id,
+    filteredAssets: (ignoreType) => sampleAssets.filter((asset) => ignoreType || state.type === 'all' || asset.type === state.type),
+    document: {querySelectorAll: (selector) => selector === '[data-type]' ? buttons : []},
+    typeNames: {method: '方法框架', result: '结果分析', table: '论文表格'},
+  });
+  for (const [type, resource] of [['all', '完整看图 · 带走配方'], ['method', 'PPTX / 配色'], ['result', 'Python'], ['table', 'LaTeX']]) {
+    state.type = type; context.run();
+    assert.equal(get('category-modules').hidden, false);
+    assert.equal(get('asset-grid').dataset.category, type);
+    assert.ok(get('catalog-note').textContent.includes(resource));
+    if (type !== 'all') assert.match(get('catalog-note').textContent, /按条目提供/);
+    assert.doesNotMatch(get('catalog-note').textContent, /每张|完美|完整复现|保证/);
+    for (const button of buttons) {
+      assert.equal(button.getAttribute('aria-pressed'), String(button.dataset.type === type));
+      assert.equal(button.classList.contains('active'), button.dataset.type === type);
+    }
+    assert.equal(get('count-all').textContent, 3);
+    assert.equal(get('count-method').textContent, 1); assert.equal(get('count-result').textContent, 1); assert.equal(get('count-table').textContent, 1);
+  }
+  state.view = 'papers'; context.run(); assert.equal(get('category-modules').hidden, true);
+  state.view = 'saved'; context.run(); assert.equal(get('category-modules').hidden, false);
 });
 
 test('detail navigation uses the whole filtered queue and never wraps or jumps from an absent asset', () => {
@@ -412,6 +460,23 @@ test('static HTML includes every JS ID contract once, plus dynamic tabs/counts a
   assert.match(source, /导出后渲染并与原图逐页核对/);
 });
 
+test('the three category modules are unique buttons with their own unique counter IDs', () => {
+  const html = fs.readFileSync(path.join(website, 'index.html'), 'utf8');
+  assert.equal([...html.matchAll(/\bid=["']category-modules["']/g)].length, 1);
+  const buttons = [...html.matchAll(/<button\b([^>]*)>([\s\S]*?)<\/button>/g)];
+  const modules = buttons.filter((match) => /\bclass=["'][^"']*\bcategory-module\b[^"']*["']/.test(match[1]));
+  assert.equal(modules.length, 3);
+  for (const type of ['method', 'result', 'table']) {
+    const matches = modules.filter((match) => new RegExp(`\\bdata-type=["']${type}["']`).test(match[1]));
+    assert.equal(matches.length, 1, `Exactly one ${type} category module`);
+    assert.match(matches[0][1], /\baria-pressed=["']false["']/);
+    assert.match(matches[0][2], new RegExp(`\\bid=["']count-${type}["']`));
+    assert.equal([...html.matchAll(new RegExp(`\\bid=["']count-${type}["']`, 'g'))].length, 1);
+    assert.equal(buttons.filter((match) => new RegExp(`\\bdata-type=["']${type}["']`).test(match[1])).length, 1);
+  }
+  assert.equal(buttons.filter((match) => /\bdata-type=["']all["']/.test(match[1])).length, 1);
+});
+
 // Optional real-DOM behavior smoke. Supply an already-installed linkedom entry
 // through FIGARIUM_DOM_MODULE_PATH; the repository has no npm dependency and
 // this test never installs packages, opens a browser, loads media or makes HTTP.
@@ -511,6 +576,9 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.cardIds().length, 18);
   assert.equal(h.find('#stat-pptx').textContent, '1');
   assert.equal(h.find('#collection-heading').textContent, '图表收藏');
+  assert.equal(h.find('#category-modules').hidden, false);
+  assert.equal(h.find('#asset-grid').dataset.category, 'all');
+  assert.equal(h.find('.asset-card[data-asset-type="method"] .asset-type').textContent, '方法框架');
   assert.equal(h.find('#paper-select').querySelectorAll('option').length, 4);
   assert.equal(h.find('.brand-wordmark strong').textContent, catalog.site.name);
   assert.equal(h.document.querySelector('.brand-wordmark img'), null);
@@ -526,17 +594,24 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('#clear-filters').hidden, false);
   h.click('#paper-filter-chip'); assert.equal(h.find('#paper-select').value, 'all');
   h.change('#year', '2026'); assert.equal(h.cardIds().length, 6);
-  h.click('#clear-filters'); h.click('[data-type="result"]'); assert.equal(h.cardIds().length, 8);
+  h.click('#clear-filters'); h.click('.category-module[data-type="result"]'); assert.equal(h.cardIds().length, 8);
+  assert.equal(h.find('#asset-grid').dataset.category, 'result');
+  assert.equal(h.find('.category-module[data-type="result"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(h.find('.category-module[data-type="result"]').classList.contains('active'), true);
+  assert.match(h.find('#catalog-note').textContent, /Python/);
+  assert.equal(h.document.querySelector('.asset-card:not([data-asset-type="result"])'), null);
   h.input('#search', 'figure 01'); assert.deepEqual(h.cardIds(), ['a1']);
   h.click('#clear-filters');
   h.find('#source-only').checked = true; h.change('#source-only', 'on'); assert.deepEqual(h.cardIds(), ['a0', 'a1']);
   h.click('#clear-filters');
   h.click('.nav-item[data-view="papers"]'); assert.equal(h.find('#collection-heading').textContent, '论文索引');
+  assert.equal(h.find('#category-modules').hidden, true);
   assert.equal(h.find('#collection-tools').hidden, true); assert.equal(h.document.querySelectorAll('.paper-row').length, 3);
   h.click('[data-paper="newer"]'); assert.equal(h.find('#paper-select').value, 'newer'); assert.equal(h.cardIds().length, 6);
   h.click('#clear-filters');
   h.find('.asset-image-button[data-open="a0"]').focus();
   h.click('.asset-image-button[data-open="a0"]'); assert.equal(h.dialog.open, true);
+  assert.match(h.find('#dialog-label').textContent, /^方法框架/);
   assert.equal(h.find('#dialog-position').textContent, '1 / 25'); assert.equal(h.find('#previous-asset').disabled, true);
   assert.equal(h.find('#source-code').hidden, true); assert.match(h.find('#no-code h3').textContent, /PPTX/);
   const pptx = h.find('#extra-downloads a[download="figure-0.pptx"]');

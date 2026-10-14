@@ -45,7 +45,7 @@
   const rank = (id) => featured.includes(id) ? featured.indexOf(id) : 100;
   const assets = [...catalog.assets].sort((a, b) => rank(a.paperId) - rank(b.paperId) || (Number(papers.get(b.paperId)?.year) || 0) - (Number(papers.get(a.paperId)?.year) || 0));
   const typeNames = {method: '方法框架', result: '结果分析', table: '论文表格'};
-  const typeLabels = {method: 'METHOD', result: 'RESULT', table: 'TABLE'};
+  const typeLabels = {method: '方法框架', result: '结果分析', table: '论文表格'};
   const state = {view: 'explore', type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, sort: 'curated', density: 'comfortable', limit: 18};
   const storageKey = 'figarium:saved:v1:' + encodeURIComponent(catalog.site.repositoryUrl);
   let saved;
@@ -126,12 +126,13 @@
   }
   function card(a) {
     const p = papers.get(a.paperId) || {};
+    const assetType = ['method', 'result', 'table'].includes(a.type) ? a.type : 'figure';
     const source = hasSource(a);
     const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(a.codes || []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
     const badge = source ? icon('code') + ' ' + esc(langs.join(' / ') || 'SOURCE') : icon('palette') + ' 配色 / 参考';
     const colors = [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
     const swatches = colors.length ? '<span class="palette-dots" aria-hidden="true">' + colors.map((hex) => '<i class="palette-dot" style="background:' + hex + '" title="' + hex.toUpperCase() + '"></i>').join('') + '</span>' : '';
-    return '<article class="asset-card"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + esc(a.type) + '">' + esc(typeLabels[a.type] || 'FIGURE') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
+    return '<article class="asset-card" data-asset-type="' + assetType + '"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + assetType + '">' + esc(typeLabels[assetType] || '图表') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
   }
   function renderPapers() {
     const sorted = [...catalog.papers].sort((a, b) => rank(a.id) - rank(b.id) || Number(b.year) - Number(a.year));
@@ -148,6 +149,7 @@
     $('collection').hidden = !isCollection;
     $('workflow-view').hidden = state.view !== 'workflow';
     $('guide-view').hidden = state.view !== 'guide';
+    $('category-modules').hidden = isPapers;
     $('collection-tools').hidden = isPapers;
     $('asset-grid').hidden = isPapers;
     $('paper-list').hidden = !isPapers;
@@ -174,6 +176,14 @@
     document.querySelectorAll('[data-type]').forEach((el) => {
       const active = el.dataset.type === state.type; el.classList.toggle('active', active); el.setAttribute('aria-pressed', String(active));
     });
+    $('asset-grid').dataset.category = state.type;
+    const categoryNotes = {
+      all: '完整看图 · 带走配方 ↗',
+      method: '方法框架 · 按条目提供 PPTX / 配色参考',
+      result: '结果分析 · 按条目提供 Python 重建配方',
+      table: '论文表格 · 按条目提供 LaTeX 重建源码',
+    };
+    $('catalog-note').textContent = categoryNotes[state.type] || categoryNotes.all;
     $('asset-grid').innerHTML = matches.slice(0, state.limit).map(card).join('');
     $('result-count').textContent = '找到 ' + matches.length + ' 项图表' + (state.type === 'all' ? '' : ' · ' + typeNames[state.type]);
     $('empty-state').hidden = matches.length !== 0;
@@ -320,7 +330,7 @@
     if (!$('asset-dialog').open) previousFocus = document.activeElement;
     activeAsset = a;
     setImageExpanded(false);
-    $('dialog-label').textContent = typeLabels[a.type] + ' / FIELD NOTE';
+    $('dialog-label').textContent = (Object.hasOwn(typeLabels, a.type) ? typeLabels[a.type] : '图表') + ' / FIELD NOTE';
     $('dialog-title').textContent = a.title;
     $('dialog-paper').textContent = cleanText(p.title) + ' · ' + (p.venue || '') + ' ' + (p.year || '');
     $('dialog-image').src = safeUrl(a.src); $('dialog-image').alt = a.title;
@@ -400,7 +410,7 @@
     const nav = event.target.closest('[data-view]'); if (nav) { changeView(nav.dataset.view); return; }
     const save = event.target.closest('[data-save]'); if (save) { toggleSaved(save.dataset.save); return; }
     const open = event.target.closest('[data-open]'); if (open) { openAsset(open.dataset.open, open.dataset.tab || 'code'); return; }
-    const type = event.target.closest('[data-type]'); if (type) { state.type = type.dataset.type; state.limit = 18; render(); return; }
+    const type = event.target.closest('[data-type]'); if (type) { state.type = ['all', 'method', 'result', 'table'].includes(type.dataset.type) ? type.dataset.type : 'all'; state.limit = 18; render(); return; }
     const density = event.target.closest('button[data-density]'); if (density) { setDensity(density.dataset.density); return; }
     const paper = event.target.closest('[data-paper]'); if (paper) { resetFilters(); state.paperId = paper.dataset.paper; changeView('explore', false); $('collection').scrollIntoView(); return; }
     const target = event.target.closest('[data-copy-target]'); if (target) { const node = $(target.dataset.copyTarget); copy(node.value ?? node.textContent); return; }
