@@ -511,11 +511,11 @@ test('zoom state and close cleanup reset aria, use the original focus, and fall 
   assert.equal(original.focusCount, 1); assert.equal(nodes.get('main').focusCount, 1);
 });
 
-test('mobile navigation uses 1100px, backdrop/inert/aria stay consistent, and desktop resize clears open state', () => {
+test('top dropdown navigation uses 900px, backdrop/inert/aria stay consistent, and desktop resize clears open state', () => {
   const nodes = new Map(['sidebar', 'main', 'menu-backdrop', 'mobile-menu'].map(id => [id, nodeStub()]));
-  let width = 1100;
+  let width = 900;
   const body = nodeStub();
-  const window = {matchMedia: (query) => { assert.equal(query, '(max-width:1100px)'); return {matches: width <= 1100}; }};
+  const window = {matchMedia: (query) => { assert.equal(query, '(max-width:900px)'); return {matches: width <= 900}; }};
   const definitions = between('function updateDrawer()', 'function changeView(');
   const context = evaluate(`${definitions}\nupdateDrawer(); check = updateDrawer; close = closeDrawer;`, {
     $: (id) => nodes.get(id), window, document: {body, activeElement: null},
@@ -526,11 +526,51 @@ test('mobile navigation uses 1100px, backdrop/inert/aria stay consistent, and de
   assert.equal(nodes.get('menu-backdrop').hidden, false); assert.equal(body.classList.contains('menu-open'), true);
   assert.equal(nodes.get('mobile-menu').getAttribute('aria-expanded'), 'true');
   context.close(true); assert.equal(nodes.get('mobile-menu').focusCount, 1);
-  nodes.get('sidebar').classList.add('open'); width = 1101; context.check();
+  nodes.get('sidebar').classList.add('open'); width = 901; context.check();
   assert.equal(nodes.get('sidebar').classList.contains('open'), false);
   assert.equal(nodes.get('main').inert, false); assert.equal(nodes.get('sidebar').inert, false);
   assert.equal(nodes.get('menu-backdrop').hidden, true); assert.equal(body.classList.contains('menu-open'), false);
-  width = 1100; context.check(); assert.equal(nodes.get('sidebar').inert, true);
+  width = 900; context.check(); assert.equal(nodes.get('sidebar').inert, true);
+});
+
+test('navigation stays above the content, with a centered canvas and matching mobile breakpoint', () => {
+  const css = fs.readFileSync(path.join(website, 'styles.css'), 'utf8');
+  const design = JSON.parse(fs.readFileSync(path.join(website, 'design-system.json'), 'utf8'));
+  assert.match(css, /\.site-header\s*\{[^}]*position:\s*sticky[^}]*top:\s*0[^}]*width:\s*100%/);
+  assert.match(css, /\bmain\s*\{[^}]*margin:\s*0 auto/);
+  assert.match(css, /@media\s*\(max-width:\s*900px\)/);
+  assert.doesNotMatch(css, /--sidebar-width/);
+  assert.equal(design.layout.menuBreakpointPx, 900);
+});
+
+test('glass controls keep readable text over dark figures and provide a solid fallback', () => {
+  const css = fs.readFileSync(path.join(website, 'styles.css'), 'utf8');
+  const design = JSON.parse(fs.readFileSync(path.join(website, 'design-system.json'), 'utf8'));
+  const muted = css.match(/--muted:(#[0-9a-f]{6})/i)[1];
+  assert.equal(muted, design.palette.muted);
+  const rgb = hex => hex.slice(1).match(/../g).map(channel => parseInt(channel, 16));
+  const luminance = channels => channels.map(channel => {
+    const s = channel / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  }).reduce((sum, channel, index) => sum + channel * [0.2126, 0.7152, 0.0722][index], 0);
+  const contrast = (a, b) => {
+    const values = [luminance(a), luminance(b)].sort((a, b) => b - a);
+    return (values[0] + 0.05) / (values[1] + 0.05);
+  };
+  // Sticky glass can pass over black pixels in a paper figure, not just the canvas.
+  for (const selector of ['site-header', 'collection-tools']) {
+    const rule = css.match(new RegExp('\\.' + selector + '\\s*\\{([^}]+)\\}'))[1];
+    const alpha = Number(rule.match(/background:rgba\(255,255,255,([\d.]+)\)/)[1]);
+    assert.ok(contrast(rgb(muted), [255 * alpha, 255 * alpha, 255 * alpha]) >= 4.5, selector);
+  }
+  for (const token of ['action-gradient', 'action-hover']) {
+    const gradient = css.match(new RegExp('--' + token + ':([^;]+)'))[1];
+    for (const color of gradient.match(/#[0-9a-f]{6}/gi)) {
+      assert.ok(contrast([255, 255, 255], rgb(color)) >= 4.5, `${token} ${color}`);
+    }
+  }
+  assert.match(css, /@supports not \(\(backdrop-filter:/);
+  assert.match(css, /prefers-reduced-transparency:reduce/);
 });
 
 test('static HTML includes every JS ID contract once, plus dynamic tabs/counts and the new controls', () => {
@@ -600,7 +640,7 @@ function domHarness(catalog, {omitHeroFeature = false} = {}) {
   dialog.close = () => { dialog.removeAttribute('open'); dialog.dispatchEvent(new window.Event('close')); };
   window.HTMLAnchorElement.prototype.click = function () { downloads.push({url: this.href, filename: this.download}); };
   window.FIGARIUM_CATALOG = catalog;
-  window.matchMedia = () => ({matches: width <= 1100});
+  window.matchMedia = () => ({matches: width <= 900});
   window.scrollTo = () => {};
   window.isSecureContext = true;
   const location = {hash: '#explore'};
@@ -772,10 +812,23 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   h.input('#library-name', injection); h.click('#download-config');
   assert.equal(h.downloads.at(-1).filename, 'figarium.config.json');
   assert.equal(JSON.parse(await h.blobs.at(-1).text()).name, injection); assert.equal(h.context.unsafeExecuted, false);
-  h.resize(1100); h.click('#mobile-menu'); assert.equal(h.find('#main').inert, true);
+  h.resize(900); h.click('#mobile-menu'); assert.equal(h.find('#main').inert, true);
   assert.equal(h.find('#menu-backdrop').hidden, false); assert.equal(h.find('#mobile-menu').getAttribute('aria-expanded'), 'true');
   h.click('#menu-backdrop'); assert.equal(h.document.activeElement.id, 'mobile-menu'); assert.equal(h.find('#main').inert, false);
-  h.click('#mobile-menu'); h.resize(1101); h.resize(1100);
+  h.resize(901);
+  assert.equal(h.document.activeElement, h.find('.nav-item[aria-current="page"]'));
+  h.resize(900); h.click('#mobile-menu'); h.click('.brand');
+  assert.equal(h.find('#hero').hidden, false); assert.equal(h.find('#main').inert, false);
+  h.click('#mobile-menu'); h.click('.brand');
+  assert.equal(h.find('#sidebar').classList.contains('open'), false);
+  assert.equal(h.find('#mobile-menu').getAttribute('aria-expanded'), 'false');
+  h.click('#mobile-menu'); h.key('#mobile-menu', '/');
+  assert.equal(h.find('#main').inert, false); assert.equal(h.document.activeElement.id, 'search');
+  assert.equal(h.find('#menu-backdrop').hidden, true);
+  h.click('#mobile-menu'); h.click('.skip-link');
+  assert.equal(h.find('#main').inert, false); assert.equal(h.document.activeElement.id, 'main');
+  assert.equal(h.find('#menu-backdrop').hidden, true);
+  h.click('#mobile-menu'); h.resize(901); h.resize(900);
   assert.equal(h.find('#sidebar').classList.contains('open'), false); assert.equal(h.find('#sidebar').inert, true);
   assert.equal(h.find('#menu-backdrop').hidden, true); assert.equal(h.document.body.classList.contains('menu-open'), false);
 });

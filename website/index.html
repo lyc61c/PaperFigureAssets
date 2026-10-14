@@ -4,36 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Figarium 图圃：人工策展的论文视觉档案。收藏图表，带走代码与可编辑 PPT。">
-  <meta name="theme-color" content="#f5f7fa">
+  <meta name="theme-color" content="#f3f7ff">
   <title>Figarium · 图圃 — Curate the figure. Keep the recipe.</title>
   <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=20261014-research-library">
-  <script src="catalog.js?v=20261014-research-library" defer></script>
-  <script src="app.js?v=20261014-research-library" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261015-soft-glass">
+  <script src="catalog.js?v=20261015-soft-glass" defer></script>
+  <script src="app.js?v=20261015-soft-glass" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="#explore" aria-label="Figarium 图圃 首页">
+      <a class="brand" href="#explore" data-view="explore" aria-label="Figarium 图圃 首页">
         <svg class="brand-mark" viewBox="0 0 40 44" fill="none" aria-hidden="true"><path d="M20 40V19M20 27C7 27 5 18 5 11c10 0 15 6 15 16Zm0-7C20 9 27 4 35 4c0 10-6 16-15 16Z" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="40" r="2.5" fill="currentColor"/></svg>
         <span class="brand-wordmark"><strong data-brand-name>Figarium</strong><small data-brand-chinese>图圃</small></span>
       </a>
-      <p class="brand-description">论文图表的收藏与再创作</p>
       <nav class="site-nav" id="sidebar" aria-label="主要导航">
         <div class="primary-nav">
-          <p class="nav-group-label">浏览图库</p>
           <button class="nav-item active" data-view="explore" aria-current="page"><span data-icon="grid"></span>图表收藏 <span class="nav-count" id="nav-asset-count">—</span></button>
           <button class="nav-item" data-view="papers"><span data-icon="book"></span>论文索引 <span class="nav-count" id="nav-paper-count">—</span></button>
           <button class="nav-item" data-view="saved"><span data-icon="bookmark"></span>已保存 <span class="nav-count" id="nav-saved-count">0</span></button>
         </div>
         <div class="secondary-nav">
-          <p class="nav-group-label">创建自己的收藏</p>
           <button class="nav-item" data-view="workflow"><span data-icon="branch"></span>采集工作流</button>
           <button class="nav-item nav-guide" data-view="guide"><span data-icon="sprout"></span>搭建我的图库</button>
         </div>
       </nav>
-      <div class="sidebar-note"><span class="status-dot"></span><p>AI 整理，人工精选。<br>可编辑资源，留在你手里。</p></div>
       <a class="header-github repo-link" href="https://github.com/lyc61c/PaperFigureAssets" target="_blank" rel="noopener noreferrer" aria-label="查看 GitHub 仓库"><span data-icon="github"></span><span>开源仓库</span><span aria-hidden="true">↗</span></a>
       <button class="mobile-menu icon-button" id="mobile-menu" aria-label="展开导航" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button>
     </div>

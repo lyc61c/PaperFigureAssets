@@ -222,7 +222,7 @@
     setDensity(state.density);
   }
   function updateDrawer() {
-    const mobile = window.matchMedia ? window.matchMedia('(max-width:1100px)').matches : window.innerWidth <= 1100;
+    const mobile = window.matchMedia ? window.matchMedia('(max-width:900px)').matches : window.innerWidth <= 900;
     if (!mobile) $('sidebar').classList.remove('open');
     const open = mobile && $('sidebar').classList.contains('open');
     $('sidebar').inert = mobile && !open;
@@ -233,6 +233,9 @@
     $('mobile-menu').setAttribute('aria-expanded', String(open));
     $('mobile-menu').setAttribute('aria-label', open ? '收起导航' : '展开导航');
     if (mobile && !open && $('sidebar').contains(document.activeElement)) $('mobile-menu').focus();
+    if (!mobile && document.activeElement === $('mobile-menu')) {
+      ($('sidebar').querySelector('.nav-item[aria-current="page"]') || $('sidebar').querySelector('.nav-item'))?.focus();
+    }
   }
   function closeDrawer(restoreFocus = false) {
     $('sidebar').classList.remove('open');
@@ -441,7 +444,15 @@
     changeView(['explore','saved','papers','workflow','guide'].includes(hash) ? hash : 'explore', false);
   }
   document.addEventListener('click', (event) => {
-    const nav = event.target.closest('[data-view]'); if (nav) { changeView(nav.dataset.view); return; }
+    const nav = event.target.closest('[data-view]');
+    if (nav) {
+      if (nav.tagName === 'A') {
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button > 0) return;
+        event.preventDefault();
+      }
+      changeView(nav.dataset.view); return;
+    }
+    if (event.target.closest('.skip-link')) { closeDrawer(false); $('main').focus(); return; }
     const save = event.target.closest('[data-save]'); if (save) { toggleSaved(save.dataset.save); return; }
     const open = event.target.closest('[data-open]'); if (open) { openAsset(open.dataset.open, open.dataset.tab || 'code'); return; }
     const type = event.target.closest('[data-type]'); if (type) { state.type = ['all', 'method', 'result', 'table'].includes(type.dataset.type) ? type.dataset.type : 'all'; state.limit = 18; render(); return; }
@@ -501,7 +512,7 @@
       e.preventDefault(); closeDrawer(true); return;
     }
     if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !$('asset-dialog').open) {
-      e.preventDefault(); if (!['explore', 'saved'].includes(state.view)) changeView('explore', false); $('search').focus(); $('collection').scrollIntoView();
+      e.preventDefault(); closeDrawer(false); if (!['explore', 'saved'].includes(state.view)) changeView('explore', false); $('search').focus(); $('collection').scrollIntoView();
     }
     const tab = e.target.closest('[data-detail-tab]');
     if (tab && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {

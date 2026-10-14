@@ -1,18 +1,19 @@
 {
-  "name": "Figarium Research Library",
+  "name": "Figarium Soft Glass Library",
   "purpose": "A personal, human-curated library for finding paper figures and reusing editable resources.",
   "designMethod": {
     "skill": "frontend-design",
     "source": "https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design",
-    "note": "Used as a design process, not as a brand reference. The requested visual direction explicitly excludes Anthropic's visual identity."
+    "note": "Used as a design process, not as a brand reference. Follow the user's blue-white frosted-glass screenshots, not Anthropic's visual identity.",
+    "visualReference": "User-provided screenshots on 2026-10-15: low-saturation blue-white atmosphere, small cream highlights, translucent glass trays, navy type, soft broad shadows and coordinated rounded corners. Reference artwork is not copied or redistributed."
   },
   "palette": {
-    "canvas": "#f5f7fa",
+    "canvas": "#f3f7ff",
     "surface": "#ffffff",
-    "ink": "#202833",
-    "muted": "#647184",
-    "action": "#176b62",
-    "divider": "#dce3eb"
+    "ink": "#152d50",
+    "muted": "#4e627e",
+    "action": "#164c76",
+    "highlight": "#fff4df"
   },
   "categories": {
     "method": { "accent": "#315f9b", "surface": "#edf3fc", "resource": "Editable PPT" },
@@ -25,19 +26,30 @@
     "code": "System monospace, only for actual code and paths",
     "body": "Readable line height and bounded line length; Chinese-first labels"
   },
+  "materials": {
+    "atmosphere": "Broad, static, low-contrast blue-white radial gradients with a restrained cream highlight; no animation or external background image.",
+    "glass": "High-white-opacity translucent panels, backdrop blur, a light inner highlight and a subtle blue-grey boundary; an opaque fallback preserves readability.",
+    "stickyWhiteOpacity": 0.9,
+    "controlBoundary": "#7387a5",
+    "scientificImages": "Pure white opaque image surfaces with no image opacity, recoloring, blur or cropping.",
+    "rounding": "One coordinated radius family: controls 12px, cards 20px, large panels 28px.",
+    "actions": "Dark navy-to-blue gradients with legible white labels; avoid bright saturated buttons."
+  },
   "layout": {
-    "desktop": "[216px navigation | introduction + real featured figure / three resource categories / searchable gallery]",
-    "mobile": "[compact header] / [introduction] / [featured figure] / [categories] / [searchable gallery]",
-    "railBreakpointPx": 1100,
+    "desktop": "[full-width top navigation] / [centered introduction + real featured figure] / [three resource categories] / [searchable gallery]",
+    "mobile": "[compact top header + downward-opening menu] / [introduction] / [featured figure] / [categories] / [searchable gallery]",
+    "menuBreakpointPx": 900,
     "alignment": "Left-aligned content; centered figures inside complete white image mounts"
   },
   "principles": [
-    "The real research figure is the visual focal point, not decorative illustration or large statistics.",
+    "The real research figure is the visual focal point; background atmosphere and glass layers remain quiet.",
     "Differentiate method figures, result figures, and tables with labels, icons, and semantic colors.",
     "Keep scientific images complete with object-fit: contain; never crop axes, legends, or labels.",
     "Method details expose one figure-specific PPT download, without diagram code or a duplicated paper bundle.",
     "Preserve human selection, provenance, approximation disclosures, and local ownership.",
     "Keep keyboard focus visible and honor reduced-motion preferences.",
-    "No warm cream/clay palette, serif editorial treatment, gradients, or decorative motion."
+    "Navigation stays above the content on every screen size; never use a left or right sidebar.",
+    "Keep ample spacing, clear search and download actions, and text contrast over every glass surface.",
+    "Use the requested soft blue-white gradients and small cream highlights; no clay accent, serif editorial treatment or decorative motion."
   ]
 }
