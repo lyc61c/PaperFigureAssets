@@ -43,6 +43,18 @@ MANIFEST_SCHEMA = "figarium-generated-files"
 FRONTEND_FILES = ("index.html", "styles.css", "app.js")
 CATALOG_FILES = ("catalog.json", "catalog.js")
 GUIDE_FILES = ("GETTING_STARTED.md", "CUSTOMIZATION.md")
+# Deliberately enumerate the bundled fonts and their provenance. Never publish
+# a complete source directory: a nearby working font or private file is not an
+# approved website asset merely because it lives in website/fonts/.
+FONT_FILES = (
+    "fonts/manrope-latin.woff2",
+    "fonts/instrument-serif-latin.woff2",
+    "fonts/figarium-editorial-sc.woff2",
+    "fonts/Manrope-OFL.txt",
+    "fonts/Instrument-Serif-OFL.txt",
+    "fonts/Noto-Serif-SC-OFL.txt",
+    "fonts/README.md",
+)
 
 
 class BuildError(ValueError):
@@ -483,6 +495,8 @@ def generated_kind(relative: str) -> str | None:
         return None
     if relative in FRONTEND_FILES + CATALOG_FILES:
         return "site"
+    if relative in FONT_FILES:
+        return "font"
     if relative in tuple(f"guides/{name}" for name in GUIDE_FILES):
         return "guide"
     parts = path.parts
@@ -535,7 +549,7 @@ def previous_generated_files(out: Path) -> dict[str, str]:
 def stale_generated_files(out: Path, previous: dict[str, str], current: set[str]) -> list[tuple[str, str]]:
     stale = []
     for relative, digest in previous.items():
-        if relative in current or generated_kind(relative) not in {"image", "guide", "presentation"}:
+        if relative in current or generated_kind(relative) not in {"image", "guide", "presentation", "font"}:
             continue
         target = output_target(out, relative)
         if not target.exists():
@@ -559,6 +573,13 @@ def build(repo_root: Path, out: Path) -> dict:
         if not (frontend / name).is_file():
             raise BuildError(f"Website source is missing: website/{name}")
     planned_copies = copies + [(frontend / name, name) for name in FRONTEND_FILES]
+    for relative in FONT_FILES:
+        # Reuse the same component-by-component symlink/junction and traversal
+        # check as generated outputs, now bounded to the frontend source root.
+        source = output_target(frontend, relative)
+        if not source.is_file():
+            raise BuildError(f"Website font source is missing: website/{relative}")
+        planned_copies.append((source, relative))
     # Publish only these explicit guides as inert Markdown text, not arbitrary
     # docs/ content or generated HTML. Links remain usable before a Git push.
     for name in GUIDE_FILES:
@@ -601,7 +622,7 @@ def build(repo_root: Path, out: Path) -> dict:
     }
     output_target(out, GENERATED_MANIFEST).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if stale:
-        print(f"Figarium removed {len(stale)} unchanged stale generated image/guide/PPTX file(s); unknown files were preserved.")
+        print(f"Figarium removed {len(stale)} unchanged stale generated image/guide/PPTX/font file(s); unknown files were preserved.")
     return catalog
 
 

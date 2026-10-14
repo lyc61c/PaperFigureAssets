@@ -91,6 +91,10 @@ class CatalogTests(unittest.TestCase):
         website.mkdir()
         for name in ("index.html", "styles.css", "app.js"):
             (website / name).write_text("fixture", encoding="utf-8")
+        for relative in builder.FONT_FILES:
+            target = website / relative
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(b"fixture-font-or-license-not-rendered")
 
     def replace_paper(self, old, new):
         path = self.paper / "README.md"
@@ -221,7 +225,7 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(manifest["schema"], builder.MANIFEST_SCHEMA)
         self.assertEqual(manifest["version"], 1)
         self.assertNotIn(str(self.root), text)
-        self.assertEqual(len(manifest["files"]), 3 + len(builder.FRONTEND_FILES) + len(builder.CATALOG_FILES))
+        self.assertEqual(len(manifest["files"]), 3 + len(builder.FRONTEND_FILES) + len(builder.CATALOG_FILES) + len(builder.FONT_FILES))
         for record in manifest["files"]:
             self.assertIsNotNone(builder.generated_kind(record["path"]))
             self.assertEqual(record["sha256"], builder.sha256_file(out / record["path"]))
@@ -239,6 +243,43 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(unknown.read_bytes(), b"user-owned, never generated")
         self.assertTrue(stale.parent.is_dir())
         self.assertNotIn("result_figures/result.png", (out / builder.GENERATED_MANIFEST).read_text(encoding="utf-8"))
+
+    def test_only_explicit_fonts_and_licenses_are_published_and_recorded(self):
+        frontend = self.root / "website"
+        (frontend / "fonts/private-draft.woff2").write_bytes(b"Unapproved working font")
+        (frontend / "fonts/private-notes.txt").write_text("Private", encoding="utf-8")
+        out = frontend / "dist"
+        (out / "fonts").mkdir(parents=True)
+        (out / "fonts/user-owned.woff2").write_bytes(b"User-owned output")
+        builder.build(self.root, out)
+        manifest = json.loads((out / builder.GENERATED_MANIFEST).read_text(encoding="utf-8"))
+        recorded = {record["path"] for record in manifest["files"] if record["path"].startswith("fonts/")}
+        self.assertEqual(recorded, set(builder.FONT_FILES))
+        for relative in builder.FONT_FILES:
+            self.assertEqual((out / relative).read_bytes(), (frontend / relative).read_bytes())
+        self.assertFalse((out / "fonts/private-draft.woff2").exists())
+        self.assertFalse((out / "fonts/private-notes.txt").exists())
+        self.assertEqual((out / "fonts/user-owned.woff2").read_bytes(), b"User-owned output")
+        self.assertIsNone(builder.generated_kind("fonts/private-draft.woff2"))
+
+    def test_missing_required_font_fails_before_output_writes(self):
+        (self.root / "website" / builder.FONT_FILES[0]).unlink()
+        out = self.root / "website" / "dist"
+        with self.assertRaisesRegex(builder.BuildError, "font source is missing"):
+            builder.build(self.root, out)
+        self.assertFalse(out.exists())
+
+    def test_font_source_symlink_is_rejected_when_supported(self):
+        source = self.root / "website" / builder.FONT_FILES[0]
+        source.unlink()
+        external = self.root / "private-font.woff2"
+        external.write_bytes(b"Private font")
+        try:
+            source.symlink_to(external)
+        except (OSError, NotImplementedError):
+            self.skipTest("File symlinks are unavailable on this system.")
+        with self.assertRaisesRegex(builder.BuildError, "symlink or junction"):
+            builder.build(self.root, self.root / "website" / "dist")
 
     def test_unindexed_paper_is_pruned_even_if_its_source_folder_still_exists(self):
         other = self.root / "papers" / "other"
