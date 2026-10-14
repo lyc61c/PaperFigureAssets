@@ -176,4 +176,4 @@ Use this block format inside the paper README:
 
 When used by `paper-asset-builder`, infer `{table_title}` from both the image content and filename. Prefer concise scientific table names such as `Main Results`, `Benchmark Comparison`, `Ablation Results`, `Dataset Statistics`, or a more specific title visible in the table.
 
-Write only the README block content. Do not create separate `.tex` files unless the user explicitly asks for them.
+Keep the README block as the canonical deliverable. Do not create standalone table source files inside the paper entry unless the user asks for them. Temporary `.tex` wrappers, PDFs, PNGs, and logs outside the gallery are allowed for render testing; follow `latex_render_testing.md` and report compilation separately from visual fidelity.
