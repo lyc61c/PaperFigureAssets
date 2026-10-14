@@ -27,6 +27,8 @@ function evaluate(body, bindings = {}) {
 }
 
 const hasSourceDefinition = ['hasCode', 'hasLocalPptx', 'hasSource'].map((name) => source.match(new RegExp('const ' + name + ' = [^\\n]+'))[0]).join('\n');
+const safeUrlDefinition = between('const safeUrl = ', 'const cleanText = ');
+const relatedDownloadsDefinition = between('function relatedDownloads(', 'function downloadLinks(');
 const filterDefinition = between('function filteredAssets(', 'function card(');
 const samplePapers = new Map([
   ['p1', {title: 'Paper One', topic: 'document parsing', venue: 'arXiv', year: '2026'}],
@@ -86,32 +88,49 @@ test('PPTX-only assets count as source without counting code plus PPTX twice', (
   assert.equal(context.onlyCode, 1);
 });
 
-test('PPTX-only cards display a PPTX badge rather than an empty SOURCE badge', () => {
-  const asset = {...sampleAssets[0], downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}]};
+test('method cards display only PPTX even when a legacy catalog has diagram code', () => {
+  const asset = {...sampleAssets[0], codes: [{language: 'svg', label: 'Editable Diagram Code', code: '<svg/>'}], downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}]};
   const context = evaluate(`${hasSourceDefinition}\n${between('function card(', 'function renderPapers(')}\nhtml = card(asset);`, {
     asset, papers: samplePapers, saved: new Set(), shortPaper: (paper) => paper.title,
     safeUrl: (url) => url, esc: String, icon: () => '', typeLabels: {method: 'METHOD'},
   });
   assert.match(context.html, /PPTX/);
   assert.match(context.html, /data-tab="code"/);
-  assert.doesNotMatch(context.html, / SOURCE/);
+  assert.doesNotMatch(context.html, / SOURCE|SVG|TikZ|Editable Diagram Code/);
 });
 
-test('PPTX-only dialog hides empty code blocks and describes the file check honestly', () => {
+test('method dialog presents the corresponding PPTX without asking for diagram code', () => {
   const heading = {textContent: ''}, description = {textContent: ''};
-  const nodes = new Map(['code-toolbar', 'source-code', 'source-bottom', 'copy-rebuild-prompt'].map((id) => [id, {hidden: false}]));
+  const nodes = new Map(['code-toolbar', 'source-code', 'source-bottom', 'copy-rebuild-prompt', 'tab-code'].map((id) => [id, {hidden: false}]));
   nodes.set('no-code', {hidden: true, querySelector: (selector) => selector === 'h3' ? heading : description});
-  const asset = {...sampleAssets[0], downloads: [{format: 'pptx', local: true}]};
-  evaluate(`${hasSourceDefinition}\n${between('function renderSourceState(', 'function openAsset(')}\nrenderSourceState(asset);`, {$: (id) => nodes.get(id), asset});
+  const asset = {...sampleAssets[0], codes: [{language: 'svg', code: '<svg/>'}], downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}]};
+  evaluate(`${hasSourceDefinition}\n${safeUrlDefinition}\n${relatedDownloadsDefinition}\n${between('function renderSourceState(', 'function openAsset(')}\nrenderSourceState(asset);`, {$: (id) => nodes.get(id), asset});
   assert.equal(nodes.get('source-code').hidden, true);
   assert.equal(nodes.get('code-toolbar').hidden, true);
   assert.equal(nodes.get('source-bottom').hidden, true);
   assert.equal(nodes.get('no-code').hidden, false);
   assert.equal(nodes.get('copy-rebuild-prompt').hidden, true);
+  assert.equal(nodes.get('tab-code').textContent, 'PPT 下载');
   assert.match(heading.textContent, /PPTX/);
-  assert.match(description.textContent, /暂无单独的文本代码/);
-  assert.match(description.textContent, /不代表视觉或原生对象可编辑性验收/);
-  assert.doesNotMatch(description.textContent, /暂无可编辑资产/);
+  assert.match(description.textContent, /重建范围、近似内容及验证记录/);
+  assert.doesNotMatch(description.textContent, /暂无.*代码|合并版|Editable Diagram Code/);
+});
+
+test('missing method PPTX is not replaced by legacy diagram code or claimed ready', () => {
+  const heading = {textContent: ''}, description = {textContent: ''};
+  const nodes = new Map(['code-toolbar', 'source-code', 'source-bottom', 'copy-rebuild-prompt', 'tab-code'].map((id) => [id, {hidden: false}]));
+  nodes.set('no-code', {hidden: true, querySelector: (selector) => selector === 'h3' ? heading : description});
+  const asset = {...sampleAssets[0], codes: [{language: 'svg', code: '<svg/>'}], downloads: [{format: 'pptx', url: 'javascript:alert(1)'}]};
+  const context = evaluate(`${hasSourceDefinition}\n${safeUrlDefinition}\n${relatedDownloadsDefinition}\n${between('function renderSourceState(', 'function openAsset(')}\nrenderSourceState(asset); source = hasSource(asset);`, {$: (id) => nodes.get(id), asset});
+  assert.equal(context.source, false);
+  assert.equal(nodes.get('source-code').hidden, true);
+  assert.equal(nodes.get('copy-rebuild-prompt').hidden, false);
+  assert.match(heading.textContent, /PPTX 尚未收录/);
+  assert.doesNotMatch(description.textContent, /合并版|代码/);
+  const selected = evaluate(`${between('function selectedCode()', 'function renderCode()')}\ncode = selectedCode();`, {
+    activeAsset: asset, $: () => ({value: '0'}),
+  });
+  assert.equal(selected.code, null);
 });
 
 test('local PPTX links download the actual filename; external sources remain external', () => {
@@ -129,14 +148,22 @@ test('local PPTX links download the actual filename; external sources remain ext
   assert.doesNotMatch(context.external, / download=/);
 });
 
-test('method dialog includes explicit combined paper deck without inferring per-asset source', () => {
-  const asset = {...sampleAssets[0], downloads: [{label: 'Image', url: 'assets/papers/p1/method_figures/m.png'}]};
+test('method downloads select one own safe PPTX, prefer local, and never substitute a combined deck', () => {
+  const asset = {...sampleAssets[0], downloads: [
+    {label: 'Image', url: 'assets/papers/p1/method_figures/m.png'},
+    {label: 'Unsafe', format: 'pptx', url: 'javascript:alert(1)'},
+    {label: 'External', format: 'pptx', local: false, url: 'https://example.com/m.pptx'},
+    {label: 'Local', format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'},
+    {label: 'Alternate local', format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m2.pptx'},
+  ]};
   const paper = {downloads: [{label: 'Method figures PPTX (combined)', url: 'assets/papers/p1/method_figures/method_figures_editable.pptx', format: 'pptx', local: true}]};
-  const context = evaluate(`${hasSourceDefinition}\n${between('function relatedDownloads(', 'function downloadLinks(')}\nrows = relatedDownloads(asset, paper); source = hasSource(asset); resultRows = relatedDownloads({...asset, type: 'result'}, paper);`, {asset, paper});
-  assert.equal(context.rows.length, 2);
-  assert.equal(context.rows[1].format, 'pptx');
-  assert.equal(context.source, false);
-  assert.equal(context.resultRows.length, 1);
+  const context = evaluate(`${safeUrlDefinition}\n${relatedDownloadsDefinition}\nrows = relatedDownloads(asset, paper); external = relatedDownloads({...asset, downloads: asset.downloads.slice(0, 3)}, paper); missing = relatedDownloads({...asset, downloads: asset.downloads.slice(0, 2)}, paper); resultRows = relatedDownloads({...asset, type: 'result'}, paper);`, {asset, paper});
+  assert.equal(context.rows.length, 1);
+  assert.equal(context.rows[0].label, 'Local');
+  assert.equal(context.external.length, 1);
+  assert.equal(context.external[0].label, 'External');
+  assert.equal(context.missing.length, 0);
+  assert.equal(context.resultRows.length, asset.downloads.length);
 });
 
 test('unsafe URL schemes and encoded relative traversal are rejected', () => {
@@ -394,7 +421,7 @@ test('opening the next image resets zoom and preserves the initial outside-dialo
   const doc = {activeElement: initialFocus};
   const zoomChanges = [];
   const asset = {...sampleAssets[0], src: 'assets/papers/p1/method_figures/m.png', palette: [], downloads: [], codes: []};
-  const context = evaluate(between('function openAsset(', 'function downloadCode()') + '\nopenAsset("a"); document.activeElement = nextButton; openAsset("b");', {
+  const context = evaluate(hasSourceDefinition + '\n' + between('function openAsset(', 'function downloadCode()') + '\nopenAsset("a"); document.activeElement = nextButton; openAsset("b");', {
     assetsById: new Map([['a', {...asset, id: 'a'}], ['b', {...asset, id: 'b'}]]), papers: samplePapers,
     activeAsset: null, previousFocus: null, document: doc, nextButton,
     $: get, cleanText: String, safeUrl: String, typeLabels: {method: 'METHOD'},
@@ -559,7 +586,7 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
       sourceLabel: `Figure ${index + 1}`, page: String(index + 1),
       src: `assets/papers/${paperId}/method_figures/figure-${index}.png`,
       readmeUrl: 'https://example.com/readme', paperUrl: papers.find((paper) => paper.id === paperId).paperUrl,
-      codes: index === 1 ? [{language: 'python', label: 'Python Source', code}] : [],
+      codes: index === 1 ? [{language: 'python', label: 'Python Source', code}] : index === 0 ? [{language: 'svg', label: 'Editable Diagram Code', code: '<svg/>'}] : [],
       palette: index === 0 ? [{hex: '#112233', role: 'Accent', color: 'Blue'}] : [],
       downloads: index === 0 ? [
         {label: 'Editable PPTX', url: 'assets/papers/older/method_figures/figure-0.pptx', format: 'pptx', filename: 'figure-0.pptx', local: true},
@@ -614,12 +641,19 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.match(h.find('#dialog-label').textContent, /^方法框架/);
   assert.equal(h.find('#dialog-position').textContent, '1 / 25'); assert.equal(h.find('#previous-asset').disabled, true);
   assert.equal(h.find('#source-code').hidden, true); assert.match(h.find('#no-code h3').textContent, /PPTX/);
+  assert.equal(h.find('#tab-code').textContent, 'PPT 下载');
+  assert.equal(h.find('#code-select').querySelectorAll('option').length, 0);
+  assert.equal(h.find('#source-code-text').textContent, '');
+  assert.equal(h.find('#download-code').disabled, true);
+  h.click('#download-code'); assert.equal(h.downloads.length, 0);
+  h.click('#copy-code'); await Promise.resolve(); assert.equal(h.clipboard.length, 0);
   const pptx = h.find('#extra-downloads a[download="figure-0.pptx"]');
-  assert.equal(pptx.getAttribute('target'), null); assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 2);
+  assert.equal(pptx.getAttribute('target'), null); assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 1);
   h.click('#zoom-image'); assert.equal(h.dialog.classList.contains('image-expanded'), true);
   h.click('#next-asset'); assert.equal(h.find('#dialog-position').textContent, '2 / 25');
   assert.equal(h.find('#zoom-image').getAttribute('aria-pressed'), 'false');
   assert.equal(h.find('#source-code').hidden, false); assert.equal(h.find('#source-code-text').textContent, code);
+  assert.equal(h.find('#tab-code').textContent, '重建源码');
   assert.equal(h.document.querySelector('#source-code-text img'), null); assert.equal(h.context.unsafeExecuted, false);
   h.click('#copy-code'); await Promise.resolve(); assert.equal(h.clipboard.at(-1), code);
   h.key('#source-code-text', 'ArrowRight'); assert.equal(h.find('#dialog-position').textContent, '2 / 25');
@@ -630,6 +664,14 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('#panel-palette').hidden, false); assert.equal(h.find('#source-code').hidden, true);
   for (let i = 3; i < 25; i++) h.click('#next-asset');
   assert.equal(h.find('#dialog-position').textContent, '25 / 25'); assert.equal(h.find('#next-asset').disabled, true);
+  assert.match(h.find('#no-code h3').textContent, /PPTX 尚未收录/);
+  assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 0);
+  assert.equal(h.find('#copy-rebuild-prompt').hidden, false);
+  assert.match(h.find('#dialog-reconstruction').textContent, /PPTX（若有）/);
+  h.click('#copy-rebuild-prompt'); await Promise.resolve();
+  assert.match(h.clipboard.at(-1), /对应本图的可编辑 PPTX/);
+  assert.match(h.clipboard.at(-1), /原生文字、形状和路径/);
+  assert.doesNotMatch(h.clipboard.at(-1), /补充可编辑重建源码/);
   assert.equal(h.cardIds().length, 18, 'Detail navigation must not alter list pagination');
   h.click('#close-dialog'); assert.equal(h.dialog.open, false);
   assert.equal(h.document.activeElement.dataset.open, 'a0', 'Closing returns to the original card, not the next button');
@@ -674,14 +716,25 @@ test('optional real catalog DOM smoke matches published counts and actual PPTX d
     assert.match(h.find('#result-count').textContent, new RegExp(`找到 ${catalog.stats.counts[type]} 项图表`));
   }
   h.click('#clear-filters');
-  const pptAsset = catalog.assets.find((asset) => asset.downloads?.some((row) => row.format === 'pptx' && row.local === true));
-  if (pptAsset) {
+  const methods = catalog.assets.filter((asset) => asset.type === 'method');
+  assert.equal(methods.length, catalog.stats.counts.method);
+  for (const pptAsset of methods) {
+    assert.deepEqual(pptAsset.codes, [], 'The catalog must not publish legacy method diagram code');
     h.change('#paper-select', pptAsset.paperId);
     const button = [...h.document.querySelectorAll('.asset-image-button')].find((node) => node.dataset.open === pptAsset.id);
     assert.ok(button, 'A real local-PPTX card must be reachable in its paper'); button.click();
     const download = pptAsset.downloads.find((row) => row.format === 'pptx' && row.local === true);
+    assert.ok(download, 'Each existing method figure must retain its own editable PPTX');
+    assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 1);
     const link = [...h.document.querySelectorAll('#extra-downloads a')].find((node) => node.getAttribute('href') === download.url);
     assert.ok(link, 'Actual local PPTX must be linked from its detail');
     assert.equal(link.getAttribute('download'), download.filename); assert.equal(link.getAttribute('target'), null);
+    assert.equal(h.find('#tab-code').textContent, 'PPT 下载');
+    assert.equal(h.find('#code-select').querySelectorAll('option').length, 0);
+    assert.equal(h.find('#source-code').hidden, true);
+    assert.equal(h.find('#source-code-text').textContent, '');
+    assert.equal(h.find('#download-code').disabled, true);
+    assert.doesNotMatch(h.find('#no-code').textContent, /暂无.*代码|合并版/);
+    h.click('#close-dialog');
   }
 });

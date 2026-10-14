@@ -83,7 +83,7 @@
     const title = cleanText(paper?.title || 'Paper');
     return title.split(':')[0].split('：')[0];
   };
-  const hasCode = (a) => Array.isArray(a.codes) && a.codes.length > 0;
+  const hasCode = (a) => a.type !== 'method' && Array.isArray(a.codes) && a.codes.length > 0;
   const hasLocalPptx = (a) => Array.isArray(a.downloads) && a.downloads.some((d) => d.format === 'pptx' && d.local === true);
   const hasSource = (a) => hasCode(a) || hasLocalPptx(a);
   function updateSaved() {
@@ -128,7 +128,7 @@
     const p = papers.get(a.paperId) || {};
     const assetType = ['method', 'result', 'table'].includes(a.type) ? a.type : 'figure';
     const source = hasSource(a);
-    const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(a.codes || []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
+    const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(hasCode(a) ? a.codes : []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
     const badge = source ? icon('code') + ' ' + esc(langs.join(' / ') || 'SOURCE') : icon('palette') + ' 配色 / 参考';
     const colors = [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
     const swatches = colors.length ? '<span class="palette-dots" aria-hidden="true">' + colors.map((hex) => '<i class="palette-dot" style="background:' + hex + '" title="' + hex.toUpperCase() + '"></i>').join('') + '</span>' : '';
@@ -292,7 +292,7 @@
       $('panel-' + button.dataset.detailTab).hidden = !selected;
     });
   }
-  function selectedCode() { return activeAsset?.codes?.[Number($('code-select').value)] || null; }
+  function selectedCode() { return activeAsset?.type === 'method' ? null : activeAsset?.codes?.[Number($('code-select').value)] || null; }
   function renderCode() {
     const code = selectedCode();
     $('source-code-text').textContent = code?.code || '';
@@ -304,7 +304,12 @@
     return [p.title, 'Paper: ' + p.paperUrl, 'Figure: ' + (a.sourceLabel || a.title), 'Page: ' + (a.page || 'Not documented'), 'Authors: ' + cleanText(p.authors || 'Not documented'), 'License: ' + cleanText(p.license || 'Not documented'), 'Entry: ' + a.readmeUrl].join('\n');
   }
   function relatedDownloads(a, p = {}) {
-    const rows = [...(a.downloads || []), ...(a.type === 'method' ? p.downloads || [] : [])];
+    const rows = Array.isArray(a.downloads) ? a.downloads : [];
+    if (a.type === 'method') {
+      const pptx = rows.filter((row) => row.format === 'pptx' && safeUrl(row.url) !== '#');
+      const ownDeck = pptx.find((row) => row.local === true && safeUrl(row.url).startsWith('assets/papers/')) || pptx[0];
+      return ownDeck ? [ownDeck] : [];
+    }
     const seen = new Set();
     return rows.filter((row) => { if (seen.has(row.url)) return false; seen.add(row.url); return true; });
   }
@@ -317,11 +322,15 @@
     }).join('');
   }
   function renderSourceState(a) {
-    const code = hasCode(a), pptx = hasLocalPptx(a);
+    const method = a.type === 'method';
+    const code = hasCode(a), pptx = method ? relatedDownloads(a).length > 0 : hasLocalPptx(a);
+    $('tab-code').textContent = method ? 'PPT 下载' : '重建源码';
     ['code-toolbar', 'source-code', 'source-bottom'].forEach((id) => { $(id).hidden = !code; });
     $('no-code').hidden = code;
-    $('no-code').querySelector('h3').textContent = pptx ? 'PPTX 已就位，可直接下载' : '先留下配色，也可以继续重建';
-    $('no-code').querySelector('p').textContent = pptx ? '本图已收录本地 PPTX，暂无单独的文本代码。文件格式检查不代表视觉或原生对象可编辑性验收，请结合条目的重建与 QA 说明核对。' : '本图暂未收录单独的代码或 PPTX。可查看下方合并版（若有）和配色参考；不把截图包装成可复现重建。';
+    $('no-code').querySelector('h3').textContent = pptx ? '本图 PPTX，可直接下载' : method ? '本图的 PPTX 尚未收录' : '先留下配色，也可以继续重建';
+    $('no-code').querySelector('p').textContent = method
+      ? pptx ? '下载对应本图的 PPTX，在 PowerPoint 中继续编辑。重建范围、近似内容及验证记录见论文条目。' : '当前没有本图对应的 PPTX。可以先查看原图与配色，或复制指令补充可编辑重建。'
+      : pptx ? '本图已收录本地 PPTX。文件格式检查不代表视觉或原生对象可编辑性验收，请结合条目的重建与 QA 说明核对。' : '本图暂未收录单独的代码或 PPTX。可先查看原图和配色参考，或继续补充重建资源。';
     $('copy-rebuild-prompt').hidden = pptx;
   }
   function openAsset(id, tab = 'code') {
@@ -335,10 +344,13 @@
     $('dialog-paper').textContent = cleanText(p.title) + ' · ' + (p.venue || '') + ' ' + (p.year || '');
     $('dialog-image').src = safeUrl(a.src); $('dialog-image').alt = a.title;
     $('original-link').href = safeUrl(a.src); $('dialog-readme').href = safeUrl(a.readmeUrl); $('paper-link').href = safeUrl(p.paperUrl);
-    $('dialog-reconstruction').textContent = a.approximate ? '重建提示：该条目包含估读数据或简化结构。请将原图视为事实来源，源码视为可编辑参考。' : '原图来自论文；源码（若有）为条目中的重建版本。请结合原论文和完整条目核对。';
+    $('dialog-reconstruction').textContent = a.type === 'method'
+      ? '原图来自论文；PPTX（若有）的具体编辑能力、近似内容与验证记录请查看完整条目。'
+      : a.approximate ? '重建提示：该条目包含估读数据或简化结构。请将原图视为事实来源，源码视为可编辑参考。' : '原图来自论文；源码（若有）为条目中的重建版本。请结合原论文和完整条目核对。';
     renderSourceState(a);
-    $('code-select').innerHTML = (a.codes || []).map((c, i) => '<option value="' + i + '">' + esc(c.label || c.language) + '</option>').join('');
-    const first = (a.codes || []).findIndex((c) => !/required packages/i.test(c.label));
+    const codes = hasCode(a) ? a.codes : [];
+    $('code-select').innerHTML = codes.map((c, i) => '<option value="' + i + '">' + esc(c.label || c.language) + '</option>').join('');
+    const first = codes.findIndex((c) => !/required packages/i.test(c.label));
     if (first >= 0) $('code-select').value = String(first);
     renderCode(); updateDialogSave();
     const palette = (a.palette || []).filter((row) => /^#[0-9a-f]{6}$/i.test(row.hex || ''));
@@ -442,12 +454,18 @@
   $('copy-code').addEventListener('click', () => selectedCode() && copy(selectedCode().code));
   $('download-code').addEventListener('click', downloadCode);
   $('copy-citation').addEventListener('click', () => activeAsset && copy(citationText(activeAsset, papers.get(activeAsset.paperId))));
-  $('copy-rebuild-prompt').addEventListener('click', () => activeAsset && copy('$paper-asset-builder 请为 ' + papers.get(activeAsset.paperId).title + ' 的 ' + activeAsset.title + ' 补充可编辑重建源码。先读取已有条目 ' + activeAsset.readmeUrl + '，仅处理这一张；说明估读、简化或不可重建部分，不虚构原始数据。'));
+  $('copy-rebuild-prompt').addEventListener('click', () => {
+    if (!activeAsset) return;
+    const deliverable = activeAsset.type === 'method'
+      ? '补充对应本图的可编辑 PPTX。使用原生文字、形状和路径重建，导出后渲染核对；不添加 SVG/TikZ 代码。'
+      : '补充可编辑重建源码。';
+    copy('$paper-asset-builder 请为 ' + papers.get(activeAsset.paperId).title + ' 的 ' + activeAsset.title + ' ' + deliverable + '先读取已有条目 ' + activeAsset.readmeUrl + '，仅处理这一张；说明估读、简化或不可重建部分，不虚构原始数据。');
+  });
   $('export-saved').addEventListener('click', () => download(JSON.stringify({library: catalog.site.name, note: 'Browser-local bookmarks; original image rights remain with their authors.', assets: assets.filter((a) => saved.has(a.id)).map((a) => ({id: a.id, title: a.title, paper: papers.get(a.paperId).title, paperUrl: a.paperUrl, readmeUrl: a.readmeUrl}))}, null, 2), 'figarium-inspiration.json', 'application/json'));
   $('make-prompt').addEventListener('click', () => {
     const paper = $('paper-input').value.trim();
     if (!paper) { toast('先写下论文名称、链接或本地 PDF 路径。'); $('paper-input').focus(); return; }
-    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 Figarium 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
+    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实的本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。方法图默认只提供对应 PPTX，不添加 Editable Diagram Code 或 SVG/TikZ 代码；网页每张方法图只显示一个对应 PPTX 下载入口。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 Figarium 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
     $('generated-prompt').hidden = false;
   });
   $('download-config').addEventListener('click', () => {

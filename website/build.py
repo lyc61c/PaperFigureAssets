@@ -404,7 +404,9 @@ def parse_paper(entry: dict, site: dict) -> tuple[dict, list[dict], list[tuple[P
             "page": int(page_match.group(1)) if page_match else None,
             "approximate": bool(re.search(r"\bapproximate(?:ly)?\b|\bestimat(?:ed|ion|ing)\b|\b(?:structural|schematic) reconstruction\b|\bsimplif(?:ied|ication)\b|近似|估读|简化", prose, re.I)),
             "validation": plain_text(metadata.get("latex validation", NOT_DOCUMENTED)) if kind == "table" else NOT_DOCUMENTED,
-            "codes": code_examples(block), "palette": palette_colors(prose),
+            # Method figures are delivered as their own PPTX. Keep legacy
+            # diagram snippets in the canonical README, not the gallery UI.
+            "codes": [] if kind == "method" else code_examples(block), "palette": palette_colors(prose),
             "downloads": downloads,
             "readmeUrl": github_readme(site["repositoryUrl"], paper_id, heading_anchor(title)),
             "paperUrl": paper["paperUrl"],

@@ -422,13 +422,14 @@ class CatalogTests(unittest.TestCase):
         self.assertNotIn(".pptx", builder.IMAGE_SUFFIXES)
         self.assertEqual(builder.generated_kind(deck["url"]), "presentation")
 
-    def test_local_pptx_and_text_code_count_as_one_source_bearing_asset(self):
+    def test_method_pptx_counts_as_source_without_exporting_legacy_diagram_code(self):
         self.link_pptx()
         self.replace_paper("### Color Palette", '### SVG Source\n```svg\n<svg xmlns="http://www.w3.org/2000/svg"/>\n```\n### Color Palette')
         catalog, _ = builder.make_catalog(self.root)
         self.assertEqual(catalog["stats"]["sourceCount"], 3)
         self.assertEqual(catalog["stats"]["pptxCount"], 1)
-        self.assertTrue(catalog["assets"][0]["codes"])
+        self.assertEqual(catalog["assets"][0]["codes"], [])
+        self.assertIn("<svg", (self.paper / "README.md").read_text(encoding="utf-8"))
 
     def test_combined_pptx_is_explicit_paper_download_not_implicit_asset_coverage(self):
         source = self.link_pptx("method_figures_editable.pptx", combined=True)
@@ -514,7 +515,7 @@ class CatalogTests(unittest.TestCase):
         with self.assertRaisesRegex(builder.BuildError, "symlink or junction"):
             builder.pptx_downloads("[Deck](method_figures/alias.pptx)", self.paper, "approved")
 
-    def test_svg_and_tikz_recipes_are_copied_as_text(self):
+    def test_legacy_method_code_is_not_published_or_counted_as_a_ppt_resource(self):
         self.replace_paper("### Color Palette", '''### SVG Source
 ```svg
 <svg xmlns="http://www.w3.org/2000/svg"><text>Recipe</text></svg>
@@ -525,8 +526,11 @@ class CatalogTests(unittest.TestCase):
 ```
 ### Color Palette''')
         catalog, _ = builder.make_catalog(self.root)
-        self.assertEqual([code["language"] for code in catalog["assets"][0]["codes"]], ["svg", "tikz"])
-        self.assertEqual(catalog["stats"]["sourceCount"], 3)
+        self.assertEqual(catalog["assets"][0]["codes"], [])
+        self.assertEqual(catalog["stats"]["sourceCount"], 2)
+        self.assertIn("<svg", (self.paper / "README.md").read_text(encoding="utf-8"))
+        self.assertEqual(catalog["assets"][1]["codes"][0]["language"], "python")
+        self.assertEqual(catalog["assets"][2]["codes"][0]["language"], "latex")
         self.assertNotIn("<svg", builder.javascript_payload(catalog))
 
     def test_duplicate_index_entry_is_rejected(self):

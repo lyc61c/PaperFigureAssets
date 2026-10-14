@@ -169,8 +169,9 @@ For each method figure:
 - infer a color palette from the actual image;
 - use swatch-only icons in the `Swatch` column;
 - summarize semantic color roles from the figure content.
-- add a self-contained editable SVG or TikZ reconstruction directly in a `### Editable Reconstruction` subsection when the figure's structure can be meaningfully recreated;
-- label it as a reconstruction, not author-provided source, and state whether it reproduces the full diagram or only a schematic subset;
+- deliver the editable PPTX as the default reconstruction resource; do not add an `Editable Diagram Code` / `Editable Reconstruction` subsection or SVG/TikZ code unless the user explicitly requests it;
+- if supplemental code is requested, label it as a reconstruction, not author-provided source, and state whether it reproduces the full diagram or only a schematic subset;
+- in the gallery, show one download for the current figure's own PPTX. Do not append the paper's combined deck to every figure; keep any combined-deck link at paper level. Preserve existing README code unless its removal is requested;
 - preserve all panels, labels, arrows, equations, and local illustrations in the PPT reconstruction. Photos/screenshots may be separately movable cropped image objects; identify these raster exceptions explicitly. A simplified SVG/TikZ schematic does not fulfill the full PPT deliverable. Preserve preview/palette and report unresolved details rather than disguising them as complete.
 
 ### Result Figures
@@ -271,7 +272,7 @@ Before finishing, verify:
 - present method figures have color palette tables;
 - unless explicitly skipped, every selected method figure has a PPTX reconstruction status, with verified individual and combined decks linked; native-object inspection and rendering of the actual final PPTX are both required, and incomplete items are not reported complete;
 - final PPTX matches the approved image's complete visual content without a full-image/full-SVG backdrop; any independently editable raster crops, unbound freeform arrows, font substitutions, and application-compatibility limitations are disclosed;
-- present method figures have a clearly labeled SVG/TikZ reconstruction or an honest limitation/scope note; do not describe legacy palette-only entries as code-complete;
+- method figures use PPTX by default; SVG/TikZ code is added only on explicit request, and the gallery has at most one current-figure PPTX download with no combined-deck fallback;
 - present numerical result figures have fenced `python` code blocks; qualitative/unrecoverable figures have an explicit reconstruction-scope note rather than invented data;
 - present tables have fenced `latex` source and required packages;
 - LaTeX test outcomes are reported accurately, with successful compilation and visual inspection distinguished from skipped, unavailable, and failed checks;

@@ -64,7 +64,7 @@ Claude Code 安装后用 `/paper-asset-builder` 调用。正常收图和 PPT 重
 
 整页 PNG 或完整 SVG 嵌入不是原生可编辑重建。交付前需实际渲染最终 PPTX，与原图做视觉核对，并检查文字/形状/连线/图片对象结构；不能仅凭源码预览或文件已生成标记 `complete`。每张方法图都应报告实际生成和验证状态、未完成元素与 raster 局限。
 
-源脚本、对象清单和 QA 产物保留在隔离任务目录，默认公开条目只新增 PPT、批准图片与 README。重建源码可写入 README，单独源文件按用户请求导出。详见[方法图交付说明](docs/GETTING_STARTED.md#方法图自动继续到可编辑-ppt)。
+源脚本、对象清单和 QA 产物保留在隔离任务目录，默认公开条目只新增 PPT、批准图片与 README。方法图默认只提供可编辑 PPT，不额外生成 Editable Diagram Code / SVG / TikZ；网页每张方法图只保留对应单图 PPT 的一个下载入口，合并版保留在论文级 README 中。实验图与表格的重建源码仍写入 README，补充方法图代码及单独源文件按用户请求提供。详见[方法图交付说明](docs/GETTING_STARTED.md#方法图自动继续到可编辑-ppt)。
 
 ## 本地浏览与个性化
 
