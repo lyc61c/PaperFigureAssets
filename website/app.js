@@ -46,7 +46,7 @@
   const assets = [...catalog.assets].sort((a, b) => rank(a.paperId) - rank(b.paperId) || (Number(papers.get(b.paperId)?.year) || 0) - (Number(papers.get(a.paperId)?.year) || 0));
   const typeNames = {method: '方法框架', result: '结果分析', table: '论文表格'};
   const typeLabels = {method: 'METHOD', result: 'RESULT', table: 'TABLE'};
-  const state = {view: 'explore', type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, limit: 18};
+  const state = {view: 'explore', type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, sort: 'curated', density: 'comfortable', limit: 18};
   const storageKey = 'figarium:saved:v1:' + encodeURIComponent(catalog.site.repositoryUrl);
   let saved;
   try { saved = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]').filter((id) => assetsById.has(id))); }
@@ -102,10 +102,11 @@
     });
     if (activeAsset) updateDialogSave();
     if (state.view === 'saved') render();
+    if (activeAsset) updateDialogNavigation();
   }
   function filteredAssets(ignoreType = false) {
     const query = state.query.trim().toLocaleLowerCase();
-    return assets.filter((a) => {
+    const matches = assets.filter((a) => {
       const p = papers.get(a.paperId) || {};
       return (state.view !== 'saved' || saved.has(a.id)) &&
         (ignoreType || state.type === 'all' || a.type === state.type) &&
@@ -114,13 +115,23 @@
         (!state.sourceOnly || hasSource(a)) &&
         (!query || [a.title, a.filename, a.sourceLabel, p.title, p.topic, p.venue].join(' ').toLocaleLowerCase().includes(query));
     });
+    if (!['newest', 'title'].includes(state.sort)) return matches;
+    const order = new Map(assets.map((asset, index) => [asset.id, index]));
+    return matches.sort((a, b) => {
+      const difference = state.sort === 'newest'
+        ? (Number(papers.get(b.paperId)?.year) || 0) - (Number(papers.get(a.paperId)?.year) || 0)
+        : String(a.title || '').localeCompare(String(b.title || ''), 'zh-CN', {sensitivity: 'base', numeric: true});
+      return difference || order.get(a.id) - order.get(b.id);
+    });
   }
   function card(a) {
     const p = papers.get(a.paperId) || {};
     const source = hasSource(a);
     const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(a.codes || []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
     const badge = source ? icon('code') + ' ' + esc(langs.join(' / ') || 'SOURCE') : icon('palette') + ' 配色 / 参考';
-    return '<article class="asset-card"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><span class="asset-type ' + esc(a.type) + '">' + typeLabels[a.type] + '</span><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
+    const colors = [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
+    const swatches = colors.length ? '<span class="palette-dots" aria-hidden="true">' + colors.map((hex) => '<i class="palette-dot" style="background:' + hex + '" title="' + hex.toUpperCase() + '"></i>').join('') + '</span>' : '';
+    return '<article class="asset-card"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + esc(a.type) + '">' + esc(typeLabels[a.type] || 'FIGURE') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
   }
   function renderPapers() {
     const sorted = [...catalog.papers].sort((a, b) => rank(a.id) - rank(b.id) || Number(b.year) - Number(a.year));
@@ -141,9 +152,10 @@
     $('asset-grid').hidden = isPapers;
     $('paper-list').hidden = !isPapers;
     $('export-saved').hidden = state.view !== 'saved';
+    syncCollectionControls();
     $('collection-eyebrow').textContent = isPapers ? 'THE PAPER ARCHIVE' : state.view === 'saved' ? 'YOUR POCKET COLLECTION' : 'THE COLLECTION';
-    $('collection-heading').textContent = isPapers ? '每篇论文，都有一份视觉档案。' : state.view === 'saved' ? '把灵感放在手边。' : '好图，也有好用的来路。';
-    $('collection-aside').textContent = state.view === 'saved' ? '只保存在当前浏览器，随时导出清单。' : isPapers ? '从一篇论文出发，看到它的视觉表达。' : '留住图的美感，也留住再次创造的可能。';
+    $('collection-heading').textContent = isPapers ? '论文索引' : state.view === 'saved' ? '已保存' : '图表收藏';
+    $('collection-aside').textContent = state.view === 'saved' ? '本机收藏，可导出清单。' : isPapers ? '按论文浏览全部图表。' : '查看原图，带走可编辑资源。';
     document.querySelectorAll('.nav-item[data-view]').forEach((el) => {
       const active = el.dataset.view === state.view;
       el.classList.toggle('active', active);
@@ -162,8 +174,6 @@
     document.querySelectorAll('[data-type]').forEach((el) => {
       const active = el.dataset.type === state.type; el.classList.toggle('active', active); el.setAttribute('aria-pressed', String(active));
     });
-    $('paper-filter-chip').hidden = !state.paperId;
-    $('paper-filter-chip').textContent = state.paperId ? shortPaper(papers.get(state.paperId)) + ' × 清除论文筛选' : '';
     $('asset-grid').innerHTML = matches.slice(0, state.limit).map(card).join('');
     $('result-count').textContent = '找到 ' + matches.length + ' 项图表' + (state.type === 'all' ? '' : ' · ' + typeNames[state.type]);
     $('empty-state').hidden = matches.length !== 0;
@@ -177,23 +187,88 @@
   function resetFilters() {
     Object.assign(state, {type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, limit: 18});
     $('search').value = ''; $('year').value = 'all'; $('source-only').checked = false;
+    syncCollectionControls();
+  }
+  function hasActiveFilters(filters = state) {
+    return Boolean(filters.type !== 'all' || filters.query.trim() || filters.year !== 'all' || filters.paperId || filters.sourceOnly);
+  }
+  function setDensity(density) {
+    if (!['comfortable', 'compact'].includes(density)) return false;
+    state.density = density;
+    $('asset-grid').dataset.density = density;
+    document.querySelectorAll('button[data-density]').forEach((button) => {
+      const selected = button.dataset.density === density;
+      button.setAttribute('aria-pressed', String(selected));
+      button.classList.toggle('active', selected);
+    });
+    return true;
+  }
+  function syncCollectionControls() {
+    $('paper-select').value = state.paperId || 'all';
+    $('sort').value = state.sort;
+    $('paper-filter-chip').hidden = !state.paperId;
+    $('paper-filter-chip').textContent = state.paperId ? shortPaper(papers.get(state.paperId)) + ' × 清除论文筛选' : '';
+    if ($('clear-filters')) $('clear-filters').hidden = !hasActiveFilters();
+    setDensity(state.density);
   }
   function updateDrawer() {
-    const mobile = window.matchMedia ? window.matchMedia('(max-width:640px)').matches : window.innerWidth <= 640;
-    const open = $('sidebar').classList.contains('open');
+    const mobile = window.matchMedia ? window.matchMedia('(max-width:760px)').matches : window.innerWidth <= 760;
+    if (!mobile) $('sidebar').classList.remove('open');
+    const open = mobile && $('sidebar').classList.contains('open');
     $('sidebar').inert = mobile && !open;
     $('main').inert = mobile && open;
+    $('menu-backdrop').hidden = !open;
+    document.body.classList.toggle('menu-open', open);
     $('mobile-menu').setAttribute('aria-controls', 'sidebar');
     $('mobile-menu').setAttribute('aria-expanded', String(open));
     $('mobile-menu').setAttribute('aria-label', open ? '收起导航' : '展开导航');
+    if (mobile && !open && $('sidebar').contains(document.activeElement)) $('mobile-menu').focus();
+  }
+  function closeDrawer(restoreFocus = false) {
+    $('sidebar').classList.remove('open');
+    updateDrawer();
+    if (restoreFocus) $('mobile-menu').focus();
   }
   function changeView(view, scroll = true) {
     if (!['explore', 'saved', 'papers', 'workflow', 'guide'].includes(view)) return;
     state.view = view; state.limit = 18;
-    $('sidebar').classList.remove('open'); $('mobile-menu').setAttribute('aria-expanded', 'false');
-    updateDrawer();
+    closeDrawer($('sidebar').classList.contains('open'));
     history.replaceState(null, '', '#' + view); render();
     if (scroll) window.scrollTo({top: 0, behavior: 'instant'});
+  }
+  function dialogNavigation(rows, id) {
+    const index = rows.findIndex((asset) => asset.id === id);
+    return {index, total: rows.length, previousId: index > 0 ? rows[index - 1].id : null, nextId: index >= 0 && index < rows.length - 1 ? rows[index + 1].id : null};
+  }
+  function updateDialogNavigation() {
+    const navigation = dialogNavigation(filteredAssets(), activeAsset?.id);
+    $('previous-asset').disabled = !navigation.previousId;
+    $('next-asset').disabled = !navigation.nextId;
+    $('dialog-position').textContent = (navigation.index >= 0 ? navigation.index + 1 : '—') + ' / ' + navigation.total;
+  }
+  function navigateAsset(direction) {
+    if (!activeAsset || ![-1, 1].includes(direction)) return false;
+    const navigation = dialogNavigation(filteredAssets(), activeAsset.id);
+    const id = direction < 0 ? navigation.previousId : navigation.nextId;
+    if (!id) return false;
+    const tab = document.querySelector('[data-detail-tab][aria-selected="true"]')?.dataset.detailTab || 'code';
+    openAsset(id, tab);
+    return true;
+  }
+  function shouldNavigateAsset(event, dialogOpen) {
+    if (!dialogOpen || event.defaultPrevented || event.isComposing || !['ArrowLeft', 'ArrowRight'].includes(event.key) || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return false;
+    if (event.target?.isContentEditable) return false;
+    return !event.target?.closest?.('input, textarea, select, pre, code, [contenteditable]:not([contenteditable="false"]), [role="tab"], [data-detail-tab]');
+  }
+  function setImageExpanded(expanded) {
+    $('asset-dialog').classList.toggle('image-expanded', Boolean(expanded));
+    $('zoom-image').setAttribute('aria-pressed', String(Boolean(expanded)));
+    $('zoom-image').setAttribute('aria-label', expanded ? '收起图像' : '放大图像');
+  }
+  function handleDialogClose() {
+    activeAsset = null; setImageExpanded(false); updateDialogNavigation();
+    const origin = previousFocus?.isConnected && !$('asset-dialog').contains(previousFocus) && !previousFocus.closest('[inert]') ? previousFocus : $('main');
+    origin.focus(); previousFocus = null;
   }
   function updateDialogSave() {
     const selected = saved.has(activeAsset.id);
@@ -242,7 +317,9 @@
   function openAsset(id, tab = 'code') {
     const a = assetsById.get(id); if (!a) return;
     const p = papers.get(a.paperId) || {};
-    activeAsset = a; previousFocus = document.activeElement;
+    if (!$('asset-dialog').open) previousFocus = document.activeElement;
+    activeAsset = a;
+    setImageExpanded(false);
     $('dialog-label').textContent = typeLabels[a.type] + ' / FIELD NOTE';
     $('dialog-title').textContent = a.title;
     $('dialog-paper').textContent = cleanText(p.title) + ' · ' + (p.venue || '') + ' ' + (p.year || '');
@@ -261,6 +338,7 @@
     $('citation-list').innerHTML = fields.map(([key, value]) => '<dt>' + esc(key) + '</dt><dd>' + esc(cleanText(value)) + '</dd>').join('');
     $('extra-downloads').innerHTML = downloadLinks(relatedDownloads(a, p));
     setTab(tab);
+    updateDialogNavigation();
     if (!$('asset-dialog').open) $('asset-dialog').showModal();
   }
   function downloadCode() {
@@ -295,32 +373,26 @@
     document.querySelectorAll('[data-brand-name]').forEach((el) => { el.textContent = site.name; });
     document.querySelectorAll('[data-brand-chinese]').forEach((el) => { el.textContent = site.chineseName; });
     document.querySelector('.brand').setAttribute('aria-label', site.name + ' ' + site.chineseName + ' 首页');
-    const heroEyebrow = document.querySelector('.hero .eyebrow');
-    const heroLeaf = document.createElement('span'); heroLeaf.className = 'tiny-leaf'; heroLeaf.textContent = '✳';
-    heroEyebrow.replaceChildren(heroLeaf, document.createTextNode('THE ' + site.name.toUpperCase() + ' / 由你策展的论文图库'));
+    document.querySelector('.hero .eyebrow').textContent = site.name.toUpperCase() + ' / 由你策展的论文图库';
     document.querySelectorAll('.repo-link').forEach((el) => { el.href = repository; });
     document.querySelectorAll('.guide-doc-link').forEach((el) => { el.href = 'guides/GETTING_STARTED.md'; });
     document.querySelectorAll('.customize-doc-link').forEach((el) => { el.href = 'guides/CUSTOMIZATION.md'; });
     $('fork-link').href = repository + '/fork';
     $('clone-code').textContent = 'git clone ' + repository + '.git Figarium';
     $('install-prompt').textContent = '$skill-installer 请从 ' + repository + ' 的 paper-asset-builder 目录安装 skill。';
-    $('stat-papers').textContent = catalog.stats.paperCount; $('stat-assets').textContent = catalog.stats.assetCount; $('stat-sources').textContent = catalog.stats.sourceCount;
+    $('stat-papers').textContent = catalog.stats.paperCount; $('stat-assets').textContent = catalog.stats.assetCount;
+    $('stat-pptx').textContent = catalog.stats.pptxCount ?? assets.filter(hasLocalPptx).length;
     $('nav-paper-count').textContent = catalog.stats.paperCount; $('nav-asset-count').textContent = catalog.stats.assetCount;
     updateSaved();
     [...new Set(catalog.papers.map((p) => String(p.year)))].sort().reverse().forEach((year) => {
       const option = document.createElement('option'); option.value = year; option.textContent = year; $('year').append(option);
     });
-    const specimen = assets.find((a) => a.type === 'method' && a.paperId === featured[0] && hasSource(a)) || assets.find((a) => a.type === 'method');
-    if (specimen) {
-      $('hero-image').src = safeUrl(specimen.src); $('hero-image').alt = specimen.title;
-      $('hero-paper-name').textContent = shortPaper(papers.get(specimen.paperId)) + ' / ' + (specimen.sourceLabel || 'Method');
-      $('hero-specimen').dataset.open = specimen.id;
-    }
-    const recipe = assets.find((a) => a.type === 'result' && a.codes?.some((c) => c.language === 'python'));
-    if (recipe) {
-      const lines = recipe.codes.find((c) => c.language === 'python').code.split('\n').filter((line) => line.trim());
-      $('hero-code-preview').textContent = '# ' + shortPaper(papers.get(recipe.paperId)) + '\n' + lines.slice(0, 5).join('\n');
-    } else { $('hero-code-preview').textContent = '# the recipe stays.\n# Browse a figure to find its source.'; }
+    const paperSelect = $('paper-select');
+    paperSelect.replaceChildren();
+    const allPapers = document.createElement('option'); allPapers.value = 'all'; allPapers.textContent = '全部论文'; paperSelect.append(allPapers);
+    [...catalog.papers].sort((a, b) => shortPaper(a).localeCompare(shortPaper(b), 'zh-CN', {numeric: true})).forEach((paper) => {
+      const option = document.createElement('option'); option.value = paper.id; option.textContent = shortPaper(paper); paperSelect.append(option);
+    });
     const hash = location.hash.slice(1);
     changeView(['explore','saved','papers','workflow','guide'].includes(hash) ? hash : 'explore', false);
   }
@@ -329,6 +401,7 @@
     const save = event.target.closest('[data-save]'); if (save) { toggleSaved(save.dataset.save); return; }
     const open = event.target.closest('[data-open]'); if (open) { openAsset(open.dataset.open, open.dataset.tab || 'code'); return; }
     const type = event.target.closest('[data-type]'); if (type) { state.type = type.dataset.type; state.limit = 18; render(); return; }
+    const density = event.target.closest('button[data-density]'); if (density) { setDensity(density.dataset.density); return; }
     const paper = event.target.closest('[data-paper]'); if (paper) { resetFilters(); state.paperId = paper.dataset.paper; changeView('explore', false); $('collection').scrollIntoView(); return; }
     const target = event.target.closest('[data-copy-target]'); if (target) { const node = $(target.dataset.copyTarget); copy(node.value ?? node.textContent); return; }
     const tab = event.target.closest('[data-detail-tab]'); if (tab) { setTab(tab.dataset.detailTab); return; }
@@ -336,14 +409,24 @@
   });
   $('search').addEventListener('input', (e) => { state.query = e.target.value; state.limit = 18; render(); });
   $('year').addEventListener('change', (e) => { state.year = e.target.value; state.limit = 18; render(); });
+  $('paper-select').addEventListener('change', (e) => { state.paperId = papers.has(e.target.value) ? e.target.value : null; state.limit = 18; render(); });
+  $('sort').addEventListener('change', (e) => { state.sort = ['curated', 'newest', 'title'].includes(e.target.value) ? e.target.value : 'curated'; state.limit = 18; render(); if (activeAsset) updateDialogNavigation(); });
   $('source-only').addEventListener('change', (e) => { state.sourceOnly = e.target.checked; state.limit = 18; render(); });
   $('paper-filter-chip').addEventListener('click', () => { state.paperId = null; state.limit = 18; render(); });
   $('load-more').addEventListener('click', () => { state.limit += 18; render(); });
   $('reset-filters').addEventListener('click', () => { resetFilters(); if (state.view === 'saved' && saved.size === 0) changeView('explore'); else render(); });
-  $('mobile-menu').addEventListener('click', () => { $('sidebar').classList.toggle('open'); updateDrawer(); });
+  $('clear-filters')?.addEventListener('click', () => { resetFilters(); render(); });
+  $('mobile-menu').addEventListener('click', () => {
+    $('sidebar').classList.toggle('open'); updateDrawer();
+    if ($('sidebar').classList.contains('open')) ($('sidebar').querySelector('.nav-item[aria-current="page"]') || $('sidebar').querySelector('.nav-item'))?.focus();
+  });
+  $('menu-backdrop').addEventListener('click', () => closeDrawer(true));
   $('close-dialog').addEventListener('click', () => $('asset-dialog').close());
   $('asset-dialog').addEventListener('click', (e) => { if (e.target === $('asset-dialog')) { const rect = e.target.getBoundingClientRect(); if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) e.target.close(); } });
-  $('asset-dialog').addEventListener('close', () => { activeAsset = null; (previousFocus?.isConnected ? previousFocus : $('main')).focus(); });
+  $('asset-dialog').addEventListener('close', handleDialogClose);
+  $('previous-asset').addEventListener('click', () => navigateAsset(-1));
+  $('next-asset').addEventListener('click', () => navigateAsset(1));
+  $('zoom-image').addEventListener('click', () => setImageExpanded(!$('asset-dialog').classList.contains('image-expanded')));
   $('dialog-save').addEventListener('click', () => activeAsset && toggleSaved(activeAsset.id));
   $('code-select').addEventListener('change', renderCode);
   $('copy-code').addEventListener('click', () => selectedCode() && copy(selectedCode().code));
@@ -354,7 +437,7 @@
   $('make-prompt').addEventListener('click', () => {
     const paper = $('paper-input').value.trim();
     if (!paper) { toast('先写下论文名称、链接或本地 PDF 路径。'); $('paper-input').focus(); return; }
-    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片，生成含重建代码和限制说明的论文 README、更新主索引，并重建 Figarium 网页（若存在 website/build.py）。在线 LaTeX 测试须先得到我的授权。';
+    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 Figarium 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
     $('generated-prompt').hidden = false;
   });
   $('download-config').addEventListener('click', () => {
@@ -364,8 +447,8 @@
     toast('把配置放到 website/figarium.config.json 后重新构建。');
   });
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && $('sidebar').classList.contains('open')) {
-      $('sidebar').classList.remove('open'); updateDrawer(); $('mobile-menu').focus();
+    if (e.key === 'Escape' && !$('asset-dialog').open && $('sidebar').classList.contains('open')) {
+      e.preventDefault(); closeDrawer(true); return;
     }
     if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(e.target.tagName) && !$('asset-dialog').open) {
       e.preventDefault(); if (!['explore', 'saved'].includes(state.view)) changeView('explore', false); $('search').focus(); $('collection').scrollIntoView();
@@ -375,7 +458,9 @@
       e.preventDefault(); const tabs = [...document.querySelectorAll('[data-detail-tab]')]; let i = tabs.indexOf(tab);
       i = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
       setTab(tabs[i].dataset.detailTab); tabs[i].focus();
+      return;
     }
+    if (shouldNavigateAsset(e, $('asset-dialog').open)) { e.preventDefault(); navigateAsset(e.key === 'ArrowRight' ? 1 : -1); }
   });
   window.addEventListener('hashchange', () => { if (['explore','saved','papers','workflow','guide'].includes(location.hash.slice(1))) changeView(location.hash.slice(1), false); });
   window.addEventListener('resize', updateDrawer);
