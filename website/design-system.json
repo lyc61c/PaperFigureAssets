@@ -36,13 +36,13 @@
     "actions": "Dark navy-to-blue gradients with legible white labels; avoid bright saturated buttons."
   },
   "layout": {
-    "desktop": "[full-width top navigation] / [centered introduction + real featured figure] / [three resource categories] / [searchable gallery]",
-    "mobile": "[compact top header + downward-opening menu] / [introduction] / [featured figure] / [categories] / [searchable gallery]",
+    "desktop": "[full-width top navigation] / [compact centered introduction] / [three resource categories] / [searchable gallery]",
+    "mobile": "[compact top header + downward-opening menu] / [compact introduction] / [categories] / [searchable gallery]",
     "menuBreakpointPx": 900,
-    "alignment": "Left-aligned content; centered figures inside complete white image mounts"
+    "alignment": "Centered, single-column introduction; left-aligned collection content; centered figures inside complete white image mounts"
   },
   "principles": [
-    "The real research figure is the visual focal point; background atmosphere and glass layers remain quiet.",
+    "The collection is the visual focus; no featured-figure or recommendation module in the introduction.",
     "Differentiate method figures, result figures, and tables with labels, icons, and semantic colors.",
     "Keep scientific images complete with object-fit: contain; never crop axes, legends, or labels.",
     "Method details expose one figure-specific PPT download, without diagram code or a duplicated paper bundle.",

@@ -383,26 +383,6 @@
     const stem = activeAsset.paperId + '_' + activeAsset.filename.replace(/\.[^.]+$/, '') + ( /required packages/i.test(code.label) ? '_packages' : '');
     download(text, stem + '.' + ext, mime); toast('源码已准备下载；请审阅后再运行。');
   }
-  function renderFeatured() {
-    const feature = $('hero-feature');
-    if (!feature) return;
-    const image = $('hero-feature-image'), title = $('hero-feature-title'), paper = $('hero-feature-paper');
-    feature.hidden = true;
-    delete feature.dataset.open;
-    if (!image || !title || !paper) return;
-    image.removeAttribute('src'); image.alt = ''; title.textContent = ''; paper.textContent = '';
-    // Assets already follow the configured featured-paper order. Only feature a
-    // method whose own local PPTX can be downloaded, never a paper-level bundle.
-    const asset = assets.find((candidate) => candidate.type === 'method' && safeUrl(candidate.src) !== '#' &&
-      relatedDownloads(candidate).some((row) => row.local === true && safeUrl(row.url).startsWith('assets/papers/')));
-    if (!asset) return;
-    image.src = safeUrl(asset.src); image.alt = cleanText(asset.title);
-    title.textContent = cleanText(asset.title);
-    paper.textContent = shortPaper(papers.get(asset.paperId));
-    feature.dataset.open = asset.id;
-    feature.setAttribute('aria-label', '查看精选方法图：' + cleanText(asset.title));
-    feature.hidden = false;
-  }
   function initialize() {
     const site = catalog.site;
     const repository = safeUrl(site.repositoryUrl).replace(/\/$/, '');
@@ -429,7 +409,6 @@
     $('stat-papers').textContent = catalog.stats.paperCount; $('stat-assets').textContent = catalog.stats.assetCount;
     $('stat-pptx').textContent = catalog.stats.pptxCount ?? assets.filter(hasLocalPptx).length;
     $('nav-paper-count').textContent = catalog.stats.paperCount; $('nav-asset-count').textContent = catalog.stats.assetCount;
-    renderFeatured();
     updateSaved();
     [...new Set(catalog.papers.map((p) => String(p.year)))].sort().reverse().forEach((year) => {
       const option = document.createElement('option'); option.value = year; option.textContent = year; $('year').append(option);

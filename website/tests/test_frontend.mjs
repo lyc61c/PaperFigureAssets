@@ -29,7 +29,6 @@ function evaluate(body, bindings = {}) {
 const hasSourceDefinition = ['hasCode', 'hasLocalPptx', 'hasSource'].map((name) => source.match(new RegExp('const ' + name + ' = [^\\n]+'))[0]).join('\n');
 const safeUrlDefinition = between('const safeUrl = ', 'const cleanText = ');
 const relatedDownloadsDefinition = between('function relatedDownloads(', 'function downloadLinks(');
-const featuredDefinition = between('function renderFeatured(', 'function initialize(');
 const filterDefinition = between('function filteredAssets(', 'function card(');
 const samplePapers = new Map([
   ['p1', {title: 'Paper One', topic: 'document parsing', venue: 'arXiv', year: '2026'}],
@@ -102,65 +101,10 @@ test('method cards display only PPTX even when a legacy catalog has diagram code
   assert.doesNotMatch(context.html, / SOURCE|SVG|TikZ|Editable Diagram Code/);
 });
 
-function featuredNodes() {
-  return new Map(['hero-feature', 'hero-feature-image', 'hero-feature-title', 'hero-feature-paper'].map((id) => [id, nodeStub()]));
-}
-
-function renderFeaturedFixture(assets, nodes = featuredNodes()) {
-  evaluate(`${safeUrlDefinition}\n${relatedDownloadsDefinition}\n${featuredDefinition}\nrenderFeatured();`, {
-    assets, $: (id) => nodes.get(id), papers: samplePapers,
-    cleanText: (value) => String(value || ''), shortPaper: (paper) => paper?.title || 'Paper',
-  });
-  return nodes;
-}
-
-const featuredMethod = {
-  ...sampleAssets[0], src: 'assets/papers/p1/method_figures/m.png',
-  downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}],
-};
-
-test('featured method uses the first eligible configured-order asset and text-only metadata', () => {
-  const title = '<img src=x onerror=unsafeExecuted=true>';
-  const nodes = renderFeaturedFixture([
-    {...featuredMethod, id: 'result', type: 'result'},
-    {...featuredMethod, id: 'featured', title},
-    {...featuredMethod, id: 'later'},
-  ]);
-  assert.equal(nodes.get('hero-feature').hidden, false);
-  assert.equal(nodes.get('hero-feature').dataset.open, 'featured');
-  assert.equal(nodes.get('hero-feature-image').src, featuredMethod.src);
-  assert.equal(nodes.get('hero-feature-image').alt, title);
-  assert.equal(nodes.get('hero-feature-title').textContent, title);
-  assert.equal(nodes.get('hero-feature-title').innerHTML, '');
-  assert.equal(nodes.get('hero-feature-paper').textContent, 'Paper One');
-  assert.equal(nodes.get('hero-feature').getAttribute('aria-label'), '查看精选方法图：' + title);
-});
-
-test('featured method rejects missing own PPTX, external-only decks and unsafe resources', () => {
-  for (const candidate of [
-    {...featuredMethod, downloads: []},
-    {...featuredMethod, downloads: [{format: 'pptx', local: false, url: 'https://example.com/m.pptx'}]},
-    {...featuredMethod, downloads: [{format: 'pptx', local: true, url: 'assets/%2e%2e/private.pptx'}]},
-    {...featuredMethod, src: 'javascript:alert(1)'},
-    {...featuredMethod, src: 'assets/%2e%2e/private.png'},
-  ]) {
-    const nodes = featuredNodes();
-    nodes.get('hero-feature').dataset.open = 'stale';
-    nodes.get('hero-feature-image').setAttribute('src', 'stale.png');
-    renderFeaturedFixture([candidate], nodes);
-    assert.equal(nodes.get('hero-feature').hidden, true);
-    assert.equal(nodes.get('hero-feature').dataset.open, undefined);
-    assert.equal(nodes.get('hero-feature-image').getAttribute('src'), null);
-    assert.equal(nodes.get('hero-feature-title').textContent, '');
-  }
-});
-
-test('featured method stays optional for partial DOMs and empty libraries', () => {
-  assert.doesNotThrow(() => renderFeaturedFixture([featuredMethod], new Map()));
-  const partial = new Map([['hero-feature', nodeStub()]]);
-  assert.doesNotThrow(() => renderFeaturedFixture([featuredMethod], partial));
-  assert.equal(partial.get('hero-feature').hidden, true);
-  assert.equal(renderFeaturedFixture([]).get('hero-feature').hidden, true);
+test('homepage has no featured-figure module or its former initializer', () => {
+  const html = fs.readFileSync(path.join(website, 'index.html'), 'utf8');
+  assert.doesNotMatch(html, /hero-feature|馆藏选图/);
+  assert.doesNotMatch(source, /hero-feature|renderFeatured/);
 });
 
 test('method dialog presents the corresponding PPTX without asking for diagram code', () => {
@@ -612,11 +556,10 @@ test('the three category modules are unique buttons with their own unique counte
 // through FIGARIUM_DOM_MODULE_PATH; the repository has no npm dependency and
 // this test never installs packages, opens a browser, loads media or makes HTTP.
 // Missing layout/focus/modal APIs are deliberately simulated, not browser QA.
-function domHarness(catalog, {omitHeroFeature = false} = {}) {
+function domHarness(catalog) {
   const require = createRequire(import.meta.url);
   const {parseHTML} = require(process.env.FIGARIUM_DOM_MODULE_PATH);
   const {window, document} = parseHTML(fs.readFileSync(path.join(website, 'index.html'), 'utf8'));
-  if (omitHeroFeature) document.getElementById('hero-feature')?.remove();
   let focused = document.body;
   let width = 1200;
   const storage = new Map(), clipboard = [], downloads = [], blobs = [];
@@ -707,11 +650,9 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   const h = domHarness(catalog);
   assert.equal(h.cardIds().length, 18);
   assert.equal(h.find('#stat-pptx').textContent, '1');
-  assert.equal(h.find('#hero-feature').hidden, false);
-  assert.equal(h.find('#hero-feature').dataset.open, 'a0');
-  assert.equal(h.find('#hero-feature-image').getAttribute('src'), assets[0].src);
-  assert.equal(h.find('#hero-feature-title').textContent, assets[0].title);
-  h.click('#hero-feature');
+  assert.equal(h.document.querySelector('[id^="hero-feature"]'), null);
+  assert.doesNotMatch(h.find('#hero').textContent, /馆藏选图/);
+  h.click('.asset-image-button[data-open="a0"]');
   assert.equal(h.dialog.open, true);
   assert.equal(h.find('#dialog-title').textContent, assets[0].title);
   assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 1);
@@ -741,12 +682,12 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('.category-module[data-type="result"]').classList.contains('active'), true);
   assert.match(h.find('#catalog-note').textContent, /Python/);
   assert.equal(h.document.querySelector('.asset-card:not([data-asset-type="result"])'), null);
-  h.click('#hero-feature');
-  assert.equal(h.find('#dialog-position').textContent, '筛选外图表');
+  h.click('.asset-image-button[data-open="a1"]');
+  assert.equal(h.find('#dialog-position').textContent, '1 / 8');
   assert.equal(h.find('#previous-asset').disabled, true);
-  assert.equal(h.find('#next-asset').disabled, true);
+  assert.equal(h.find('#next-asset').disabled, false);
   assert.equal(h.find('#asset-grid').dataset.category, 'result');
-  assert.equal(h.cardIds().length, 8, 'Opening the hero must not reset the current collection filter');
+  assert.equal(h.cardIds().length, 8, 'Opening a figure must not reset the current collection filter');
   h.click('#close-dialog');
   h.input('#search', 'figure 01'); assert.deepEqual(h.cardIds(), ['a1']);
   h.click('#clear-filters');
@@ -833,15 +774,16 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('#menu-backdrop').hidden, true); assert.equal(h.document.body.classList.contains('menu-open'), false);
 });
 
-test('optional DOM smoke initializes without a hero feature component', {
+test('optional DOM smoke initializes an empty gallery without a featured module', {
   skip: !process.env.FIGARIUM_DOM_MODULE_PATH && 'Set FIGARIUM_DOM_MODULE_PATH to an existing linkedom entry for the optional DOM smoke',
 }, () => {
   const catalog = {
     site: {name: 'Archive', chineseName: '图集', tagline: 'Research figures', description: 'A paper library', repositoryUrl: 'https://github.com/example/library', featuredPaperIds: []},
     stats: {paperCount: 0, assetCount: 0, sourceCount: 0, pptxCount: 0}, papers: [], assets: [],
   };
-  const h = domHarness(catalog, {omitHeroFeature: true});
-  assert.equal(h.document.getElementById('hero-feature'), null);
+  const h = domHarness(catalog);
+  assert.equal(h.document.querySelector('[id^="hero-feature"]'), null);
+  assert.doesNotMatch(h.find('#hero').textContent, /馆藏选图/);
   assert.equal(h.find('#stat-assets').textContent, '0');
   assert.equal(h.find('#empty-state').hidden, false);
   assert.deepEqual(h.cardIds(), []);
