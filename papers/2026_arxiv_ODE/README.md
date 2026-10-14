@@ -24,6 +24,8 @@
 | Project / Blog | [Project page](https://on-policy-data-evolution.github.io/) |
 | Assets | 1 method figures, 4 result figures, 1 tables |
 | Asset Source | User-reviewed local PNGs extracted from the linked paper PDF; original labels and pages are listed below. |
+| Method Figures PPT | [All method figures — editable reconstruction](method_figures/method_figures_editable.pptx) |
+| Method PPT Notes | Newly reconstructed, not author-provided source. Native text and vector paths; some equations/tiny glyphs are editable outlines, not typeable text. Arrows are not endpoint-bound; charts are not data-bound. Photos, illustrations, and local effects remain independent raster objects. Fonts/shadows/gradients may differ. Final PPTX roundtrip-rendered and visually checked; PowerPoint desktop not tested. |
 
 ---
 
@@ -90,7 +92,7 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Asset | Link |
 |---|---|
 | Preview Image | [fig1_visual_native_harness_and_ode_framework.png](method_figures/fig1_visual_native_harness_and_ode_framework.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig1_visual_native_harness_and_ode_framework.pptx) |
 | Source | Figure 1, PDF page 3 of the [paper](https://arxiv.org/abs/2605.10832v2) |
 
 ### Color Palette

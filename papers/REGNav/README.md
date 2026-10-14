@@ -19,6 +19,8 @@
 | Paper | [arXiv:2502.10785](https://arxiv.org/abs/2502.10785) |
 | Code | [leeBooMla/REGNav](https://github.com/leeBooMla/REGNav) |
 | Asset Type | Method figures |
+| Method Figures PPT | [All method figures — editable reconstruction](method_figures/method_figures_editable.pptx) |
+| Method PPT Notes | Newly reconstructed, not author-provided source. Native text and vector paths; some equations/tiny glyphs are editable outlines, not typeable text. Arrows are not endpoint-bound; charts are not data-bound. Photos, illustrations, and local effects remain independent raster objects. Fonts/shadows/gradients may differ. Final PPTX roundtrip-rendered and visually checked; PowerPoint desktop not tested. |
 
 ---
 
@@ -67,7 +69,7 @@
 | Asset | Link |
 |---|---|
 | Preview Image | [image1.png](method_figures/image1.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/image1.pptx) |
 
 ### Color Palette
 
@@ -90,7 +92,7 @@
 | Asset | Link |
 |---|---|
 | Preview Image | [image2.png](method_figures/image2.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/image2.pptx) |
 
 ### Color Palette
 

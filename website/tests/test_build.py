@@ -6,6 +6,7 @@ from pathlib import Path
 import shutil
 import tempfile
 import unittest
+import zipfile
 
 
 BUILDER = Path(__file__).resolve().parents[1] / "build.py"
@@ -95,6 +96,29 @@ class CatalogTests(unittest.TestCase):
         path = self.paper / "README.md"
         path.write_text(path.read_text(encoding="utf-8").replace(old, new), encoding="utf-8")
 
+    def make_pptx(self, name="method.pptx"):
+        """A minimal OOXML format fixture, not a visual-fidelity test deck."""
+        path = self.paper / "method_figures" / name
+        parts = {
+            "[Content_Types].xml": '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/></Types>',
+            "_rels/.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>',
+            "ppt/presentation.xml": '<p:presentation xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst><p:sldSz cx="9144000" cy="5143500"/></p:presentation>',
+            "ppt/_rels/presentation.xml.rels": '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/></Relationships>',
+            "ppt/slides/slide1.xml": '<p:sld xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main"><p:cSld><p:spTree><p:sp><p:nvSpPr><p:cNvPr id="2" name="Editable text"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>Editable fixture</a:t></a:r></a:p></p:txBody></p:sp></p:spTree></p:cSld></p:sld>',
+        }
+        with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as package:
+            for member, content in parts.items():
+                package.writestr(member, content)
+        return path
+
+    def link_pptx(self, name="method.pptx", *, combined=False):
+        path = self.make_pptx(name)
+        if combined:
+            self.replace_paper("| Authors | Ada Example |", f"| Authors | Ada Example |\n| Method Figures PPT | [Combined editable deck](method_figures/{name}) |")
+        else:
+            self.replace_paper("| PPT Source | Not available |", f"| PPT Source | [Deck](method_figures/{name}) |")
+        return path
+
     def remove_asset_type(self, kind):
         path = self.paper / "README.md"
         text = path.read_text(encoding="utf-8")
@@ -118,7 +142,7 @@ class CatalogTests(unittest.TestCase):
 
     def test_gallery_duplicates_are_not_catalog_assets(self):
         catalog, _ = builder.make_catalog(self.root)
-        self.assertEqual(catalog["stats"], {"paperCount": 1, "assetCount": 3, "sourceCount": 2, "counts": {"method": 1, "result": 1, "table": 1}})
+        self.assertEqual(catalog["stats"], {"paperCount": 1, "assetCount": 3, "sourceCount": 2, "pptxCount": 0, "counts": {"method": 1, "result": 1, "table": 1}})
         self.assertEqual(len({asset["src"] for asset in catalog["assets"]}), 3)
 
     def test_metadata_palette_provenance_and_license_are_truthful(self):
@@ -327,8 +351,127 @@ class CatalogTests(unittest.TestCase):
 
     def test_external_ppt_source_is_included_only_when_linked(self):
         self.replace_paper("| PPT Source | Not available |", "| PPT Source | [Slides](https://example.com/source.pptx) |")
+        catalog, copies = builder.make_catalog(self.root)
+        download = catalog["assets"][0]["downloads"][-1]
+        self.assertEqual(download["url"], "https://example.com/source.pptx")
+        self.assertEqual(download["format"], "pptx")
+        self.assertFalse(download["local"])
+        self.assertIn("not been checked", download["validation"])
+        self.assertEqual(catalog["stats"]["sourceCount"], 2)
+        self.assertEqual(catalog["stats"]["pptxCount"], 0)
+        self.assertEqual(len(copies), 3)
+
+    def test_explicit_local_pptx_is_copied_as_a_download_not_an_image(self):
+        source = self.link_pptx()
+        self.make_pptx("unlinked.pptx")
+        out = self.root / "website" / "dist"
+        catalog = builder.build(self.root, out)
+        asset = catalog["assets"][0]
+        deck = asset["downloads"][-1]
+        self.assertEqual(deck["url"], "assets/papers/approved/method_figures/method.pptx")
+        self.assertEqual((deck["format"], deck["filename"], deck["local"]), ("pptx", "method.pptx", True))
+        self.assertIn("does not verify", deck["validation"])
+        self.assertEqual((out / deck["url"]).read_bytes(), source.read_bytes())
+        self.assertFalse((out / "assets/papers/approved/method_figures/unlinked.pptx").exists())
+        self.assertEqual(catalog["stats"]["assetCount"], 3)
+        self.assertEqual(catalog["stats"]["sourceCount"], 3)
+        self.assertEqual(catalog["stats"]["pptxCount"], 1)
+        self.assertEqual(catalog["stats"]["counts"]["method"], 1)
+        self.assertEqual(asset["codes"], [])
+        self.assertNotIn(".pptx", builder.IMAGE_SUFFIXES)
+        self.assertEqual(builder.generated_kind(deck["url"]), "presentation")
+
+    def test_local_pptx_and_text_code_count_as_one_source_bearing_asset(self):
+        self.link_pptx()
+        self.replace_paper("### Color Palette", '### SVG Source\n```svg\n<svg xmlns="http://www.w3.org/2000/svg"/>\n```\n### Color Palette')
         catalog, _ = builder.make_catalog(self.root)
-        self.assertEqual(catalog["assets"][0]["downloads"][-1], {"label": "PPT source", "url": "https://example.com/source.pptx"})
+        self.assertEqual(catalog["stats"]["sourceCount"], 3)
+        self.assertEqual(catalog["stats"]["pptxCount"], 1)
+        self.assertTrue(catalog["assets"][0]["codes"])
+
+    def test_combined_pptx_is_explicit_paper_download_not_implicit_asset_coverage(self):
+        source = self.link_pptx("method_figures_editable.pptx", combined=True)
+        out = self.root / "website" / "dist"
+        catalog = builder.build(self.root, out)
+        deck = catalog["papers"][0]["downloads"][0]
+        self.assertIn("combined", deck["label"])
+        self.assertTrue(deck["local"])
+        self.assertEqual((out / deck["url"]).read_bytes(), source.read_bytes())
+        self.assertEqual(catalog["stats"]["sourceCount"], 2)
+        self.assertEqual(catalog["stats"]["pptxCount"], 0)
+        self.assertFalse(builder.has_local_pptx(catalog["assets"][0]))
+
+    def test_same_pptx_referenced_by_asset_and_paper_is_copied_once(self):
+        self.link_pptx()
+        self.replace_paper("| Authors | Ada Example |", "| Authors | Ada Example |\n| Method Figures PPT | [Combined editable deck](method_figures/method.pptx) |")
+        catalog, copies = builder.make_catalog(self.root)
+        self.assertEqual(sum(source.suffix == ".pptx" for source, _ in copies), 1)
+        self.assertEqual(catalog["stats"]["pptxCount"], 1)
+
+    def test_local_pptx_paths_are_restricted_to_method_directory(self):
+        self.make_pptx()
+        for target in ("../private.pptx", "%2e%2e/private.pptx", "result_figures/method.pptx", "method_figures/method.png", "C:/private/deck.pptx", "javascript:alert(1)", "method_figures/method.pptx?query=1"):
+            with self.subTest(target=target), self.assertRaises(builder.BuildError):
+                builder.pptx_downloads(f"[Deck]({target})", self.paper, "approved")
+        self.assertIsNone(builder.generated_kind("assets/papers/approved/result_figures/method.pptx"))
+
+    def test_missing_and_disguised_pptx_files_block_build(self):
+        self.replace_paper("| PPT Source | Not available |", "| PPT Source | [Deck](method_figures/method.pptx) |")
+        with self.assertRaisesRegex(builder.BuildError, "does not exist"):
+            builder.make_catalog(self.root)
+        (self.paper / "method_figures/method.pptx").write_bytes(b"This is not an OOXML package.")
+        with self.assertRaisesRegex(builder.BuildError, "invalid PPTX package"):
+            builder.make_catalog(self.root)
+
+    def test_ppt_source_cannot_attach_a_method_deck_to_a_result_asset(self):
+        self.make_pptx()
+        self.replace_paper("### Plotting Code", "| PPT Source | [Deck](method_figures/method.pptx) |\n### Plotting Code")
+        with self.assertRaisesRegex(builder.BuildError, "belongs to a method figure"):
+            builder.make_catalog(self.root)
+
+    def test_unlinked_local_pptx_is_cleaned_from_export_not_canonical_folder(self):
+        source = self.link_pptx()
+        out = self.root / "website" / "dist"
+        builder.build(self.root, out)
+        exported = out / "assets/papers/approved/method_figures/method.pptx"
+        unknown = exported.parent / "user-owned.pptx"
+        unknown.write_bytes(b"Unknown output is preserved.")
+        self.replace_paper("| PPT Source | [Deck](method_figures/method.pptx) |", "| PPT Source | Not available |")
+        catalog = builder.build(self.root, out)
+        self.assertFalse(exported.exists())
+        self.assertTrue(source.is_file())
+        self.assertTrue(unknown.is_file())
+        self.assertEqual(catalog["stats"]["pptxCount"], 0)
+
+    def test_user_modified_stale_pptx_is_preserved_and_blocks_publication(self):
+        self.link_pptx()
+        out = self.root / "website" / "dist"
+        builder.build(self.root, out)
+        exported = out / "assets/papers/approved/method_figures/method.pptx"
+        exported.write_bytes(exported.read_bytes() + b"User modification")
+        original = exported.read_bytes()
+        self.replace_paper("| PPT Source | [Deck](method_figures/method.pptx) |", "| PPT Source | Not available |")
+        with self.assertRaisesRegex(builder.BuildError, "modified and has been preserved"):
+            builder.build(self.root, out)
+        self.assertEqual(exported.read_bytes(), original)
+
+    def test_removed_combined_pptx_is_pruned(self):
+        self.link_pptx("method_figures_editable.pptx", combined=True)
+        out = self.root / "website" / "dist"
+        builder.build(self.root, out)
+        self.replace_paper("| Method Figures PPT | [Combined editable deck](method_figures/method_figures_editable.pptx) |\n", "")
+        builder.build(self.root, out)
+        self.assertFalse((out / "assets/papers/approved/method_figures/method_figures_editable.pptx").exists())
+
+    def test_pptx_source_symlink_is_rejected_when_supported(self):
+        source = self.make_pptx()
+        alias = source.parent / "alias.pptx"
+        try:
+            alias.symlink_to(source)
+        except (OSError, NotImplementedError):
+            self.skipTest("File symlinks are unavailable on this system.")
+        with self.assertRaisesRegex(builder.BuildError, "symlink or junction"):
+            builder.pptx_downloads("[Deck](method_figures/alias.pptx)", self.paper, "approved")
 
     def test_svg_and_tikz_recipes_are_copied_as_text(self):
         self.replace_paper("### Color Palette", '''### SVG Source
@@ -378,9 +521,11 @@ class RealCollectionTests(unittest.TestCase):
         entries = builder.approved_papers(root)
         catalog, copies = builder.make_catalog(root)
         self.assertEqual(catalog["stats"]["paperCount"], len(entries))
-        self.assertEqual(catalog["stats"]["assetCount"], len(copies))
+        image_copies = [(source, destination) for source, destination in copies if builder.generated_kind(destination) == "image"]
+        self.assertEqual(catalog["stats"]["assetCount"], len(image_copies))
         self.assertEqual(sum(catalog["stats"]["counts"].values()), len(catalog["assets"]))
-        self.assertEqual(catalog["stats"]["sourceCount"], sum(bool(asset["codes"]) for asset in catalog["assets"]))
+        self.assertEqual(catalog["stats"]["sourceCount"], sum(builder.has_source(asset) for asset in catalog["assets"]))
+        self.assertEqual(catalog["stats"]["pptxCount"], sum(builder.has_local_pptx(asset) for asset in catalog["assets"]))
         self.assertEqual({paper["id"] for paper in catalog["papers"]}, {entry["id"] for entry in entries})
         self.assertFalse(any("新建文件夹" in asset["src"] for asset in catalog["assets"]))
         self.assertTrue(all(source.is_file() for source, _ in copies))

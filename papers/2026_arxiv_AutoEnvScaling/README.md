@@ -24,6 +24,8 @@
 | Project / Blog | [Project page](https://microsoft.github.io/Orchard-Agentic/autoenvscaling/) |
 | Assets | 2 method figures, 3 result figures, 2 tables |
 | Asset Source | User-reviewed local PNGs extracted from the linked paper PDF; original labels and pages are listed below. |
+| Method Figures PPT | [All method figures — editable reconstruction](method_figures/method_figures_editable.pptx) |
+| Method PPT Notes | Newly reconstructed, not author-provided source. Native text and vector paths; some equations/tiny glyphs are editable outlines, not typeable text. Arrows are not endpoint-bound; charts are not data-bound. Photos, illustrations, and local effects remain independent raster objects. Fonts/shadows/gradients may differ. Final PPTX roundtrip-rendered and visually checked; PowerPoint desktop not tested. |
 
 ---
 
@@ -88,7 +90,7 @@ Original figure/table previews are excerpts from [the paper](https://arxiv.org/a
 | Asset | Link |
 |---|---|
 | Preview Image | [fig2_data_flywheel_framework.png](method_figures/fig2_data_flywheel_framework.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig2_data_flywheel_framework.pptx) |
 | Source | Figure 2, PDF page 2 of the [paper](https://arxiv.org/abs/2610.14163v1) |
 
 ### Color Palette
@@ -201,7 +203,7 @@ Save the code below as an `.svg` file. Edit `<text>` labels, `fill` / `stroke` c
 | Asset | Link |
 |---|---|
 | Preview Image | [fig3_environment_design_and_self_play.png](method_figures/fig3_environment_design_and_self_play.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig3_environment_design_and_self_play.pptx) |
 | Source | Figure 3, PDF page 4 of the [paper](https://arxiv.org/abs/2610.14163v1) |
 
 ### Color Palette

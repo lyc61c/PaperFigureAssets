@@ -83,7 +83,9 @@
     const title = cleanText(paper?.title || 'Paper');
     return title.split(':')[0].split('：')[0];
   };
-  const hasSource = (a) => Array.isArray(a.codes) && a.codes.length > 0;
+  const hasCode = (a) => Array.isArray(a.codes) && a.codes.length > 0;
+  const hasLocalPptx = (a) => Array.isArray(a.downloads) && a.downloads.some((d) => d.format === 'pptx' && d.local === true);
+  const hasSource = (a) => hasCode(a) || hasLocalPptx(a);
   function updateSaved() {
     $('nav-saved-count').textContent = saved.size;
     try { localStorage.setItem(storageKey, JSON.stringify([...saved])); }
@@ -116,7 +118,7 @@
   function card(a) {
     const p = papers.get(a.paperId) || {};
     const source = hasSource(a);
-    const langs = [...new Set((a.codes || []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase()))];
+    const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(a.codes || []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
     const badge = source ? icon('code') + ' ' + esc(langs.join(' / ') || 'SOURCE') : icon('palette') + ' 配色 / 参考';
     return '<article class="asset-card"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><span class="asset-type ' + esc(a.type) + '">' + typeLabels[a.type] + '</span><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
   }
@@ -216,6 +218,27 @@
   function citationText(a, p) {
     return [p.title, 'Paper: ' + p.paperUrl, 'Figure: ' + (a.sourceLabel || a.title), 'Page: ' + (a.page || 'Not documented'), 'Authors: ' + cleanText(p.authors || 'Not documented'), 'License: ' + cleanText(p.license || 'Not documented'), 'Entry: ' + a.readmeUrl].join('\n');
   }
+  function relatedDownloads(a, p = {}) {
+    const rows = [...(a.downloads || []), ...(a.type === 'method' ? p.downloads || [] : [])];
+    const seen = new Set();
+    return rows.filter((row) => { if (seen.has(row.url)) return false; seen.add(row.url); return true; });
+  }
+  function downloadLinks(rows) {
+    return rows.filter((row) => safeUrl(row.url) !== '#').map((row) => {
+      const url = safeUrl(row.url);
+      const localPptx = row.format === 'pptx' && row.local === true && url.startsWith('assets/papers/');
+      const behavior = localPptx ? ' download="' + esc(row.filename || '') + '"' : ' target="_blank" rel="noopener noreferrer"';
+      return '<a class="extra-download" href="' + esc(url) + '"' + behavior + ' title="' + esc(row.validation || '') + '">' + icon('download') + ' ' + esc(row.label) + (localPptx ? ' ↓' : ' ↗') + '</a>';
+    }).join('');
+  }
+  function renderSourceState(a) {
+    const code = hasCode(a), pptx = hasLocalPptx(a);
+    ['code-toolbar', 'source-code', 'source-bottom'].forEach((id) => { $(id).hidden = !code; });
+    $('no-code').hidden = code;
+    $('no-code').querySelector('h3').textContent = pptx ? 'PPTX 已就位，可直接下载' : '先留下配色，也可以继续重建';
+    $('no-code').querySelector('p').textContent = pptx ? '本图已收录本地 PPTX，暂无单独的文本代码。文件格式检查不代表视觉或原生对象可编辑性验收，请结合条目的重建与 QA 说明核对。' : '本图暂未收录单独的代码或 PPTX。可查看下方合并版（若有）和配色参考；不把截图包装成可复现重建。';
+    $('copy-rebuild-prompt').hidden = pptx;
+  }
   function openAsset(id, tab = 'code') {
     const a = assetsById.get(id); if (!a) return;
     const p = papers.get(a.paperId) || {};
@@ -226,9 +249,7 @@
     $('dialog-image').src = safeUrl(a.src); $('dialog-image').alt = a.title;
     $('original-link').href = safeUrl(a.src); $('dialog-readme').href = safeUrl(a.readmeUrl); $('paper-link').href = safeUrl(p.paperUrl);
     $('dialog-reconstruction').textContent = a.approximate ? '重建提示：该条目包含估读数据或简化结构。请将原图视为事实来源，源码视为可编辑参考。' : '原图来自论文；源码（若有）为条目中的重建版本。请结合原论文和完整条目核对。';
-    const source = hasSource(a);
-    ['code-toolbar', 'source-code', 'source-bottom'].forEach((id) => { $(id).hidden = !source; });
-    $('no-code').hidden = source;
+    renderSourceState(a);
     $('code-select').innerHTML = (a.codes || []).map((c, i) => '<option value="' + i + '">' + esc(c.label || c.language) + '</option>').join('');
     const first = (a.codes || []).findIndex((c) => !/required packages/i.test(c.label));
     if (first >= 0) $('code-select').value = String(first);
@@ -238,7 +259,7 @@
     $('palette-list').innerHTML = palette.map((row) => '<button class="palette-row" data-color="' + esc(row.hex) + '"><span class="palette-swatch" style="background:' + row.hex + '"></span><span class="palette-role">' + esc(row.role || row.color) + '<small>' + esc(row.color || '') + '</small></span><span class="palette-hex">' + esc(row.hex.toUpperCase()) + ' ' + icon('copy') + '</span></button>').join('');
     const fields = [['论文', p.title], ['图表编号', a.sourceLabel || '该条目未记录'], ['页码', a.page || '该条目未记录'], ['作者', p.authors || '该条目未记录'], ['许可', p.license || '该条目未记录；请核对原论文'], ['验证状态', a.validation || '没有显式验证记录；未将“有代码”当作“已验证”']];
     $('citation-list').innerHTML = fields.map(([key, value]) => '<dt>' + esc(key) + '</dt><dd>' + esc(cleanText(value)) + '</dd>').join('');
-    $('extra-downloads').innerHTML = (a.downloads || []).filter((d) => safeUrl(d.url) !== '#').map((d) => '<a class="extra-download" href="' + esc(safeUrl(d.url)) + '" target="_blank" rel="noopener noreferrer">' + icon('download') + ' ' + esc(d.label) + ' ↗</a>').join('');
+    $('extra-downloads').innerHTML = downloadLinks(relatedDownloads(a, p));
     setTab(tab);
     if (!$('asset-dialog').open) $('asset-dialog').showModal();
   }

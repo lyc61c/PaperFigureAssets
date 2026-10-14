@@ -1,6 +1,6 @@
 ---
 name: paper-asset-builder
-description: Build a personal Figarium paper-figure library from a paper title, URL/PDF, or material directory. Inventory and extract whole-paper figures and tables, classify them, pause for human selection, then produce editable reconstructions, paper READMEs, an index, and a static gallery after confirmation.
+description: Build a personal Figarium paper-figure library from a paper title, URL/PDF, or material directory. Extract and classify whole-paper figures and tables, pause for human selection, then reconstruct Method Figures as visually faithful editable PowerPoint decks, generate README source, and update the index and gallery.
 ---
 
 # Figarium · Paper Asset Builder
@@ -42,6 +42,7 @@ paper_id=...          Optional. Output folder name under papers/.
 extract_assets=...    Optional. auto (default), true (inspect/extract from the paper), or false (use supplied images only).
 selection=...         Optional. all (default: every numbered figure/table, including appendices) or curated (agent-selected subset).
 latex_test=...        Optional. auto (default), online, local, or off. Online testing requires authorization to send table source to the selected service.
+method_pptx=...       Optional. on (default) or off. After image approval, reconstruct every Method Figure as editable PPTX; off explicitly skips this deliverable.
 update_index=false    Optional. Skip root README paper index update only when explicitly false.
 force=true            Optional. Overwrite an existing paper README when intentional.
 ```
@@ -146,11 +147,12 @@ Use the template as the visual contract, not as disposable output.
 5. If assets were extracted/revised or their extraction review is pending, follow User Review Checkpoint and stop. On user confirmation, rescan that directory and resume at the next step without repeating extraction.
 6. Create or update `<repo_root>/papers/<paper_id>/`; reuse an existing entry for the same paper.
 7. Synchronize only the approved directory's current images and method `.pptx` files into the paper asset folders. When updating an existing entry, identify old generated assets now absent from the approved selection so they do not remain in gallery/index counts. Remove only known generated files belonging to this entry whose unchanged identity can be verified; preserve unrelated or user-modified files. Never recursively delete an asset directory to synchronize it. If a conflict prevents safe synchronization, report it and ask rather than silently restoring/including a removed selection. Skip copying onto itself when material_dir is already the paper entry, and do not create absent type folders by default. Generate previews/counts from the synchronized current selection and briefly report any material file removal.
-8. Generate `README.md` following `templates/canonical_paper_readme.md`. Attribute extracted assets to their original figure/table label and PDF page in the asset tables only when provenance still matches the current images.
-9. Test present LaTeX tables according to Table Render Testing below. Repair the README source when a compilation or visual defect is found; the README remains the canonical source.
-10. Update the root `README.md` Paper Index by default unless `update_index=false`.
-11. If `<repo_root>/website/build.py` exists, rebuild the local static gallery with `python website/build.py` from `repo_root` and verify its output. This is a local build, not authorization to publish, commit, push, or change hosting. If the builder is absent, finish README/index generation without inventing a website workflow.
-12. Validate local links and report generated paper/site paths, reconstruction scope, test results, and any unverified assets.
+8. For each current Method Figure, read and execute `references/method_figure_to_pptx.md` unless `method_pptx=off`. Produce and validate a same-basename PPTX and a per-paper `method_figures_editable.pptx` containing the selected figures. This is an agent-driven reconstruction task, not merely copying an image into a slide. Preserve any user/author-provided PPT and resolve filename collisions safely. Do not label unverified attempts complete.
+9. Generate `README.md` following `templates/canonical_paper_readme.md`. Attribute extracted assets to their original figure/table label and PDF page in the asset tables only when provenance still matches the current images. Link each verified PPTX in its `PPT Source` row; add a `Method Figures PPT` metadata row for the verified per-paper deck. Report incomplete/skipped figures explicitly; PPTX files never increase image counts.
+10. Test present LaTeX tables according to Table Render Testing below. Repair the README source when a compilation or visual defect is found; the README remains the canonical source.
+11. Update the root `README.md` Paper Index by default unless `update_index=false`.
+12. If `<repo_root>/website/build.py` exists, rebuild the local static gallery with `python website/build.py` from `repo_root` and verify its output. This is a local build, not authorization to publish, commit, push, or change hosting. If the builder is absent, finish README/index generation without inventing a website workflow.
+13. Validate local links and report generated paper/site paths, reconstruction scope, test results, and any unverified assets.
 
 ## Asset Processing
 
@@ -158,18 +160,18 @@ Process only asset types whose source folders exist and contain supported images
 
 ### Method Figures
 
-Read `references/method_figure_reconstruction.md`.
+Read `references/method_figure_reconstruction.md` and, by default, `references/method_figure_to_pptx.md`. If a host presentation-authoring skill is available, read and follow it as well; this bundled reference supplies the scientific reconstruction contract, not a replacement for host tool requirements.
 
 For each method figure:
 
 - show centered image preview;
-- add asset table with image and same-basename `.pptx` if available;
+- reconstruct and validate a same-basename editable `.pptx` by default, then link it in the asset table (unless explicitly skipped or unresolved);
 - infer a color palette from the actual image;
 - use swatch-only icons in the `Swatch` column;
 - summarize semantic color roles from the figure content.
 - add a self-contained editable SVG or TikZ reconstruction directly in a `### Editable Reconstruction` subsection when the figure's structure can be meaningfully recreated;
 - label it as a reconstruction, not author-provided source, and state whether it reproduces the full diagram or only a schematic subset;
-- for photos, screenshots, complex artwork, or unrecoverable details, state the limitation explicitly rather than claiming exact editable reproduction. Preserve the preview and palette even when full reconstruction is not feasible.
+- preserve all panels, labels, arrows, equations, and local illustrations in the PPT reconstruction. Photos/screenshots may be separately movable cropped image objects; identify these raster exceptions explicitly. A simplified SVG/TikZ schematic does not fulfill the full PPT deliverable. Preserve preview/palette and report unresolved details rather than disguising them as complete.
 
 ### Result Figures
 
@@ -216,7 +218,7 @@ A returned PDF proves compilation, not visual fidelity. Inspect every rendered t
 - Use relative links from `papers/<paper_id>/README.md`.
 - Use natural sort order for figure/table images.
 - Keep generated SVG/TikZ, Python code, and LaTeX inside the paper README unless the user explicitly asks for separate files. Static website code-download exports derived from README blocks are allowed build artifacts, not competing canonical sources.
-- Do not create `plot.py`, `table.tex`, `palette.json`, CSV files, or per-figure READMEs by default.
+- Do not create `plot.py`, `table.tex`, `palette.json`, CSV files, or per-figure READMEs by default. The default same-basename Method Figure PPTX and per-paper combined PPTX are intentional binary deliverables; authoring scene/source, inventories, renders, and QA receipts remain in an isolated local build directory unless separately requested.
 - Use the existing repository style and canonical template.
 - Do not tell the user to run a Python command for normal skill usage.
 - For Codex usage, do not present this skill as a slash command. Use natural language or `$paper-asset-builder`.
@@ -267,6 +269,8 @@ Before finishing, verify:
 - every present result figure appears in the gallery and Result Analysis Figures section;
 - every present table image appears in the gallery and Paper Tables section;
 - present method figures have color palette tables;
+- unless explicitly skipped, every selected method figure has a PPTX reconstruction status, with verified individual and combined decks linked; native-object inspection and rendering of the actual final PPTX are both required, and incomplete items are not reported complete;
+- final PPTX matches the approved image's complete visual content without a full-image/full-SVG backdrop; any independently editable raster crops, unbound freeform arrows, font substitutions, and application-compatibility limitations are disclosed;
 - present method figures have a clearly labeled SVG/TikZ reconstruction or an honest limitation/scope note; do not describe legacy palette-only entries as code-complete;
 - present numerical result figures have fenced `python` code blocks; qualitative/unrecoverable figures have an explicit reconstruction-scope note rather than invented data;
 - present tables have fenced `latex` source and required packages;

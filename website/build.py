@@ -9,9 +9,11 @@ published. Existing unrelated output files are deliberately left untouched.
 from __future__ import annotations
 
 import argparse
+from functools import lru_cache
 import hashlib
 import html
 from html.parser import HTMLParser
+import importlib.util
 import json
 from pathlib import Path, PurePosixPath
 import re
@@ -244,6 +246,76 @@ def heading_anchor(title: str) -> str:
     return re.sub(r"[^\w\- ]", "", plain_text(title).casefold()).replace(" ", "-")
 
 
+@lru_cache(maxsize=1)
+def pptx_qa_module():
+    """Load the repository's trusted standard-library package validator lazily."""
+    helper = Path(__file__).resolve().parent.parent / "paper-asset-builder" / "scripts" / "method_pptx_qa.py"
+    if not helper.is_file():
+        raise BuildError("Local PPTX publishing requires paper-asset-builder/scripts/method_pptx_qa.py.")
+    name = "_figarium_method_pptx_qa"
+    spec = importlib.util.spec_from_file_location(name, helper)
+    if spec is None or spec.loader is None:
+        raise BuildError("The PPTX package validator could not be loaded.")
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[name] = module
+    try:
+        spec.loader.exec_module(module)
+    except Exception:
+        sys.modules.pop(name, None)
+        raise
+    return module
+
+
+def pptx_downloads(value: str, paper_dir: Path, paper_id: str, *, combined: bool = False) -> tuple[list[dict], list[tuple[Path, str]]]:
+    """Publish only explicitly linked method decks, not every nearby PPTX."""
+    paper_dir = paper_dir.resolve()
+    downloads, copies = [], []
+    for link in LINK_RE.finditer(value):
+        target = html.unescape(link.group(2))
+        external = http_url(target)
+        label = "Method figures PPTX (combined)" if combined else "PPTX"
+        if external:
+            downloads.append({
+                "label": label + " (external)", "url": external, "format": "pptx",
+                "filename": unquote(PurePosixPath(urlsplit(external).path).name), "local": False,
+                "validation": "External source link; package and editability have not been checked by the static builder.",
+            })
+            continue
+        decoded = html.unescape(unquote(target)).replace("\\", "/")
+        parsed = urlsplit(decoded)
+        if parsed.scheme or parsed.netloc or parsed.query or parsed.fragment:
+            raise BuildError(f"{paper_id}: expected a plain local method PPTX reference: {target}")
+        # Reject traversal and all symlink/junction components, even aliases
+        # that happen to resolve to another file inside the paper directory.
+        local = output_target(paper_dir, parsed.path)
+        relative = local.relative_to(paper_dir)
+        if len(relative.parts) < 2 or relative.parts[0] != "method_figures" or local.suffix.lower() != ".pptx":
+            raise BuildError(f"{paper_id}: local PPTX must be inside method_figures/: {target}")
+        if not local.is_file():
+            raise BuildError(f"{paper_id}: linked PPTX does not exist: {target}")
+        qa = pptx_qa_module()
+        try:
+            qa.validate_pptx_package(local)
+        except qa.PptxQAError as error:
+            raise BuildError(f"{paper_id}: invalid PPTX package {relative.as_posix()}: {error}") from error
+        destination = f"assets/papers/{paper_id}/{relative.as_posix()}"
+        downloads.append({
+            "label": label, "url": quote(destination, safe="/"), "format": "pptx",
+            "filename": local.name, "local": True,
+            "validation": "OOXML package checked. The static builder does not verify visual fidelity or native object editability.",
+        })
+        copies.append((local, destination))
+    return downloads, copies
+
+
+def has_local_pptx(asset: dict) -> bool:
+    return any(download.get("format") == "pptx" and download.get("local") is True for download in asset.get("downloads", []))
+
+
+def has_source(asset: dict) -> bool:
+    return bool(asset.get("codes")) or has_local_pptx(asset)
+
+
 def parse_paper(entry: dict, site: dict) -> tuple[dict, list[dict], list[tuple[Path, str]]]:
     paper_dir = entry["path"].parent
     markdown = entry["path"].read_text(encoding="utf-8-sig")
@@ -261,6 +333,8 @@ def parse_paper(entry: dict, site: dict) -> tuple[dict, list[dict], list[tuple[P
         "license": plain_text(metadata.get("original asset license", metadata.get("license", NOT_DOCUMENTED))),
     }
     assets, copies, seen = [], [], set()
+    paper["downloads"], combined_copies = pptx_downloads(metadata.get("method figures ppt", ""), paper_dir, paper_id, combined=True)
+    copies.extend(combined_copies)
     marks = headings(markdown)
     kind = None
     for position, (start, end, level, title) in enumerate(marks):
@@ -305,15 +379,11 @@ def parse_paper(entry: dict, site: dict) -> tuple[dict, list[dict], list[tuple[P
         label_match = re.match(r"^((?:Figure|Table)\s+[^:]+):\s*(.+)", title, re.I)
         downloads = [{"label": "Image", "url": quote(destination, safe="/")}]
         ppt_value = fields.get("ppt source", "")
-        for link in LINK_RE.finditer(ppt_value):
-            target = html.unescape(link.group(2))
-            url = http_url(target)
-            if not url:
-                local = local_reference(paper_dir, target, paper_dir)
-                if not local.is_file():
-                    raise BuildError(f"{paper_id}: linked PPT source does not exist: {target}")
-                url = f"{site['repositoryUrl'].rstrip('/')}/blob/main/papers/{quote(paper_id, safe='')}/{quote(local.relative_to(paper_dir).as_posix(), safe='/')}"
-            downloads.append({"label": "PPT source", "url": url})
+        if LINK_RE.search(ppt_value) and kind != "method":
+            raise BuildError(f"{paper_id}: PPT Source belongs to a method figure, not {kind}: {title}")
+        presentations, presentation_copies = pptx_downloads(ppt_value, paper_dir, paper_id)
+        downloads.extend(presentations)
+        copies.extend(presentation_copies)
         asset = {
             "id": f"{paper_id}--{kind}--{image.stem}", "paperId": paper_id,
             "title": plain_text(label_match.group(2)), "type": kind,
@@ -361,6 +431,12 @@ def make_catalog(repo_root: Path) -> tuple[dict, list[tuple[Path, str]]]:
         papers.append(paper)
         assets.extend(figures)
         copies.extend(files)
+    unique_copies = {}
+    for source, destination in copies:
+        if destination in unique_copies and source != unique_copies[destination]:
+            raise BuildError(f"Conflicting generated files: {destination}")
+        unique_copies[destination] = source
+    copies = [(source, destination) for destination, source in unique_copies.items()]
     ids = [asset["id"] for asset in assets]
     if len(ids) != len(set(ids)):
         raise BuildError("Asset IDs must be unique; avoid duplicate image stems within an asset type.")
@@ -368,7 +444,7 @@ def make_catalog(repo_root: Path) -> tuple[dict, list[tuple[Path, str]]]:
     counts = {kind: sum(asset["type"] == kind for asset in assets) for kind in TYPE_FOLDERS}
     catalog = {
         "site": site,
-        "stats": {"paperCount": len(papers), "assetCount": len(assets), "sourceCount": sum(bool(asset["codes"]) for asset in assets), "counts": counts},
+        "stats": {"paperCount": len(papers), "assetCount": len(assets), "sourceCount": sum(has_source(asset) for asset in assets), "pptxCount": sum(has_local_pptx(asset) for asset in assets), "counts": counts},
         "papers": papers, "assets": assets,
     }
     return catalog, copies
@@ -413,6 +489,9 @@ def generated_kind(relative: str) -> str | None:
     if (len(parts) >= 5 and parts[:2] == ("assets", "papers")
             and parts[3] in TYPE_FOLDERS.values() and path.suffix.lower() in IMAGE_SUFFIXES):
         return "image"
+    if (len(parts) >= 5 and parts[:2] == ("assets", "papers")
+            and parts[3] == "method_figures" and path.suffix.lower() == ".pptx"):
+        return "presentation"
     return None
 
 
@@ -456,7 +535,7 @@ def previous_generated_files(out: Path) -> dict[str, str]:
 def stale_generated_files(out: Path, previous: dict[str, str], current: set[str]) -> list[tuple[str, str]]:
     stale = []
     for relative, digest in previous.items():
-        if relative in current or generated_kind(relative) not in {"image", "guide"}:
+        if relative in current or generated_kind(relative) not in {"image", "guide", "presentation"}:
             continue
         target = output_target(out, relative)
         if not target.exists():
@@ -522,7 +601,7 @@ def build(repo_root: Path, out: Path) -> dict:
     }
     output_target(out, GENERATED_MANIFEST).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if stale:
-        print(f"Figarium removed {len(stale)} unchanged stale generated image/guide file(s); unknown files were preserved.")
+        print(f"Figarium removed {len(stale)} unchanged stale generated image/guide/PPTX file(s); unknown files were preserved.")
     return catalog
 
 

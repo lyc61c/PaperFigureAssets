@@ -4,9 +4,11 @@
 
 一座由你策展、可以复现的论文图圃。Figarium 来自 **Figure + Herbarium**：收藏好图，也保存它们的来源、配色与可编辑的重建方式。
 
-提供论文名、链接或 PDF，`paper-asset-builder` 会清点并分类提取全文图表，返回本地目录让你筛选；确认之后，再为留下的图片生成代码与论文条目。收藏属于你的研究兴趣和审美，而不是一份只能照单全收的图单。
+提供论文名、链接或 PDF，`paper-asset-builder` 会清点并分类提取全文图表，返回本地目录让你筛选；确认之后，自动为留下的方法图生成可编辑 PPT，为图表生成重建代码与论文条目。收藏属于你的研究兴趣和审美，而不是一份只能照单全收的图单。
 
 [在线图库](https://lyc61c.github.io/PaperFigureAssets/) · [开始建立你的图库](docs/GETTING_STARTED.md) · [定制与发布](docs/CUSTOMIZATION.md) · [Skill 规范](paper-asset-builder/SKILL.md) · [网页源码](website/)
+
+现有 **26 张方法图**已补齐逐图可编辑 PPT，另有 **12 份论文合并版**及[26 页全库合集](downloads/Figarium_Method_Figures.pptx)。[查看交付范围与验证说明](docs/PPT_RECONSTRUCTION.md)：保留原生文本/路径、局部图片与公式轮廓的编辑边界，不冒充作者原始源文件或像素级一致复现。
 
 ## 不止展示，也能带走
 
@@ -14,10 +16,10 @@
 |---|---|
 | 挑选真正喜欢的图 | 全文提取后暂停，直接在本地删、换、增图，人工决定最终收藏 |
 | 搭建自己的图形语言 | 按论文与资产类型组织；保留配色、原编号、页码和重建范围 |
-| 拿去改成自己的图 | 结果图 Python、表格 LaTeX；可行的方法图提供 SVG / TikZ 可编辑重建 |
+| 拿去改成自己的图 | 方法图默认逐图与合并可编辑 PPT；数值结果图 Python、表格 LaTeX，源码与局限随条目保留 |
 | 维护个人图库 | Fork 仓库、安装 skill、定制品牌与精选论文、构建静态网页 |
 
-“可复现”不代表每张图都能恢复成作者的原始工程。估读数据会明确标注，照片/截图和复杂插画会说明重建限制；旧条目的源码覆盖也不完全相同。网页只提供浏览、复制和下载，不在访客浏览器执行任意代码。
+“可复现”不代表恢复了作者的原始工程。方法图以完整视觉内容为目标，文字/形状/连线尽量保留为原生 PPT 对象，复杂照片或插画可保留为独立局部图片，其内部仍不可编辑。估读数据与重建限制会明确标注；各图的文件、源码与验证覆盖以实际状态为准，未验证不能标为完成。网页只提供浏览、复制和下载，不在访客浏览器执行任意代码。
 
 ## 从论文到你的收藏
 
@@ -26,7 +28,7 @@
   → 全文编号图表清点与分类提取（包括附录）
   → 本地 materials/<paper_id>/，等待你筛选
   → 你确认后，重读当前目录中的图片
-  → 可编辑重建 + 论文 README + 主索引
+  → 方法图可编辑 PPT + 重建代码 + 论文 README + 主索引
   → 构建个人静态图库
 ```
 
@@ -34,7 +36,7 @@
 
 ## 快速开始
 
-先 clone/Fork 本仓库，把完整的 `paper-asset-builder/` 安装到 Codex 的项目 `.agents/skills/` 或个人 `~/.agents/skills/`；已有安装可以原位更新。Claude Code 使用 `.claude/skills/`。分平台步骤见[入门指南](docs/GETTING_STARTED.md#2-安装完整-skill)，Codex 路径以 [OpenAI 官方文档](https://developers.openai.com/codex/skills)为准。
+先 clone/Fork 本仓库，把完整的 `paper-asset-builder/` 安装到 Codex 的项目 `.agents/skills/` 或个人 `~/.agents/skills/`；已有安装可以原位更新。方法图 PPT 子流程已内置，只安装这一个完整目录，不需要另装第三方 PPT skill。Claude Code 使用 `.claude/skills/`。分平台步骤见[入门指南](docs/GETTING_STARTED.md#2-安装完整-skill)，Codex 路径以 [OpenAI 官方文档](https://developers.openai.com/codex/skills)为准。
 
 在 Codex 中：
 
@@ -54,7 +56,15 @@ Skill 会返回你机器上的**实际绝对路径**并暂停。检查本地图�
 $paper-asset-builder material_dir="/path/to/materials" paper="论文链接" extract_assets=false
 ```
 
-Claude Code 安装后用 `/paper-asset-builder` 调用。正常收图不需要用户手动运行提取脚本。
+Claude Code 安装后用 `/paper-asset-builder` 调用。正常收图和 PPT 重建不需要用户手动运行工具；图片确认后由 agent 自动继续。若明确跳过 PPT，可指定 `method_pptx=off`，并在结果中保留跳过说明。
+
+## Method Figures → Editable PowerPoint
+
+默认每张方法图交付同名 `.pptx`，每篇再交付 `method_figures/method_figures_editable.pptx` 合并版，保留批准图片和配色。目标是完整复现原图的面板、文字、框、连线、箭头、公式和示例，不以简化示意代替原图内容。可读文字、简单形状和连线应成为原生 PPT 对象；复杂照片、截图和插画可作为独立局部 raster 素材保留，内部像素不因此变为可编辑形状。
+
+整页 PNG 或完整 SVG 嵌入不是原生可编辑重建。交付前需实际渲染最终 PPTX，与原图做视觉核对，并检查文字/形状/连线/图片对象结构；不能仅凭源码预览或文件已生成标记 `complete`。每张方法图都应报告实际生成和验证状态、未完成元素与 raster 局限。
+
+源脚本、对象清单和 QA 产物保留在隔离任务目录，默认公开条目只新增 PPT、批准图片与 README。重建源码可写入 README，单独源文件按用户请求导出。详见[方法图交付说明](docs/GETTING_STARTED.md#方法图自动继续到可编辑-ppt)。
 
 ## 本地浏览与个性化
 
@@ -87,11 +97,12 @@ python -m http.server 8000 --directory website/dist
 | [AutoEnvScaling: Automating the Data Flywheel with Terminal Agents](papers/2026_arxiv_AutoEnvScaling/README.md) | arXiv | 2026 | Terminal agents, automatic environment generation, recursive data-flywheel self-improvement | 2 method figures, 3 result figures, 2 tables |
 | [Towards On-Policy Data Evolution for Visual-Native Multimodal Deep Search Agents](papers/2026_arxiv_ODE/README.md) | arXiv | 2026 | Visual-native multimodal deep search, on-policy data evolution, agent SFT and reinforcement learning | 1 method figures, 4 result figures, 1 tables |
 <!-- PAPER_INDEX_END -->
+
 ## Asset Types
 
 | Type | Folder | Included in Paper README |
 |---|---|---|
-| Method figures | `method_figures/` | Preview, semantic palette, supplied PPT link; SVG/TikZ reconstruction where feasible, with scope note |
+| Method figures | `method_figures/` | Preview, palette, same-name native/hybrid PPTX and per-paper merged PPTX, reconstruction/verification status and raster limitations |
 | Result analysis figures | `result_figures/` | Preview, self-contained Python plotting code for numerical charts, explicit approximation/limitation notes |
 | Paper tables | `tables/` | Preview, LaTeX source, required packages and render-test outcome |
 

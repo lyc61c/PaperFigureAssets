@@ -24,6 +24,8 @@
 | Project / Blog | [Project page](https://qwen.ai/blog?id=qwen-agentworld) |
 | Assets | 3 method figures, 3 result figures, 2 tables |
 | Asset Source | User-reviewed local PNGs extracted from the linked paper PDF; original labels and pages are listed below. |
+| Method Figures PPT | [All method figures — editable reconstruction](method_figures/method_figures_editable.pptx) |
+| Method PPT Notes | Newly reconstructed, not author-provided source. Native text and vector paths; some equations/tiny glyphs are editable outlines, not typeable text. Arrows are not endpoint-bound; charts are not data-bound. Photos, illustrations, and local effects remain independent raster objects. Fonts/shadows/gradients may differ. Final PPTX roundtrip-rendered and visually checked; PowerPoint desktop not tested. |
 
 ---
 
@@ -91,7 +93,7 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Asset | Link |
 |---|---|
 | Preview Image | [fig1_agentworld_overview.png](method_figures/fig1_agentworld_overview.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig1_agentworld_overview.pptx) |
 | Source | Figure 1, PDF page 1 of the [paper](https://arxiv.org/abs/2606.24597v1) |
 
 ### Color Palette
@@ -116,7 +118,7 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Asset | Link |
 |---|---|
 | Preview Image | [fig2_seven_environment_domains.png](method_figures/fig2_seven_environment_domains.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig2_seven_environment_domains.pptx) |
 | Source | Figure 2, PDF page 4 of the [paper](https://arxiv.org/abs/2606.24597v1) |
 
 ### Color Palette
@@ -140,7 +142,7 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Asset | Link |
 |---|---|
 | Preview Image | [fig5_three_stage_training_pipeline.png](method_figures/fig5_three_stage_training_pipeline.png) |
-| PPT Source | Not available |
+| PPT Source | [Editable native/hybrid reconstruction](method_figures/fig5_three_stage_training_pipeline.pptx) |
 | Source | Figure 5, PDF page 7 of the [paper](https://arxiv.org/abs/2606.24597v1) |
 
 ### Color Palette
