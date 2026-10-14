@@ -29,6 +29,7 @@ function evaluate(body, bindings = {}) {
 const hasSourceDefinition = ['hasCode', 'hasLocalPptx', 'hasSource'].map((name) => source.match(new RegExp('const ' + name + ' = [^\\n]+'))[0]).join('\n');
 const safeUrlDefinition = between('const safeUrl = ', 'const cleanText = ');
 const relatedDownloadsDefinition = between('function relatedDownloads(', 'function downloadLinks(');
+const featuredDefinition = between('function renderFeatured(', 'function initialize(');
 const filterDefinition = between('function filteredAssets(', 'function card(');
 const samplePapers = new Map([
   ['p1', {title: 'Paper One', topic: 'document parsing', venue: 'arXiv', year: '2026'}],
@@ -92,11 +93,74 @@ test('method cards display only PPTX even when a legacy catalog has diagram code
   const asset = {...sampleAssets[0], codes: [{language: 'svg', label: 'Editable Diagram Code', code: '<svg/>'}], downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}]};
   const context = evaluate(`${hasSourceDefinition}\n${between('function card(', 'function renderPapers(')}\nhtml = card(asset);`, {
     asset, papers: samplePapers, saved: new Set(), shortPaper: (paper) => paper.title,
-    safeUrl: (url) => url, esc: String, icon: () => '', typeLabels: {method: 'METHOD'},
+    safeUrl: (url) => url, esc: String, icon: (name) => `<icon data-icon="${name}"></icon>`, typeLabels: {method: 'METHOD'},
   });
   assert.match(context.html, /PPTX/);
   assert.match(context.html, /data-tab="code"/);
+  assert.match(context.html, /data-icon="download"/);
+  assert.doesNotMatch(context.html, /data-icon="code"/);
   assert.doesNotMatch(context.html, / SOURCE|SVG|TikZ|Editable Diagram Code/);
+});
+
+function featuredNodes() {
+  return new Map(['hero-feature', 'hero-feature-image', 'hero-feature-title', 'hero-feature-paper'].map((id) => [id, nodeStub()]));
+}
+
+function renderFeaturedFixture(assets, nodes = featuredNodes()) {
+  evaluate(`${safeUrlDefinition}\n${relatedDownloadsDefinition}\n${featuredDefinition}\nrenderFeatured();`, {
+    assets, $: (id) => nodes.get(id), papers: samplePapers,
+    cleanText: (value) => String(value || ''), shortPaper: (paper) => paper?.title || 'Paper',
+  });
+  return nodes;
+}
+
+const featuredMethod = {
+  ...sampleAssets[0], src: 'assets/papers/p1/method_figures/m.png',
+  downloads: [{format: 'pptx', local: true, url: 'assets/papers/p1/method_figures/m.pptx'}],
+};
+
+test('featured method uses the first eligible configured-order asset and text-only metadata', () => {
+  const title = '<img src=x onerror=unsafeExecuted=true>';
+  const nodes = renderFeaturedFixture([
+    {...featuredMethod, id: 'result', type: 'result'},
+    {...featuredMethod, id: 'featured', title},
+    {...featuredMethod, id: 'later'},
+  ]);
+  assert.equal(nodes.get('hero-feature').hidden, false);
+  assert.equal(nodes.get('hero-feature').dataset.open, 'featured');
+  assert.equal(nodes.get('hero-feature-image').src, featuredMethod.src);
+  assert.equal(nodes.get('hero-feature-image').alt, title);
+  assert.equal(nodes.get('hero-feature-title').textContent, title);
+  assert.equal(nodes.get('hero-feature-title').innerHTML, '');
+  assert.equal(nodes.get('hero-feature-paper').textContent, 'Paper One');
+  assert.equal(nodes.get('hero-feature').getAttribute('aria-label'), '查看精选方法图：' + title);
+});
+
+test('featured method rejects missing own PPTX, external-only decks and unsafe resources', () => {
+  for (const candidate of [
+    {...featuredMethod, downloads: []},
+    {...featuredMethod, downloads: [{format: 'pptx', local: false, url: 'https://example.com/m.pptx'}]},
+    {...featuredMethod, downloads: [{format: 'pptx', local: true, url: 'assets/%2e%2e/private.pptx'}]},
+    {...featuredMethod, src: 'javascript:alert(1)'},
+    {...featuredMethod, src: 'assets/%2e%2e/private.png'},
+  ]) {
+    const nodes = featuredNodes();
+    nodes.get('hero-feature').dataset.open = 'stale';
+    nodes.get('hero-feature-image').setAttribute('src', 'stale.png');
+    renderFeaturedFixture([candidate], nodes);
+    assert.equal(nodes.get('hero-feature').hidden, true);
+    assert.equal(nodes.get('hero-feature').dataset.open, undefined);
+    assert.equal(nodes.get('hero-feature-image').getAttribute('src'), null);
+    assert.equal(nodes.get('hero-feature-title').textContent, '');
+  }
+});
+
+test('featured method stays optional for partial DOMs and empty libraries', () => {
+  assert.doesNotThrow(() => renderFeaturedFixture([featuredMethod], new Map()));
+  const partial = new Map([['hero-feature', nodeStub()]]);
+  assert.doesNotThrow(() => renderFeaturedFixture([featuredMethod], partial));
+  assert.equal(partial.get('hero-feature').hidden, true);
+  assert.equal(renderFeaturedFixture([]).get('hero-feature').hidden, true);
 });
 
 test('method dialog presents the corresponding PPTX without asking for diagram code', () => {
@@ -340,7 +404,7 @@ test('category rendering synchronizes modules, grid category and honest resource
     document: {querySelectorAll: (selector) => selector === '[data-type]' ? buttons : []},
     typeNames: {method: '方法框架', result: '结果分析', table: '论文表格'},
   });
-  for (const [type, resource] of [['all', '完整看图 · 带走配方'], ['method', 'PPTX / 配色'], ['result', 'Python'], ['table', 'LaTeX']]) {
+  for (const [type, resource] of [['all', '浏览原图与可复用资源'], ['method', '可编辑 PPT'], ['result', 'Python'], ['table', 'LaTeX']]) {
     state.type = type; context.run();
     assert.equal(get('category-modules').hidden, false);
     assert.equal(get('asset-grid').dataset.category, type);
@@ -378,7 +442,7 @@ test('detail position and boundary-disabled buttons reflect current matches, inc
   });
   assert.deepEqual(Array.from(context.first), [true, false, '1 / 2']);
   assert.deepEqual(Array.from(context.last), [false, true]);
-  assert.deepEqual(Array.from(context.missing), [true, true, '— / 2']);
+  assert.deepEqual(Array.from(context.missing), [true, true, '筛选外图表']);
 });
 
 test('next/previous updates only the dialog, preserves its selected tab, and respects boundaries', () => {
@@ -447,11 +511,11 @@ test('zoom state and close cleanup reset aria, use the original focus, and fall 
   assert.equal(original.focusCount, 1); assert.equal(nodes.get('main').focusCount, 1);
 });
 
-test('mobile navigation uses 760px, backdrop/inert/aria stay consistent, and desktop resize clears open state', () => {
+test('mobile navigation uses 1100px, backdrop/inert/aria stay consistent, and desktop resize clears open state', () => {
   const nodes = new Map(['sidebar', 'main', 'menu-backdrop', 'mobile-menu'].map(id => [id, nodeStub()]));
-  let width = 760;
+  let width = 1100;
   const body = nodeStub();
-  const window = {matchMedia: (query) => { assert.equal(query, '(max-width:760px)'); return {matches: width <= 760}; }};
+  const window = {matchMedia: (query) => { assert.equal(query, '(max-width:1100px)'); return {matches: width <= 1100}; }};
   const definitions = between('function updateDrawer()', 'function changeView(');
   const context = evaluate(`${definitions}\nupdateDrawer(); check = updateDrawer; close = closeDrawer;`, {
     $: (id) => nodes.get(id), window, document: {body, activeElement: null},
@@ -462,11 +526,11 @@ test('mobile navigation uses 760px, backdrop/inert/aria stay consistent, and des
   assert.equal(nodes.get('menu-backdrop').hidden, false); assert.equal(body.classList.contains('menu-open'), true);
   assert.equal(nodes.get('mobile-menu').getAttribute('aria-expanded'), 'true');
   context.close(true); assert.equal(nodes.get('mobile-menu').focusCount, 1);
-  nodes.get('sidebar').classList.add('open'); width = 761; context.check();
+  nodes.get('sidebar').classList.add('open'); width = 1101; context.check();
   assert.equal(nodes.get('sidebar').classList.contains('open'), false);
   assert.equal(nodes.get('main').inert, false); assert.equal(nodes.get('sidebar').inert, false);
   assert.equal(nodes.get('menu-backdrop').hidden, true); assert.equal(body.classList.contains('menu-open'), false);
-  width = 760; context.check(); assert.equal(nodes.get('sidebar').inert, true);
+  width = 1100; context.check(); assert.equal(nodes.get('sidebar').inert, true);
 });
 
 test('static HTML includes every JS ID contract once, plus dynamic tabs/counts and the new controls', () => {
@@ -508,10 +572,11 @@ test('the three category modules are unique buttons with their own unique counte
 // through FIGARIUM_DOM_MODULE_PATH; the repository has no npm dependency and
 // this test never installs packages, opens a browser, loads media or makes HTTP.
 // Missing layout/focus/modal APIs are deliberately simulated, not browser QA.
-function domHarness(catalog) {
+function domHarness(catalog, {omitHeroFeature = false} = {}) {
   const require = createRequire(import.meta.url);
   const {parseHTML} = require(process.env.FIGARIUM_DOM_MODULE_PATH);
   const {window, document} = parseHTML(fs.readFileSync(path.join(website, 'index.html'), 'utf8'));
+  if (omitHeroFeature) document.getElementById('hero-feature')?.remove();
   let focused = document.body;
   let width = 1200;
   const storage = new Map(), clipboard = [], downloads = [], blobs = [];
@@ -535,7 +600,7 @@ function domHarness(catalog) {
   dialog.close = () => { dialog.removeAttribute('open'); dialog.dispatchEvent(new window.Event('close')); };
   window.HTMLAnchorElement.prototype.click = function () { downloads.push({url: this.href, filename: this.download}); };
   window.FIGARIUM_CATALOG = catalog;
-  window.matchMedia = () => ({matches: width <= 760});
+  window.matchMedia = () => ({matches: width <= 1100});
   window.scrollTo = () => {};
   window.isSecureContext = true;
   const location = {hash: '#explore'};
@@ -602,6 +667,15 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   const h = domHarness(catalog);
   assert.equal(h.cardIds().length, 18);
   assert.equal(h.find('#stat-pptx').textContent, '1');
+  assert.equal(h.find('#hero-feature').hidden, false);
+  assert.equal(h.find('#hero-feature').dataset.open, 'a0');
+  assert.equal(h.find('#hero-feature-image').getAttribute('src'), assets[0].src);
+  assert.equal(h.find('#hero-feature-title').textContent, assets[0].title);
+  h.click('#hero-feature');
+  assert.equal(h.dialog.open, true);
+  assert.equal(h.find('#dialog-title').textContent, assets[0].title);
+  assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 1);
+  h.click('#close-dialog');
   assert.equal(h.find('#collection-heading').textContent, '图表收藏');
   assert.equal(h.find('#category-modules').hidden, false);
   assert.equal(h.find('#asset-grid').dataset.category, 'all');
@@ -627,6 +701,13 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('.category-module[data-type="result"]').classList.contains('active'), true);
   assert.match(h.find('#catalog-note').textContent, /Python/);
   assert.equal(h.document.querySelector('.asset-card:not([data-asset-type="result"])'), null);
+  h.click('#hero-feature');
+  assert.equal(h.find('#dialog-position').textContent, '筛选外图表');
+  assert.equal(h.find('#previous-asset').disabled, true);
+  assert.equal(h.find('#next-asset').disabled, true);
+  assert.equal(h.find('#asset-grid').dataset.category, 'result');
+  assert.equal(h.cardIds().length, 8, 'Opening the hero must not reset the current collection filter');
+  h.click('#close-dialog');
   h.input('#search', 'figure 01'); assert.deepEqual(h.cardIds(), ['a1']);
   h.click('#clear-filters');
   h.find('#source-only').checked = true; h.change('#source-only', 'on'); assert.deepEqual(h.cardIds(), ['a0', 'a1']);
@@ -678,7 +759,7 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   h.click('[data-save="a0"]'); h.click('.nav-item[data-view="saved"]'); assert.deepEqual(h.cardIds(), ['a0']);
   assert.equal(h.find('#collection-heading').textContent, '已保存');
   h.click('.asset-image-button[data-open="a0"]'); h.click('#dialog-save');
-  assert.equal(h.find('#dialog-position').textContent, '— / 0');
+  assert.equal(h.find('#dialog-position').textContent, '筛选外图表');
   assert.equal(h.find('#previous-asset').disabled, true); assert.equal(h.find('#next-asset').disabled, true);
   h.click('#close-dialog'); assert.equal(h.document.activeElement.id, 'main');
   assert.equal([...h.storage.keys()][0], 'figarium:saved:v1:' + encodeURIComponent(catalog.site.repositoryUrl));
@@ -691,12 +772,26 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   h.input('#library-name', injection); h.click('#download-config');
   assert.equal(h.downloads.at(-1).filename, 'figarium.config.json');
   assert.equal(JSON.parse(await h.blobs.at(-1).text()).name, injection); assert.equal(h.context.unsafeExecuted, false);
-  h.resize(760); h.click('#mobile-menu'); assert.equal(h.find('#main').inert, true);
+  h.resize(1100); h.click('#mobile-menu'); assert.equal(h.find('#main').inert, true);
   assert.equal(h.find('#menu-backdrop').hidden, false); assert.equal(h.find('#mobile-menu').getAttribute('aria-expanded'), 'true');
   h.click('#menu-backdrop'); assert.equal(h.document.activeElement.id, 'mobile-menu'); assert.equal(h.find('#main').inert, false);
-  h.click('#mobile-menu'); h.resize(761); h.resize(760);
+  h.click('#mobile-menu'); h.resize(1101); h.resize(1100);
   assert.equal(h.find('#sidebar').classList.contains('open'), false); assert.equal(h.find('#sidebar').inert, true);
   assert.equal(h.find('#menu-backdrop').hidden, true); assert.equal(h.document.body.classList.contains('menu-open'), false);
+});
+
+test('optional DOM smoke initializes without a hero feature component', {
+  skip: !process.env.FIGARIUM_DOM_MODULE_PATH && 'Set FIGARIUM_DOM_MODULE_PATH to an existing linkedom entry for the optional DOM smoke',
+}, () => {
+  const catalog = {
+    site: {name: 'Archive', chineseName: '图集', tagline: 'Research figures', description: 'A paper library', repositoryUrl: 'https://github.com/example/library', featuredPaperIds: []},
+    stats: {paperCount: 0, assetCount: 0, sourceCount: 0, pptxCount: 0}, papers: [], assets: [],
+  };
+  const h = domHarness(catalog, {omitHeroFeature: true});
+  assert.equal(h.document.getElementById('hero-feature'), null);
+  assert.equal(h.find('#stat-assets').textContent, '0');
+  assert.equal(h.find('#empty-state').hidden, false);
+  assert.deepEqual(h.cardIds(), []);
 });
 
 test('optional real catalog DOM smoke matches published counts and actual PPTX downloads', {

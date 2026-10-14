@@ -1,0 +1,43 @@
+{
+  "name": "Figarium Research Library",
+  "purpose": "A personal, human-curated library for finding paper figures and reusing editable resources.",
+  "designMethod": {
+    "skill": "frontend-design",
+    "source": "https://github.com/anthropics/skills/tree/dbd4588f9e1033efb41dad4bef2f7947c8993d44/skills/frontend-design",
+    "note": "Used as a design process, not as a brand reference. The requested visual direction explicitly excludes Anthropic's visual identity."
+  },
+  "palette": {
+    "canvas": "#f5f7fa",
+    "surface": "#ffffff",
+    "ink": "#202833",
+    "muted": "#647184",
+    "action": "#176b62",
+    "divider": "#dce3eb"
+  },
+  "categories": {
+    "method": { "accent": "#315f9b", "surface": "#edf3fc", "resource": "Editable PPT" },
+    "result": { "accent": "#7953a5", "surface": "#f3effa", "resource": "Python" },
+    "table": { "accent": "#956423", "surface": "#fcf5e8", "resource": "LaTeX" }
+  },
+  "typography": {
+    "family": "Locally hosted Manrope for Latin, PingFang SC or Microsoft YaHei for Chinese",
+    "heading": "Sans serif; no decorative italic, serif headline, or isolated color-accent word",
+    "code": "System monospace, only for actual code and paths",
+    "body": "Readable line height and bounded line length; Chinese-first labels"
+  },
+  "layout": {
+    "desktop": "[216px navigation | introduction + real featured figure / three resource categories / searchable gallery]",
+    "mobile": "[compact header] / [introduction] / [featured figure] / [categories] / [searchable gallery]",
+    "railBreakpointPx": 1100,
+    "alignment": "Left-aligned content; centered figures inside complete white image mounts"
+  },
+  "principles": [
+    "The real research figure is the visual focal point, not decorative illustration or large statistics.",
+    "Differentiate method figures, result figures, and tables with labels, icons, and semantic colors.",
+    "Keep scientific images complete with object-fit: contain; never crop axes, legends, or labels.",
+    "Method details expose one figure-specific PPT download, without diagram code or a duplicated paper bundle.",
+    "Preserve human selection, provenance, approximation disclosures, and local ownership.",
+    "Keep keyboard focus visible and honor reduced-motion preferences.",
+    "No warm cream/clay palette, serif editorial treatment, gradients, or decorative motion."
+  ]
+}

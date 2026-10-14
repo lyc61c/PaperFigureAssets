@@ -89,7 +89,7 @@
   function updateSaved() {
     $('nav-saved-count').textContent = saved.size;
     try { localStorage.setItem(storageKey, JSON.stringify([...saved])); }
-    catch { toast('此浏览器不允许持久保存，灵感夹仅在当前页面有效。'); }
+    catch { toast('此浏览器不允许持久保存，收藏仅在当前页面有效。'); }
   }
   function toggleSaved(id) {
     if (saved.has(id)) saved.delete(id); else saved.add(id);
@@ -98,7 +98,7 @@
       const selected = saved.has(button.dataset.save);
       button.classList.toggle('saved', selected);
       button.setAttribute('aria-pressed', String(selected));
-      button.setAttribute('aria-label', selected ? '从灵感夹移除' : '加入灵感夹');
+      button.setAttribute('aria-label', selected ? '取消收藏' : '收藏图表');
     });
     if (activeAsset) updateDialogSave();
     if (state.view === 'saved') render();
@@ -129,16 +129,16 @@
     const assetType = ['method', 'result', 'table'].includes(a.type) ? a.type : 'figure';
     const source = hasSource(a);
     const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(hasCode(a) ? a.codes : []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
-    const badge = source ? icon('code') + ' ' + esc(langs.join(' / ') || 'SOURCE') : icon('palette') + ' 配色 / 参考';
+    const badge = source ? icon(a.type === 'method' ? 'download' : 'code') + ' ' + esc(langs.join(' / ') || '资源') : icon('palette') + ' 配色 / 参考';
     const colors = [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
     const swatches = colors.length ? '<span class="palette-dots" aria-hidden="true">' + colors.map((hex) => '<i class="palette-dot" style="background:' + hex + '" title="' + hex.toUpperCase() + '"></i>').join('') + '</span>' : '';
-    return '<article class="asset-card" data-asset-type="' + assetType + '"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '从灵感夹移除' : '加入灵感夹') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + assetType + '">' + esc(typeLabels[assetType] || '图表') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
+    return '<article class="asset-card" data-asset-type="' + assetType + '"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '取消收藏' : '收藏图表') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + assetType + '">' + esc(typeLabels[assetType] || '图表') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
   }
   function renderPapers() {
     const sorted = [...catalog.papers].sort((a, b) => rank(a.id) - rank(b.id) || Number(b.year) - Number(a.year));
     $('paper-list').innerHTML = sorted.map((p, i) => {
       const rows = assets.filter((a) => a.paperId === p.id);
-      return '<button class="paper-row" data-paper="' + esc(p.id) + '"><span class="paper-number">' + String(i + 1).padStart(2, '0') + '</span><span><h3>' + esc(p.title) + '</h3><p>' + esc(p.topic || 'Research figures') + '</p><span class="paper-row-meta">' + esc(p.venue) + ' / ' + esc(p.year) + ' <b>·</b> ' + rows.length + ' 项图表 <b>·</b> ' + rows.filter(hasSource).length + ' 项含源码 <span>查看图卡 ↗</span></span></span><span class="paper-thumbs">' + rows.slice(0, 3).map((a) => '<img src="' + esc(safeUrl(a.src)) + '" alt="" loading="lazy">').join('') + '</span></button>';
+      return '<button class="paper-row" data-paper="' + esc(p.id) + '"><span class="paper-number">' + String(i + 1).padStart(2, '0') + '</span><span><h3>' + esc(p.title) + '</h3><p>' + esc(p.topic || 'Research figures') + '</p><span class="paper-row-meta">' + esc(p.venue) + ' / ' + esc(p.year) + ' <b>·</b> ' + rows.length + ' 项图表 <b>·</b> ' + rows.filter(hasSource).length + ' 项可复用资源 <span>查看图卡</span></span></span><span class="paper-thumbs">' + rows.slice(0, 3).map((a) => '<img src="' + esc(safeUrl(a.src)) + '" alt="" loading="lazy">').join('') + '</span></button>';
     }).join('');
   }
   function render() {
@@ -155,7 +155,7 @@
     $('paper-list').hidden = !isPapers;
     $('export-saved').hidden = state.view !== 'saved';
     syncCollectionControls();
-    $('collection-eyebrow').textContent = isPapers ? 'THE PAPER ARCHIVE' : state.view === 'saved' ? 'YOUR POCKET COLLECTION' : 'THE COLLECTION';
+    $('collection-eyebrow').textContent = isPapers ? '按论文浏览' : state.view === 'saved' ? '我的收藏' : '浏览图表';
     $('collection-heading').textContent = isPapers ? '论文索引' : state.view === 'saved' ? '已保存' : '图表收藏';
     $('collection-aside').textContent = state.view === 'saved' ? '本机收藏，可导出清单。' : isPapers ? '按论文浏览全部图表。' : '查看原图，带走可编辑资源。';
     document.querySelectorAll('.nav-item[data-view]').forEach((el) => {
@@ -178,21 +178,21 @@
     });
     $('asset-grid').dataset.category = state.type;
     const categoryNotes = {
-      all: '完整看图 · 带走配方 ↗',
-      method: '方法框架 · 按条目提供 PPTX / 配色参考',
-      result: '结果分析 · 按条目提供 Python 重建配方',
-      table: '论文表格 · 按条目提供 LaTeX 重建源码',
+      all: '浏览原图与可复用资源',
+      method: '方法框架图，按条目提供可编辑 PPT',
+      result: '结果分析图，按条目提供 Python 重建代码',
+      table: '论文表格，按条目提供 LaTeX 重建代码',
     };
     $('catalog-note').textContent = categoryNotes[state.type] || categoryNotes.all;
     $('asset-grid').innerHTML = matches.slice(0, state.limit).map(card).join('');
     $('result-count').textContent = '找到 ' + matches.length + ' 项图表' + (state.type === 'all' ? '' : ' · ' + typeNames[state.type]);
     $('empty-state').hidden = matches.length !== 0;
     const emptySaved = state.view === 'saved' && saved.size === 0;
-    $('empty-title').textContent = emptySaved ? '留一枚书签，收一颗灵感。' : '这条小径暂时还没有图。';
+    $('empty-title').textContent = emptySaved ? '还没有收藏图表' : '没有找到匹配的图表';
     $('empty-description').textContent = emptySaved ? '点击图卡右上角的书签，把想再看的图留在这里。收藏只存于本机浏览器。' : '试试其他关键词，或者换一组筛选条件。';
-    $('reset-filters').textContent = emptySaved ? '去图谱里寻找灵感' : '重置筛选';
+    $('reset-filters').textContent = emptySaved ? '浏览图表' : '重置筛选';
     $('load-more').hidden = matches.length <= state.limit;
-    $('load-more').textContent = '再看 ' + Math.min(18, matches.length - state.limit) + ' 张 ↓';
+    $('load-more').textContent = '再看 ' + Math.min(18, matches.length - state.limit) + ' 张';
   }
   function resetFilters() {
     Object.assign(state, {type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, limit: 18});
@@ -222,7 +222,7 @@
     setDensity(state.density);
   }
   function updateDrawer() {
-    const mobile = window.matchMedia ? window.matchMedia('(max-width:760px)').matches : window.innerWidth <= 760;
+    const mobile = window.matchMedia ? window.matchMedia('(max-width:1100px)').matches : window.innerWidth <= 1100;
     if (!mobile) $('sidebar').classList.remove('open');
     const open = mobile && $('sidebar').classList.contains('open');
     $('sidebar').inert = mobile && !open;
@@ -254,7 +254,8 @@
     const navigation = dialogNavigation(filteredAssets(), activeAsset?.id);
     $('previous-asset').disabled = !navigation.previousId;
     $('next-asset').disabled = !navigation.nextId;
-    $('dialog-position').textContent = (navigation.index >= 0 ? navigation.index + 1 : '—') + ' / ' + navigation.total;
+    $('dialog-position').textContent = activeAsset && navigation.index < 0
+      ? '筛选外图表' : (navigation.index >= 0 ? navigation.index + 1 : '—') + ' / ' + navigation.total;
   }
   function navigateAsset(direction) {
     if (!activeAsset || ![-1, 1].includes(direction)) return false;
@@ -282,7 +283,7 @@
   }
   function updateDialogSave() {
     const selected = saved.has(activeAsset.id);
-    $('dialog-save').innerHTML = icon('bookmark') + (selected ? ' 已加入灵感夹' : ' 加入灵感夹');
+    $('dialog-save').innerHTML = icon('bookmark') + (selected ? ' 已保存' : ' 保存图表');
     $('dialog-save').setAttribute('aria-pressed', String(selected));
   }
   function setTab(name) {
@@ -339,7 +340,7 @@
     if (!$('asset-dialog').open) previousFocus = document.activeElement;
     activeAsset = a;
     setImageExpanded(false);
-    $('dialog-label').textContent = (Object.hasOwn(typeLabels, a.type) ? typeLabels[a.type] : '图表') + ' / FIELD NOTE';
+    $('dialog-label').textContent = (Object.hasOwn(typeLabels, a.type) ? typeLabels[a.type] : '图表') + ' / 图表详情';
     $('dialog-title').textContent = a.title;
     $('dialog-paper').textContent = cleanText(p.title) + ' · ' + (p.venue || '') + ' ' + (p.year || '');
     $('dialog-image').src = safeUrl(a.src); $('dialog-image').alt = a.title;
@@ -379,6 +380,26 @@
     const stem = activeAsset.paperId + '_' + activeAsset.filename.replace(/\.[^.]+$/, '') + ( /required packages/i.test(code.label) ? '_packages' : '');
     download(text, stem + '.' + ext, mime); toast('源码已准备下载；请审阅后再运行。');
   }
+  function renderFeatured() {
+    const feature = $('hero-feature');
+    if (!feature) return;
+    const image = $('hero-feature-image'), title = $('hero-feature-title'), paper = $('hero-feature-paper');
+    feature.hidden = true;
+    delete feature.dataset.open;
+    if (!image || !title || !paper) return;
+    image.removeAttribute('src'); image.alt = ''; title.textContent = ''; paper.textContent = '';
+    // Assets already follow the configured featured-paper order. Only feature a
+    // method whose own local PPTX can be downloaded, never a paper-level bundle.
+    const asset = assets.find((candidate) => candidate.type === 'method' && safeUrl(candidate.src) !== '#' &&
+      relatedDownloads(candidate).some((row) => row.local === true && safeUrl(row.url).startsWith('assets/papers/')));
+    if (!asset) return;
+    image.src = safeUrl(asset.src); image.alt = cleanText(asset.title);
+    title.textContent = cleanText(asset.title);
+    paper.textContent = shortPaper(papers.get(asset.paperId));
+    feature.dataset.open = asset.id;
+    feature.setAttribute('aria-label', '查看精选方法图：' + cleanText(asset.title));
+    feature.hidden = false;
+  }
   function initialize() {
     const site = catalog.site;
     const repository = safeUrl(site.repositoryUrl).replace(/\/$/, '');
@@ -386,7 +407,6 @@
     document.querySelector('meta[name="description"]').content = site.description;
     document.querySelectorAll('[data-site-tagline]').forEach((el) => { el.textContent = site.tagline; });
     document.querySelectorAll('[data-site-description]').forEach((el) => { el.textContent = site.description; });
-    document.querySelector('.hero-description').textContent = site.description;
     const footerBrand = document.querySelector('footer > span:first-child');
     footerBrand.replaceChildren();
     const footerName = document.createElement('b'); footerName.textContent = site.name;
@@ -395,7 +415,8 @@
     document.querySelectorAll('[data-brand-name]').forEach((el) => { el.textContent = site.name; });
     document.querySelectorAll('[data-brand-chinese]').forEach((el) => { el.textContent = site.chineseName; });
     document.querySelector('.brand').setAttribute('aria-label', site.name + ' ' + site.chineseName + ' 首页');
-    document.querySelector('.hero .eyebrow').textContent = site.name.toUpperCase() + ' / 由你策展的论文图库';
+    const heroLabel = document.querySelector('.hero .eyebrow');
+    if (heroLabel) heroLabel.textContent = '由你策展的论文图库';
     document.querySelectorAll('.repo-link').forEach((el) => { el.href = repository; });
     document.querySelectorAll('.guide-doc-link').forEach((el) => { el.href = 'guides/GETTING_STARTED.md'; });
     document.querySelectorAll('.customize-doc-link').forEach((el) => { el.href = 'guides/CUSTOMIZATION.md'; });
@@ -405,6 +426,7 @@
     $('stat-papers').textContent = catalog.stats.paperCount; $('stat-assets').textContent = catalog.stats.assetCount;
     $('stat-pptx').textContent = catalog.stats.pptxCount ?? assets.filter(hasLocalPptx).length;
     $('nav-paper-count').textContent = catalog.stats.paperCount; $('nav-asset-count').textContent = catalog.stats.assetCount;
+    renderFeatured();
     updateSaved();
     [...new Set(catalog.papers.map((p) => String(p.year)))].sort().reverse().forEach((year) => {
       const option = document.createElement('option'); option.value = year; option.textContent = year; $('year').append(option);

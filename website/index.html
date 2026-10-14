@@ -4,14 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="Figarium 图圃：人工策展的论文视觉档案。收藏图表，带走代码与可编辑 PPT。">
-  <meta name="theme-color" content="#f8f7f3">
+  <meta name="theme-color" content="#f5f7fa">
   <title>Figarium · 图圃 — Curate the figure. Keep the recipe.</title>
   <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/instrument-serif-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="fonts/figarium-editorial-sc.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=20261014-method-ppt">
-  <script src="catalog.js?v=20261014-method-ppt" defer></script>
-  <script src="app.js?v=20261014-method-ppt" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261014-research-library">
+  <script src="catalog.js?v=20261014-research-library" defer></script>
+  <script src="app.js?v=20261014-research-library" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -21,44 +19,48 @@
         <svg class="brand-mark" viewBox="0 0 40 44" fill="none" aria-hidden="true"><path d="M20 40V19M20 27C7 27 5 18 5 11c10 0 15 6 15 16Zm0-7C20 9 27 4 35 4c0 10-6 16-15 16Z" stroke="currentColor" stroke-width="2.5"/><circle cx="20" cy="40" r="2.5" fill="currentColor"/></svg>
         <span class="brand-wordmark"><strong data-brand-name>Figarium</strong><small data-brand-chinese>图圃</small></span>
       </a>
+      <p class="brand-description">论文图表的收藏与再创作</p>
       <nav class="site-nav" id="sidebar" aria-label="主要导航">
         <div class="primary-nav">
-          <button class="nav-item active" data-view="explore" aria-current="page">图表收藏 <span class="nav-count" id="nav-asset-count">—</span></button>
-          <button class="nav-item" data-view="papers">论文索引 <span class="nav-count" id="nav-paper-count">—</span></button>
-          <button class="nav-item" data-view="saved">已保存 <span class="nav-count" id="nav-saved-count">0</span></button>
+          <p class="nav-group-label">浏览图库</p>
+          <button class="nav-item active" data-view="explore" aria-current="page"><span data-icon="grid"></span>图表收藏 <span class="nav-count" id="nav-asset-count">—</span></button>
+          <button class="nav-item" data-view="papers"><span data-icon="book"></span>论文索引 <span class="nav-count" id="nav-paper-count">—</span></button>
+          <button class="nav-item" data-view="saved"><span data-icon="bookmark"></span>已保存 <span class="nav-count" id="nav-saved-count">0</span></button>
         </div>
         <div class="secondary-nav">
-          <button class="nav-item" data-view="workflow">工作流</button>
-          <button class="nav-item nav-guide" data-view="guide">搭建我的图库 <span aria-hidden="true">↗</span></button>
+          <p class="nav-group-label">创建自己的收藏</p>
+          <button class="nav-item" data-view="workflow"><span data-icon="branch"></span>采集工作流</button>
+          <button class="nav-item nav-guide" data-view="guide"><span data-icon="sprout"></span>搭建我的图库</button>
         </div>
       </nav>
-      <a class="header-github icon-button repo-link" href="https://github.com/lyc61c/PaperFigureAssets" target="_blank" rel="noopener noreferrer" aria-label="查看 GitHub 仓库"><span data-icon="github"></span></a>
+      <div class="sidebar-note"><span class="status-dot"></span><p>AI 整理，人工精选。<br>可编辑资源，留在你手里。</p></div>
+      <a class="header-github repo-link" href="https://github.com/lyc61c/PaperFigureAssets" target="_blank" rel="noopener noreferrer" aria-label="查看 GitHub 仓库"><span data-icon="github"></span><span>开源仓库</span><span aria-hidden="true">↗</span></a>
       <button class="mobile-menu icon-button" id="mobile-menu" aria-label="展开导航" aria-controls="sidebar" aria-expanded="false"><span data-icon="menu"></span></button>
     </div>
   </header>
   <button class="menu-backdrop" id="menu-backdrop" aria-label="收起导航" hidden></button>
   <main id="main" tabindex="-1">
     <section class="hero" id="hero" aria-labelledby="hero-heading">
-      <div class="hero-copy"><p class="eyebrow">A PERSONAL ARCHIVE OF RESEARCH VISUALS</p><h1 id="hero-heading">好图，<em>值得再用。</em></h1><p class="hero-description">把论文里的视觉灵感，培育成你自己的、可复用的研究工具。</p></div>
-      <div class="hero-aside"><p class="archive-label"><span class="status-dot"></span> 人工策展，持续生长</p><dl class="hero-stats"><div><dt>篇论文</dt><dd id="stat-papers">—</dd></div><div><dt>张图表</dt><dd id="stat-assets">—</dd></div><div><dt>份可编辑 PPT</dt><dd id="stat-pptx">—</dd></div></dl><a class="archive-link" href="#collection">翻开这本视觉笔记 <span aria-hidden="true">↓</span></a></div>
+      <div class="hero-copy"><p class="hero-label"><span class="status-dot"></span> 你的研究视觉资料库</p><h1 id="hero-heading">研究图表，<br>不止于收藏。</h1><p class="hero-description">从论文中挑选值得留下的图表。<br>带走可编辑 PPT 和重建代码，开始自己的创作。</p><div class="hero-actions"><a class="button button-dark" href="#collection">浏览图表</a><button class="text-button" data-view="guide">建立我的图库 <span aria-hidden="true">↗</span></button></div><dl class="hero-stats"><div><dt>篇论文</dt><dd id="stat-papers">—</dd></div><div><dt>张图表</dt><dd id="stat-assets">—</dd></div><div><dt>份可编辑 PPT</dt><dd id="stat-pptx">—</dd></div></dl></div>
+      <button class="hero-feature" id="hero-feature" type="button" hidden aria-label="查看精选方法图"><span class="hero-feature-top"><span>馆藏选图</span><span class="hero-feature-format">可编辑 PPT</span></span><span class="hero-feature-image"><img id="hero-feature-image" alt="" decoding="async"></span><span class="hero-feature-caption"><strong id="hero-feature-title"></strong><span id="hero-feature-paper"></span></span></button>
     </section>
     <section class="collection-section" id="collection" aria-labelledby="collection-heading">
-      <div class="section-title"><div><p class="eyebrow" id="collection-eyebrow">THE VISUAL INDEX</p><h2 id="collection-heading">图表收藏</h2></div><p class="section-aside" id="collection-aside">为下一次创作，留一份好参考。</p></div>
+      <div class="section-title"><div><h2 id="collection-heading">图表收藏</h2><p class="eyebrow" id="collection-eyebrow" hidden>研究视觉索引</p></div><p class="section-aside" id="collection-aside">查看原图，带走可编辑资源。</p></div>
       <div class="category-modules" id="category-modules" role="group" aria-label="按图表类型浏览">
         <button class="category-module method-module" data-type="method" aria-pressed="false">
           <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="11" y="3" width="10" height="7" rx="2"/><rect x="2" y="22" width="10" height="7" rx="2"/><rect x="20" y="22" width="10" height="7" rx="2"/><path d="M16 10v6M7 22v-6h18v6"/><path d="m5 20 2 2 2-2m14 0 2 2 2-2"/></svg></span>
           <span class="category-copy"><strong>方法框架</strong><small>Method figures</small></span><span class="category-count" id="count-method">—</span>
-          <span class="category-description">读懂模型与流程<span class="category-format">PPTX · 配色参考</span></span><span class="category-arrow" aria-hidden="true">↗</span>
+          <span class="category-description">模型结构与方法流程<span class="category-format">可编辑 PPT</span></span>
         </button>
         <button class="category-module result-module" data-type="result" aria-pressed="false">
           <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 3v24h24M9 22l6-7 5 3 8-11"/><circle cx="9" cy="22" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="15" r="1.5" fill="currentColor" stroke="none"/><circle cx="20" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="28" cy="7" r="1.5" fill="currentColor" stroke="none"/><path d="M10 8h5M10 11h9" opacity=".4"/></svg></span>
           <span class="category-copy"><strong>结果分析</strong><small>Result figures</small></span><span class="category-count" id="count-result">—</span>
-          <span class="category-description">看见实验与洞察<span class="category-format">Python · 重建参考</span></span><span class="category-arrow" aria-hidden="true">↗</span>
+          <span class="category-description">实验曲线与可视化<span class="category-format">Python 代码</span></span>
         </button>
         <button class="category-module table-module" data-type="table" aria-pressed="false">
           <span class="category-icon"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="3" y="5" width="26" height="22" rx="2"/><path d="M3 12h26M3 19h26M12 12v15M21 12v15"/><path d="M6 8h20" stroke-width="2" opacity=".4"/></svg></span>
           <span class="category-copy"><strong>论文表格</strong><small>Paper tables</small></span><span class="category-count" id="count-table">—</span>
-          <span class="category-description">整理指标与比较<span class="category-format">LaTeX · 排版参考</span></span><span class="category-arrow" aria-hidden="true">↗</span>
+          <span class="category-description">指标比较与消融实验<span class="category-format">LaTeX 源码</span></span>
         </button>
       </div>
       <div class="collection-tools" id="collection-tools">
@@ -77,28 +79,28 @@
         </div>
         <button class="paper-filter-chip" id="paper-filter-chip" hidden></button>
       </div>
-      <div class="result-heading"><span id="result-count" aria-live="polite">正在加载收藏…</span><span class="catalog-note" id="catalog-note">完整看图 · 带走配方 <span aria-hidden="true">↗</span></span></div>
+      <div class="result-heading"><span id="result-count" aria-live="polite">正在加载收藏…</span><span class="catalog-note" id="catalog-note">浏览原图与可复用资源</span></div>
       <div class="asset-grid" id="asset-grid" data-density="comfortable"></div><div class="paper-list" id="paper-list" hidden></div>
       <div class="empty-state" id="empty-state" hidden><span data-icon="search"></span><h3 id="empty-title">暂时没有匹配的图表</h3><p id="empty-description">试试其他关键词，或者调整筛选条件。</p><button class="button button-dark" id="reset-filters">重置筛选</button></div><button class="load-more button button-outline" id="load-more" hidden>再看 18 张 <span aria-hidden="true">↓</span></button>
     </section>
-    <section class="workflow-callout" id="process-strip" aria-label="采集流程"><span class="callout-symbol" aria-hidden="true">✳</span><div><p class="eyebrow">COLLECT WITH INTENTION</p><h2>你的下一篇收藏，只需要一个论文链接。</h2><p>自动提取 → 人工筛选 → 可编辑重建 → 加入你的图库。</p></div><button class="button button-outline" data-view="workflow">看看它如何工作 <span aria-hidden="true">↗</span></button></section>
+    <section class="workflow-callout" id="process-strip" aria-label="采集流程"><div><p class="eyebrow">收录一篇新论文</p><h2>你的下一篇收藏，只需要一个论文链接。</h2><p>自动提取 → 人工筛选 → 可编辑重建 → 加入你的图库。</p></div><button class="button button-outline" data-view="workflow">查看采集流程</button></section>
     <section class="story-view" id="workflow-view" hidden>
-      <p class="eyebrow">FROM PAPER TO YOUR COLLECTION</p><h1 class="page-title">机器负责整理，<br><em>你决定值得留下什么。</em></h1><p class="page-intro">不是一份固定图单，而是一套可以在自己的目录里重复运行的采集与复现流程。</p>
+      <p class="eyebrow">采集工作流</p><h1 class="page-title">机器负责整理，<br>你决定值得留下什么。</h1><p class="page-intro">不是一份固定图单，而是一套可以在自己的目录里重复运行的采集与复现流程。</p>
       <div class="workflow-layout"><div class="workflow-timeline">
-        <article><span>01</span><div><small>START WITH A PAPER</small><h2>给一个论文名，或一条链接</h2><p>Skill 查找准确来源、读取完整论文，并清点所有编号图和表。方法框架、实验结果和表格，各归其位。</p></div></article>
-        <article><span>02</span><div><small>EXTRACT THE WHOLE PAPER</small><h2>完整提取，保留来路</h2><p>保留多子图、坐标轴、图例和标签，记录原图编号、页码与裁剪区域。附录里的图表，也不会被默认跳过。</p></div></article>
-        <article class="pause-step"><span>03</span><div><small>HUMAN IN THE LOOP</small><h2>停下来，等你挑选</h2><p>收到真实的本地目录后，你可以删除、替换、重命名或新增图片。没有确认，就不会继续生成条目。</p><code>“检查好了，用目录里的图片继续。”</code></div></article>
-        <article><span>04</span><div><small>MAKE IT EDITABLE</small><h2>留下原图，也留下重建配方</h2><p>方法图提供对应的可编辑 PPTX，每张图一个下载入口。实验图提供 Python，表格提供 LaTeX。估读数据、简化结构和未完成的重建都会说明。</p></div></article>
-        <article><span>05</span><div><small>BUILD YOUR OWN ARCHIVE</small><h2>README 与网页，一起更新</h2><p>使用你确认后的当前图片，生成论文 README、更新主索引，再构建网页。收藏、品牌和研究方向，由你掌控。</p></div></article>
-      </div><aside class="workflow-note"><p class="eyebrow">YOUR COLLECTION, YOUR CALL.</p><h3>自动化流程，<br>不自动替你决定。</h3><p>AI 辅助发现与整理，人做最后的选择。重建不是原作者源码恢复，也不等同于原始实验数据。</p><div class="folder-tree"><span>materials / YourPaper /</span><br>├─ <b>method_figures/</b><br>├─ <b>result_figures/</b><br>└─ <b>tables/</b></div><button class="button button-dark" data-view="guide">建立我的图库 <span aria-hidden="true">↗</span></button></aside></div>
+        <article><span>1</span><div><small>提供论文</small><h2>给一个论文名，或一条链接</h2><p>Skill 查找准确来源、读取完整论文，并清点所有编号图和表。方法框架、实验结果和表格，各归其位。</p></div></article>
+        <article><span>2</span><div><small>提取图表</small><h2>完整提取，保留来路</h2><p>保留多子图、坐标轴、图例和标签，记录原图编号、页码与裁剪区域。附录里的图表，也不会被默认跳过。</p></div></article>
+        <article class="pause-step"><span>3</span><div><small>人工筛选</small><h2>停下来，等你挑选</h2><p>收到真实的本地目录后，你可以删除、替换、重命名或新增图片。没有确认，就不会继续生成条目。</p><code>“检查好了，用目录里的图片继续。”</code></div></article>
+        <article><span>4</span><div><small>重建可编辑资源</small><h2>留下原图，也留下重建配方</h2><p>方法图提供对应的可编辑 PPTX，每张图一个下载入口。实验图提供 Python，表格提供 LaTeX。估读数据、简化结构和未完成的重建都会说明。</p></div></article>
+        <article><span>5</span><div><small>更新图库</small><h2>README 与网页，一起更新</h2><p>使用你确认后的当前图片，生成论文 README、更新主索引，再构建网页。收藏、品牌和研究方向，由你掌控。</p></div></article>
+      </div><aside class="workflow-note"><p class="eyebrow">由你确认</p><h3>自动化流程，<br>不自动替你决定。</h3><p>AI 辅助发现与整理，人做最后的选择。重建不是原作者源码恢复，也不等同于原始实验数据。</p><div class="folder-tree"><span>materials / YourPaper /</span><br>├─ <b>method_figures/</b><br>├─ <b>result_figures/</b><br>└─ <b>tables/</b></div><button class="button button-dark" data-view="guide">建立我的图库</button></aside></div>
     </section>
     <section class="story-view" id="guide-view" hidden>
-      <p class="eyebrow">MAKE IT YOURS</p><h1 class="page-title">把这套工作流，<br><em>带进你的研究。</em></h1><p class="page-intro">Fork 项目，安装 Skill，从你关心的第一篇论文开始。网页负责浏览和下载，采集与筛选在本机完成。</p>
+      <p class="eyebrow">搭建指南</p><h1 class="page-title">把这套工作流，<br>带进你的研究。</h1><p class="page-intro">Fork 项目，安装 Skill，从你关心的第一篇论文开始。网页负责浏览和下载，采集与筛选在本机完成。</p>
       <div class="guide-grid">
-        <article class="guide-card"><span class="step-label">01 / YOUR OWN SPACE</span><h2>拥有自己的仓库</h2><p>Fork 项目保存自己的选集，或 clone 到本机。现有素材的许可不自动转移，发布前请核对原作者的再分发要求。</p><a id="fork-link" class="button button-outline" href="https://github.com/lyc61c/PaperFigureAssets/fork" target="_blank" rel="noopener noreferrer">在 GitHub Fork <span aria-hidden="true">↗</span></a><div class="mini-code"><code id="clone-code">git clone https://github.com/lyc61c/PaperFigureAssets.git Figarium</code><button class="icon-button" data-copy-target="clone-code" aria-label="复制克隆命令"><span data-icon="copy"></span></button></div></article>
-        <article class="guide-card"><span class="step-label">02 / THE SKILL</span><h2>装好你的采集搭档</h2><p>将下面的指令发给 Codex 安装完整 Skill。调用名为 <code>$paper-asset-builder</code>，PPT 复现流程已内置。</p><div class="mini-code prompt-code"><code id="install-prompt">$skill-installer 请从 https://github.com/lyc61c/PaperFigureAssets 的 paper-asset-builder 目录安装 skill。</code><button class="icon-button" data-copy-target="install-prompt" aria-label="复制 skill 安装指令"><span data-icon="copy"></span></button></div><a class="small-link guide-doc-link" href="https://github.com/lyc61c/PaperFigureAssets/blob/main/docs/GETTING_STARTED.md" target="_blank" rel="noopener noreferrer">Codex / Claude Code 安装指南 ↗</a></article>
-        <article class="guide-card guide-prompt-card"><span class="step-label">03 / YOUR FIRST PAPER</span><h2>写下想收藏的论文</h2><label class="input-label" for="paper-input">论文名、arXiv 链接或本地 PDF 路径</label><input class="text-input" id="paper-input" placeholder="WeVisDoc，或 https://arxiv.org/abs/…"><button class="button button-dark" id="make-prompt">生成采集指令 <span aria-hidden="true">↗</span></button><div class="generated-prompt" id="generated-prompt" hidden><textarea id="paper-prompt" aria-label="生成的 skill 指令" readonly rows="6"></textarea><button class="text-button" data-copy-target="paper-prompt">复制指令 <span data-icon="copy"></span></button></div><small class="form-note">复制给本地 AI 助手，拿到目录后检查，再回复确认。网页不会提交输入内容。</small></article>
-        <article class="guide-card"><span class="step-label">04 / YOUR OWN IDENTITY</span><h2>让它成为你的图库</h2><p>品牌、描述与精选论文在一个配置文件里。网页从主 README 索引构建，未收录的临时目录不会自动公开。</p><label class="input-label" for="library-name">我的图库名称</label><div class="config-row"><input class="text-input" id="library-name" value="My Figarium" maxlength="60"><button class="button button-outline" id="download-config"><span data-icon="download"></span> 配置</button></div><div class="mini-code"><code>python website/build.py
+        <article class="guide-card"><span class="step-label">1 · 创建仓库</span><h2>拥有自己的仓库</h2><p>Fork 项目保存自己的选集，或 clone 到本机。现有素材的许可不自动转移，发布前请核对原作者的再分发要求。</p><a id="fork-link" class="button button-outline" href="https://github.com/lyc61c/PaperFigureAssets/fork" target="_blank" rel="noopener noreferrer">在 GitHub Fork <span aria-hidden="true">↗</span></a><div class="mini-code"><code id="clone-code">git clone https://github.com/lyc61c/PaperFigureAssets.git Figarium</code><button class="icon-button" data-copy-target="clone-code" aria-label="复制克隆命令"><span data-icon="copy"></span></button></div></article>
+        <article class="guide-card"><span class="step-label">2 · 安装 Skill</span><h2>安装图表采集 Skill</h2><p>将下面的指令发给 Codex 安装完整 Skill。调用名为 <code>$paper-asset-builder</code>，PPT 复现流程已内置。</p><div class="mini-code prompt-code"><code id="install-prompt">$skill-installer 请从 https://github.com/lyc61c/PaperFigureAssets 的 paper-asset-builder 目录安装 skill。</code><button class="icon-button" data-copy-target="install-prompt" aria-label="复制 skill 安装指令"><span data-icon="copy"></span></button></div><a class="small-link guide-doc-link" href="https://github.com/lyc61c/PaperFigureAssets/blob/main/docs/GETTING_STARTED.md" target="_blank" rel="noopener noreferrer">Codex / Claude Code 安装指南 ↗</a></article>
+        <article class="guide-card guide-prompt-card"><span class="step-label">3 · 收录论文</span><h2>写下想收藏的论文</h2><label class="input-label" for="paper-input">论文名、arXiv 链接或本地 PDF 路径</label><input class="text-input" id="paper-input" placeholder="WeVisDoc，或 https://arxiv.org/abs/…"><button class="button button-dark" id="make-prompt">生成采集指令</button><div class="generated-prompt" id="generated-prompt" hidden><textarea id="paper-prompt" aria-label="生成的 skill 指令" readonly rows="6"></textarea><button class="text-button" data-copy-target="paper-prompt">复制指令 <span data-icon="copy"></span></button></div><small class="form-note">复制给本地 AI 助手，拿到目录后检查，再回复确认。网页不会提交输入内容。</small></article>
+        <article class="guide-card"><span class="step-label">4 · 配置图库</span><h2>让它成为你的图库</h2><p>品牌、描述与精选论文在一个配置文件里。网页从主 README 索引构建，未收录的临时目录不会自动公开。</p><label class="input-label" for="library-name">我的图库名称</label><div class="config-row"><input class="text-input" id="library-name" value="My Figarium" maxlength="60"><button class="button button-outline" id="download-config"><span data-icon="download"></span> 配置</button></div><div class="mini-code"><code>python website/build.py
 python -m http.server 8000 --directory website/dist</code><button class="icon-button" data-copy-target="build-code" aria-label="复制构建和预览命令"><span data-icon="copy"></span></button></div><code id="build-code" hidden>python website/build.py
 python -m http.server 8000 --directory website/dist</code><a class="small-link customize-doc-link" href="https://github.com/lyc61c/PaperFigureAssets/blob/main/docs/CUSTOMIZATION.md" target="_blank" rel="noopener noreferrer">个性化与 GitHub Pages 部署指南 ↗</a></article>
       </div><div class="guide-footnote"><span data-icon="shield"></span><p><strong>可复用，不等于无条件复用。</strong> 重建会标明近似与简化，原图保留作者权益。在线 LaTeX 验证须先授权，只提交选定表格源码，不上传整篇 PDF 或你的其他本地文件。</p></div>
@@ -106,7 +108,7 @@ python -m http.server 8000 --directory website/dist</code><a class="small-link c
     <footer><span><b data-brand-name>Figarium</b><span data-brand-chinese>图圃</span> · Curate the figure. Keep the recipe.</span><span>人工策展 · 无追踪脚本 · 原图权益归原作者</span><a class="repo-link" href="https://github.com/lyc61c/PaperFigureAssets" target="_blank" rel="noopener noreferrer">GitHub ↗</a></footer>
   </main>
   <dialog class="asset-dialog" id="asset-dialog" aria-labelledby="dialog-title">
-    <header class="dialog-header"><span class="eyebrow" id="dialog-label">FIGURE DETAIL</span><div class="dialog-controls"><span class="dialog-position" id="dialog-position">—</span><button class="icon-button" id="previous-asset" aria-label="上一张图" title="上一张图（←）"><span aria-hidden="true">←</span></button><button class="icon-button" id="next-asset" aria-label="下一张图" title="下一张图（→）"><span aria-hidden="true">→</span></button><span class="control-divider"></span><button class="icon-button" id="close-dialog" aria-label="关闭图卡"><span data-icon="close"></span></button></div></header>
+    <header class="dialog-header"><span class="eyebrow" id="dialog-label">图表详情</span><div class="dialog-controls"><span class="dialog-position" id="dialog-position">—</span><button class="icon-button" id="previous-asset" aria-label="上一张图" title="上一张图（←）"><span aria-hidden="true">←</span></button><button class="icon-button" id="next-asset" aria-label="下一张图" title="下一张图（→）"><span aria-hidden="true">→</span></button><span class="control-divider"></span><button class="icon-button" id="close-dialog" aria-label="关闭图卡"><span data-icon="close"></span></button></div></header>
     <div class="dialog-body"><div class="dialog-visual">
       <div class="dialog-image-wrap"><img id="dialog-image" alt=""></div>
       <div class="dialog-image-actions"><div class="image-view-actions"><button class="text-button" id="zoom-image" aria-pressed="false"><span data-icon="search"></span> 放大查看</button><a id="original-link" class="small-link" target="_blank" rel="noopener noreferrer">原图 ↗</a></div><button class="text-button" id="dialog-save"><span data-icon="bookmark"></span> 保存</button></div>
