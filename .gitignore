@@ -4,4 +4,6 @@ __pycache__/
 .vscode/
 .idea/
 .github_token
+website/dist/
+website/.openai/
 

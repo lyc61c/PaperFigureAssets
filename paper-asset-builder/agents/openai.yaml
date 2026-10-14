@@ -1,0 +1,4 @@
+interface:
+  display_name: "Figarium · 图圃"
+  short_description: "Human-curated paper figures with editable reconstruction code"
+  default_prompt: "Use $paper-asset-builder to extract and classify this paper's figures, pause for my local review, then build my reproducible figure library."

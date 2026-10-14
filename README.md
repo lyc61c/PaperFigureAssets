@@ -1,8 +1,73 @@
-# PaperFigureAssets
+# Figarium · 图圃
 
-A curated academic figure asset repository for reusable paper figures, result plots, and LaTeX tables.
+**Curate the figure. Keep the recipe.**
 
-Each paper lives in a self-contained directory with method figure previews, editable source links, result-plot reconstruction code, and LaTeX table source.
+一座由你策展、可以复现的论文图圃。Figarium 来自 **Figure + Herbarium**：收藏好图，也保存它们的来源、配色与可编辑的重建方式。
+
+提供论文名、链接或 PDF，`paper-asset-builder` 会清点并分类提取全文图表，返回本地目录让你筛选；确认之后，再为留下的图片生成代码与论文条目。收藏属于你的研究兴趣和审美，而不是一份只能照单全收的图单。
+
+[在线图库](https://lyc61c.github.io/PaperFigureAssets/) · [开始建立你的图库](docs/GETTING_STARTED.md) · [定制与发布](docs/CUSTOMIZATION.md) · [Skill 规范](paper-asset-builder/SKILL.md) · [网页源码](website/)
+
+## 不止展示，也能带走
+
+| 你想做什么 | Figarium 提供什么 |
+|---|---|
+| 挑选真正喜欢的图 | 全文提取后暂停，直接在本地删、换、增图，人工决定最终收藏 |
+| 搭建自己的图形语言 | 按论文与资产类型组织；保留配色、原编号、页码和重建范围 |
+| 拿去改成自己的图 | 结果图 Python、表格 LaTeX；可行的方法图提供 SVG / TikZ 可编辑重建 |
+| 维护个人图库 | Fork 仓库、安装 skill、定制品牌与精选论文、构建静态网页 |
+
+“可复现”不代表每张图都能恢复成作者的原始工程。估读数据会明确标注，照片/截图和复杂插画会说明重建限制；旧条目的源码覆盖也不完全相同。网页只提供浏览、复制和下载，不在访客浏览器执行任意代码。
+
+## 从论文到你的收藏
+
+```text
+论文名 / 链接 / PDF
+  → 全文编号图表清点与分类提取（包括附录）
+  → 本地 materials/<paper_id>/，等待你筛选
+  → 你确认后，重读当前目录中的图片
+  → 可编辑重建 + 论文 README + 主索引
+  → 构建个人静态图库
+```
+
+新论文默认 `selection=all`，不提前替你丢掉不够“漂亮”的编号图表。想让 agent 先精选，可显式指定 `selection=curated`。提取覆盖和无法完成的项目会记录下来，完整截图不等于只导出 PDF 内的嵌入位图。
+
+## 快速开始
+
+先 clone/Fork 本仓库，把完整的 `paper-asset-builder/` 安装到 Codex 的项目 `.agents/skills/` 或个人 `~/.agents/skills/`；已有安装可以原位更新。Claude Code 使用 `.claude/skills/`。分平台步骤见[入门指南](docs/GETTING_STARTED.md#2-安装完整-skill)，Codex 路径以 [OpenAI 官方文档](https://developers.openai.com/codex/skills)为准。
+
+在 Codex 中：
+
+```text
+$paper-asset-builder paper="论文名、论文链接或本地 PDF 路径"
+```
+
+Skill 会返回你机器上的**实际绝对路径**并暂停。检查本地图片后回复：
+
+```text
+检查好了，继续。请使用目录里现在保留的图片。
+```
+
+最终以当前目录为准，删除的图不会被自动提取回来。也支持直接提供已有图片：
+
+```text
+$paper-asset-builder material_dir="/path/to/materials" paper="论文链接" extract_assets=false
+```
+
+Claude Code 安装后用 `/paper-asset-builder` 调用。正常收图不需要用户手动运行提取脚本。
+
+## 本地浏览与个性化
+
+在仓库根目录执行：
+
+```bash
+python website/build.py
+python -m http.server 8000 --directory website/dist
+```
+
+打开 [localhost:8000](http://localhost:8000)。站点从论文 README 和实际图片构建，源文件仍可独立阅读；更换 `website/figarium.config.json` 即可设置自己的品牌和精选论文。完成条目后 skill 会重建可用的本地站点，但不会擅自提交、推送或发布。
+
+网页是静态图库，不是在线 skill 服务。把它发布到自己的 GitHub Pages 或其他托管平台，见[定制与部署](docs/CUSTOMIZATION.md)。
 
 ## Paper Index
 
@@ -22,87 +87,40 @@ Each paper lives in a self-contained directory with method figure previews, edit
 | [AutoEnvScaling: Automating the Data Flywheel with Terminal Agents](papers/2026_arxiv_AutoEnvScaling/README.md) | arXiv | 2026 | Terminal agents, automatic environment generation, recursive data-flywheel self-improvement | 2 method figures, 3 result figures, 2 tables |
 | [Towards On-Policy Data Evolution for Visual-Native Multimodal Deep Search Agents](papers/2026_arxiv_ODE/README.md) | arXiv | 2026 | Visual-native multimodal deep search, on-policy data evolution, agent SFT and reinforcement learning | 1 method figures, 4 result figures, 1 tables |
 <!-- PAPER_INDEX_END -->
-
 ## Asset Types
 
 | Type | Folder | Included in Paper README |
 |---|---|---|
-| Method figures | `method_figures/` | Preview image, color palette, PPT source link when available |
-| Result analysis figures | `result_figures/` | Preview image and self-contained Python plotting code |
-| Paper tables | `tables/` | Preview image, LaTeX source, required packages |
+| Method figures | `method_figures/` | Preview, semantic palette, supplied PPT link; SVG/TikZ reconstruction where feasible, with scope note |
+| Result analysis figures | `result_figures/` | Preview, self-contained Python plotting code for numerical charts, explicit approximation/limitation notes |
+| Paper tables | `tables/` | Preview, LaTeX source, required packages and render-test outcome |
 
-## Paper Directory Pattern
-
-```text
-papers/<paper_id>/
-├── README.md
-├── method_figures/
-├── result_figures/
-└── tables/
-```
-
-## Paper Asset Builder Skill
-
-This repository includes a local Codex skill for creating a complete paper entry from a paper URL/PDF or a prepared material folder.
-
-With only a paper, the skill first selects attractive, representative method diagrams, result plots, and tables; extracts complete high-resolution PNG regions from the PDF; and organizes them under `../materials/<paper_id>/`. It reports the local material directory and pauses for you to review the images. After you confirm, it rereads the directory's current files, generates the paper README, and updates the root Paper Index. You may delete, replace, rename, or add images during review; the final local selection is used for generation.
-
-Material folder format (include only the asset folders you have):
+## Repository Layout
 
 ```text
-<material_dir>/
-├── method_figures/   # optional
-├── result_figures/   # optional
-├── tables/           # optional
-└── paper.pdf or arxiv.txt or paper_url.txt
+PaperFigureAssets/
+├── papers/<paper_id>/
+│   ├── README.md             # canonical metadata and reconstruction code
+│   ├── method_figures/       # optional
+│   ├── result_figures/       # optional
+│   └── tables/               # optional
+├── paper-asset-builder/      # portable skill, helpers and reconstruction references
+├── website/                 # static viewer, config and builder
+└── docs/                    # own-your-library setup and customization
 ```
 
-At least one of the optional asset folders must contain an image after preparation. Missing asset types are recorded with a zero count and retain an empty section in the generated paper README. Existing supplied images are used by default; automatic extraction runs when no images have been supplied, or when `extract_assets=true` is requested. Source pages, captions, crop coordinates, and selection reasons are retained locally in `source_assets.json`.
+待审材料默认位于仓库旁边的 `../materials/<paper_id>/`，保留 `paper.pdf` 与 `source_assets.json` 来源/覆盖记录，不作为网页公开内容。缺失资产类别计为 0，不必创建空文件夹。论文 README 的规范模板保持不变。
 
-Codex usage:
+## LaTeX Render Tests
 
-```text
-使用 paper-asset-builder paper=https://arxiv.org/abs/2501.01234
-```
+表格可先编译再与原图做视觉核对。`latex_test=auto` 优先本地/内置编译器；`local` 不上传；`online` 使用已支持的 [LaTeX-on-HTTP API](https://github.com/YtoTech/latex-on-http#api)；`off` 显式跳过。第三方编译必须获得 scoped authorization，只发送所选表格 LaTeX、必要 packages 和最小包装，不上传整篇论文、图片、README 或其他文件。
 
-Codex alternative:
+公共服务没有已验证的保留时长或可用性保证，私有材料请使用本地或明确指定的自托管服务。PDF 返回只证明编译成功，不证明科学数值或布局正确；超时/失败必须如实报告。此前四篇新增论文的 7 张表格已完成编译和视觉检查，其他/新表格仍需单独验证。[测试规范](paper-asset-builder/references/latex_render_testing.md)说明了授权边界、辅助脚本和检查流程。
 
-```text
-$paper-asset-builder material_dir=/path/to/material_dir paper=https://arxiv.org/abs/2501.01234
-```
+## Copyright & Reuse
 
-`material_dir` is optional. Provide it to choose the extraction destination or reuse prepared images. `paper_id` optionally sets the entry directory name; otherwise it is inferred from the paper.
+图库中的论文原图、表格与第三方素材保留原作者版权和许可，不包含在本项目 MIT 代码许可中。每篇论文的来源/许可说明应随条目保留；部分原图没有已确认的再分发许可，不能因为 PDF 可公开下载或仓库可 Fork 就假定拥有再利用权。arXiv 的非独占传播许可也不是第三方复用授权。
 
-Claude Code project-local install:
+本地提取用于整理并不自动授权公开再分发。维护自己的公开图库前，请逐篇核对许可或取得授权；许可不明时考虑私有收藏或链接引用。重建源码明确区分作者原始源文件、复现示例和估读数据，也不会扩大对第三方作品的使用权。
 
-```bash
-mkdir -p .claude/skills
-cp -R paper-asset-builder .claude/skills/paper-asset-builder
-```
-
-Claude Code personal install:
-
-```bash
-mkdir -p ~/.claude/skills
-cp -R paper-asset-builder ~/.claude/skills/paper-asset-builder
-```
-
-Claude Code usage:
-
-```text
-/paper-asset-builder material_dir=/path/to/material_dir paper=https://arxiv.org/abs/2501.01234
-```
-
-The skill infers the paper topic, figure titles, plot types, and table titles, then generates the paper README and updates the root Paper Index after any pending image review is confirmed. Reply with `检查好了，继续` to resume from the reviewed directory without repeating the invocation or extraction. In Codex, invoke it by mentioning `paper-asset-builder`; in Claude Code, invoke it with `/paper-asset-builder` after installing it under a Claude skills directory.
-
-### LaTeX Render Tests
-
-Generated table source can be compiled and visually checked before delivery. `latex_test=auto` uses an available local or built-in compiler; online compilation is used only with authorization. Set `latex_test=online` to select the supported [LaTeX-on-HTTP API](https://github.com/YtoTech/latex-on-http#api), `local` to avoid uploads, or `off` to explicitly skip compilation. Only the selected table source, its declared packages, and a minimal test wrapper are sent, never the whole paper or material directory. Public services may be unavailable and do not provide a verified retention guarantee; private material should use a local or self-hosted compiler.
-
-The skill's `scripts/latex_render_test.py` prepares isolated test documents, saves compilation diagnostics, and renders previews when PyMuPDF is available. A PDF response is followed by visual comparison with the approved table image; it is not treated as proof that values and layout are correct. Temporary QA PDFs, previews, and logs remain outside the paper gallery. See [the render-testing reference](paper-asset-builder/references/latex_render_testing.md) for the workflow.
-
-## Copyright Policy
-
-This repository focuses on recreated, reformatted, or reusable academic figure assets. Original paper figures are included only when redistribution is explicitly permitted by the corresponding license. Otherwise, assets are provided as recreated templates or style references.
-
-Third-party figure/table previews retain their original copyrights and licenses, documented in each paper README, and are excluded from the repository's MIT license. An arXiv non-exclusive distribution license does not itself grant third-party reuse rights. Consult the original rightsholders where a public reuse license or separate permission is not documented; reconstruction examples do not imply broader rights to the original artwork.
+想贡献条目或改进重建方式，请阅读 [Contributing](CONTRIBUTING.md)。

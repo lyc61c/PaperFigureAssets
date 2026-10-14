@@ -1,11 +1,15 @@
 ---
 name: paper-asset-builder
-description: Build or update a PaperFigureAssets entry from a paper URL/PDF or an existing material directory. Select attractive paper figures and tables, extract and organize them into method_figures, result_figures, and tables, pause for user image review, then generate a paper README and update the root Paper Index after confirmation.
+description: Build a personal Figarium paper-figure library from a paper title, URL/PDF, or material directory. Inventory and extract whole-paper figures and tables, classify them, pause for human selection, then produce editable reconstructions, paper READMEs, an index, and a static gallery after confirmation.
 ---
 
-# Paper Asset Builder
+# Figarium · Paper Asset Builder
 
-Accept either a paper alone or a paper with a prepared material directory. When only a paper is supplied, select and extract suitable assets first, report the local directory, and pause for the user's image review. Resume README and index generation only after the user confirms; a natural-language confirmation is sufficient and does not require repeating the skill invocation.
+Build a library the user can curate and reproduce, not merely a screenshot collection. Figarium (Figure + Herbarium, 图圃) is the project brand; keep the compatible invocation name `paper-asset-builder`. Do not rename the user's checkout, GitHub repository, or remote as part of using this skill.
+
+Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory and extract all numbered figures and tables throughout the PDF, including appendices, by default. Report the actual local directory and stop for human selection. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
+
+For first-time setup or a request to build a personal library, also read `references/library_workflow.md`. The website is a static viewer; the local coding agent runs this skill. Do not imply a deployed gallery can execute the skill or compile visitor-supplied code.
 
 ## Invocation
 
@@ -26,16 +30,17 @@ Also valid:
 $paper-asset-builder material_dir=/path/to/material_dir paper=https://arxiv.org/abs/2501.01234
 ```
 
-Also accept a paper URL or attached/local PDF in natural language when the user asks for automatic figure selection, extraction, and repository entry creation.
+Also accept a paper title, URL or attached/local PDF in natural language when the user asks for automatic figure extraction, classification, and library creation. Resolve a title to an authoritative paper landing page/PDF; ask only if distinct plausible matches cannot be disambiguated from the context. Never invent a paper identity or PDF URL.
 
 Accepted parameters:
 
 ```text
 material_dir=...      Optional. Use existing images here; otherwise prepare this directory from the paper.
-paper=...             Required unless discoverable. arXiv URL, paper URL, or local PDF path.
-repo_root=...         Optional. Target PaperFigureAssets repository root; discover it from the workspace when omitted.
+paper=...             Required unless discoverable. Paper title, arXiv/publisher URL, or local PDF path.
+repo_root=...         Optional. Target Figarium/PaperFigureAssets repository root; discover it from the workspace when omitted.
 paper_id=...          Optional. Output folder name under papers/.
-extract_assets=...    Optional. auto (default), true (select/extract from the paper), or false (use supplied images only).
+extract_assets=...    Optional. auto (default), true (inspect/extract from the paper), or false (use supplied images only).
+selection=...         Optional. all (default: every numbered figure/table, including appendices) or curated (agent-selected subset).
 latex_test=...        Optional. auto (default), online, local, or off. Online testing requires authorization to send table source to the selected service.
 update_index=false    Optional. Skip root README paper index update only when explicitly false.
 force=true            Optional. Overwrite an existing paper README when intentional.
@@ -55,7 +60,7 @@ Claude Code call style:
 
 ## Material Directory
 
-When `material_dir` is omitted, use `<repo_root>/../materials/<paper_id>/`; in this workspace that is `D:\CodeSpace\PaperFigure\materials\<paper_id>\`. Derive a stable paper ID from the paper metadata before creating this directory. Do not use the literal example name `NewPaper` for every paper.
+When `material_dir` is omitted, use `<repo_root>/../materials/<paper_id>/`. Resolve and report the absolute path for the active machine; do not hard-code this project's Windows paths into another user's library. Derive a stable paper ID from the paper metadata before creating the directory. Do not use the literal example name `NewPaper` for every paper.
 
 The prepared directory may contain any non-empty subset of the three asset folders:
 
@@ -80,9 +85,10 @@ Read `references/paper_to_materials.md` when selecting or extracting assets from
 - In `auto` mode, use supplied images when any exist. When no supported images exist, obtain the paper PDF and prepare the material directory automatically.
 - With `extract_assets=true`, inspect the PDF and select assets even if the material directory already contains images. Preserve existing user files; do not silently replace colliding filenames or duplicate the same source figure.
 - With `extract_assets=false`, require prepared images and report the missing input if none exist.
-- Inspect rendered pages and captions, then prefer visually clear, attractive, representative diagrams, plots, and tables over extracting every embedded PDF image.
-- Render complete selected regions from the PDF at sufficient resolution, preserving vector labels, legends, and table text. Use `scripts/pdf_asset_tools.py` for repeatable inspection and region cropping when PyMuPDF is available.
-- Save selected PNGs in the appropriate asset folders and record their original labels, pages, captions, crop coordinates, and selection reasons in `source_assets.json` in the material directory.
+- In default `selection=all`, inspect the whole PDF, including appendices, and inventory every numbered figure and table before cropping. Extract all recoverable inventory items, not just attractive examples or raster image objects. Record inaccessible/ambiguous items and reasons; never claim complete coverage when any item is unresolved.
+- Use `selection=curated` only when requested. Choose attractive, useful examples without a fixed quota, while retaining the full inventory and explicit skip reasons so the subset is auditable.
+- Render complete figure/table regions at sufficient resolution, preserving vector labels, legends, and table text. Use `scripts/pdf_asset_tools.py` for repeatable page inspection and region cropping when PyMuPDF is available; it is a crop helper, not an automatic caption detector or completeness verifier.
+- Save PNGs in the appropriate asset folders and record original labels, pages, captions, crop coordinates, hashes, inventory status, and coverage in `source_assets.json` as specified in `references/paper_to_materials.md`.
 - Inspect the final crops, then follow User Review Checkpoint. Do not continue directly into README or root index generation after extraction.
 
 ## User Review Checkpoint
@@ -90,13 +96,13 @@ Read `references/paper_to_materials.md` when selecting or extracting assets from
 After collecting or revising extracted assets:
 
 1. Mark the extraction's `source_assets.json` review status as `pending`.
-2. Report the actual absolute material directory as a clickable local link, with the counts of method figures, result figures, and tables. Tell the user they may delete, replace, rename, or add images before confirming.
+2. Report the actual absolute material directory as a clickable local link, with the counts of method figures, result figures, and tables; include extraction coverage and any unresolved inventory items. Tell the user they may delete, replace, rename, reclassify, or add images before confirming.
 3. End the turn and wait for the user to explicitly confirm the images, for example `检查好了，继续` or `用这个目录里的图片生成 README`. Do not create/update the paper entry or either README during this checkpoint. Elapsed time, existing images, or an earlier request to run the whole workflow is not review confirmation.
 4. If the user requests extraction/crop changes, make those changes and return to this checkpoint before downstream generation.
 
 On explicit confirmation, rescan the approved local directory and use its current files as the source of truth. Bypass automatic extraction on this resume, including when `extract_assets=true` appeared in the original invocation. Do not restore deleted images or overwrite user replacements. Use recorded SHA-256 hashes to identify unchanged extracted images, including renamed/moved copies; re-inspect changed/new images and do not attach stale provenance to replacements. Ignore metadata for removed files. If no supported images remain, report that condition instead of silently extracting again.
 
-Record the confirmation and the current relative image filenames under `review` in `source_assets.json` when that file exists, then continue with asset processing and README/index generation. A pending review remains pending even if a later invocation supplies `material_dir` and would normally reuse existing images. User-prepared directories that have no pending extraction review can follow the existing direct-generation workflow.
+When the manifest exists, set `review.status` to `approved`, record the user's confirmation and current relative image filenames in `review.approved_images`, and record the current SHA-256 for each retained image in `review.current_images` (objects with `path`, `sha256`, and unchanged/replaced/new provenance status). Preserve the extraction snapshot; add removed/renamed/replaced files to review history rather than attaching old source metadata to new pixels. Then continue with asset processing and README/index generation. A pending review remains pending even if a later invocation supplies `material_dir` and would normally reuse existing images. User-prepared directories that have no pending extraction review can follow the existing direct-generation workflow.
 
 ## Core Behavior
 
@@ -134,16 +140,17 @@ Use the template as the visual contract, not as disposable output.
 ## Workflow
 
 1. Parse the invocation and locate the target repository root. Use `repo_root=` when provided; otherwise discover a workspace directory containing `papers/`, the root `README.md`, and the `<!-- PAPER_INDEX_START -->` marker. Do not write `papers/` beside the repository merely because the workspace opened one level above it.
-2. Locate the paper source from `paper=...`, an attachment, the supplied paper link, or an existing material directory.
+2. Resolve the paper source from `paper=...` (title, link, or PDF), an attachment, or an existing material directory.
 3. Read the paper to infer title, topic, venue, year, and a stable paper ID; locate or derive `material_dir`.
 4. Inspect existing asset folders and apply Automatic Paper Asset Preparation according to `extract_assets`. Verify that at least one supported image exists after preparation.
 5. If assets were extracted/revised or their extraction review is pending, follow User Review Checkpoint and stop. On user confirmation, rescan that directory and resume at the next step without repeating extraction.
 6. Create or update `<repo_root>/papers/<paper_id>/`; reuse an existing entry for the same paper.
-7. Copy only the approved directory's current images and method `.pptx` files into the paper asset folders. Skip copying a file onto itself when the material directory is already the paper entry. Preserve unrelated files and do not create absent asset folders by default. Generate previews and counts from this current selection, not the pre-review crop list.
+7. Synchronize only the approved directory's current images and method `.pptx` files into the paper asset folders. When updating an existing entry, identify old generated assets now absent from the approved selection so they do not remain in gallery/index counts. Remove only known generated files belonging to this entry whose unchanged identity can be verified; preserve unrelated or user-modified files. Never recursively delete an asset directory to synchronize it. If a conflict prevents safe synchronization, report it and ask rather than silently restoring/including a removed selection. Skip copying onto itself when material_dir is already the paper entry, and do not create absent type folders by default. Generate previews/counts from the synchronized current selection and briefly report any material file removal.
 8. Generate `README.md` following `templates/canonical_paper_readme.md`. Attribute extracted assets to their original figure/table label and PDF page in the asset tables only when provenance still matches the current images.
 9. Test present LaTeX tables according to Table Render Testing below. Repair the README source when a compilation or visual defect is found; the README remains the canonical source.
 10. Update the root `README.md` Paper Index by default unless `update_index=false`.
-11. Validate local links and report the generated paper path, test results, and any unverified tables.
+11. If `<repo_root>/website/build.py` exists, rebuild the local static gallery with `python website/build.py` from `repo_root` and verify its output. This is a local build, not authorization to publish, commit, push, or change hosting. If the builder is absent, finish README/index generation without inventing a website workflow.
+12. Validate local links and report generated paper/site paths, reconstruction scope, test results, and any unverified assets.
 
 ## Asset Processing
 
@@ -160,10 +167,13 @@ For each method figure:
 - infer a color palette from the actual image;
 - use swatch-only icons in the `Swatch` column;
 - summarize semantic color roles from the figure content.
+- add a self-contained editable SVG or TikZ reconstruction directly in a `### Editable Reconstruction` subsection when the figure's structure can be meaningfully recreated;
+- label it as a reconstruction, not author-provided source, and state whether it reproduces the full diagram or only a schematic subset;
+- for photos, screenshots, complex artwork, or unrecoverable details, state the limitation explicitly rather than claiming exact editable reproduction. Preserve the preview and palette even when full reconstruction is not feasible.
 
 ### Result Figures
 
-Read `references/result_figure_to_python.md` before reconstructing result plots.
+Read `references/result_figure_to_python.md` before reconstructing numerical result plots. Its data-estimation instructions apply to numerical charts, not qualitative screenshots or photo grids; the qualitative exception below takes precedence over any generic code quota.
 
 For each result figure:
 
@@ -172,6 +182,9 @@ For each result figure:
 - produce faithful, self-contained Python plotting code directly in the README;
 - embed data in the code block;
 - do not replace this with generic starter code unless the image is truly unreadable.
+- distinguish values transcribed from paper annotations/source data from estimated values, with approximation notes both beside the block and in code comments; never present estimated curves as experimental raw data;
+- run the generated code in a controlled local QA workspace and visually inspect the output when dependencies are available; report any remaining validation limitation.
+- for qualitative image grids/screenshots rather than numerical charts, do not invent measurements or external images to satisfy a code quota. Reconstruct the reusable layout when meaningful, clearly identify missing source imagery, and state the limitation instead of claiming a self-contained faithful chart.
 
 ### Tables
 
@@ -202,7 +215,7 @@ A returned PDF proves compilation, not visual fidelity. Inspect every rendered t
 
 - Use relative links from `papers/<paper_id>/README.md`.
 - Use natural sort order for figure/table images.
-- Keep generated code and LaTeX inside the paper README unless the user explicitly asks for separate files.
+- Keep generated SVG/TikZ, Python code, and LaTeX inside the paper README unless the user explicitly asks for separate files. Static website code-download exports derived from README blocks are allowed build artifacts, not competing canonical sources.
 - Do not create `plot.py`, `table.tex`, `palette.json`, CSV files, or per-figure READMEs by default.
 - Use the existing repository style and canonical template.
 - Do not tell the user to run a Python command for normal skill usage.
@@ -254,9 +267,12 @@ Before finishing, verify:
 - every present result figure appears in the gallery and Result Analysis Figures section;
 - every present table image appears in the gallery and Paper Tables section;
 - present method figures have color palette tables;
-- present result figures have fenced `python` code blocks;
+- present method figures have a clearly labeled SVG/TikZ reconstruction or an honest limitation/scope note; do not describe legacy palette-only entries as code-complete;
+- present numerical result figures have fenced `python` code blocks; qualitative/unrecoverable figures have an explicit reconstruction-scope note rather than invented data;
 - present tables have fenced `latex` source and required packages;
 - LaTeX test outcomes are reported accurately, with successful compilation and visual inspection distinguished from skipped, unavailable, and failed checks;
 - third-party table uploads were authorized and temporary QA outputs were kept out of the paper gallery;
 - all local README links resolve;
-- root `README.md` Paper Index is updated unless `update_index=false`.
+- root `README.md` Paper Index is updated unless `update_index=false`;
+- an available local website builder was rerun and tested without executing visitor-supplied code or silently publishing;
+- default new-paper extraction covers the complete numbered figure/table inventory, including appendices, or reports the exact coverage gap.

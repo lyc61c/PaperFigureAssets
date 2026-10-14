@@ -102,6 +102,94 @@ Original figure/table previews are excerpts from [the paper](https://arxiv.org/a
 | Valid environments | ![#31724F](https://placehold.co/20x20/31724F/31724F.svg) | Green | `#31724F` |
 | Ubuntu environment | ![#E8541F](https://placehold.co/20x20/E8541F/E8541F.svg) | Orange | `#E8541F` |
 
+### Editable Diagram Code
+
+Note: Editable schematic reconstruction; not author-provided source. Fine-grained layout and icon artwork are simplified.
+
+Save the code below as an `.svg` file. Edit `<text>` labels, `fill` / `stroke` colors, and `<path d="...">` connections to customize the diagram; all shapes and labels remain vector-editable.
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 695" role="img" aria-labelledby="title desc">
+<title id="title">AutoEnvScaling — automated environment data flywheel</title>
+<desc id="desc">Editable schematic: the solver trains on accepted Harbor tasks; its rollouts guide a proposer inside a coding sandbox, supported by a workspace, web search, and child sandboxes.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M0 0L10 5L0 10Z" fill="#64748B"/>
+</marker>
+  <marker id="teal-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10Z" fill="#237E7B"/>
+</marker>
+  <marker id="purple-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10Z" fill="#6B3FA0"/>
+</marker>
+</defs>
+<rect width="1440" height="695" fill="#FFFFFF"/>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="30" y="44" font-size="29" fill="#253247" font-weight="700" text-anchor="start">AutoEnvScaling · Automated environment data flywheel</text>
+<text x="30" y="73" font-size="17" fill="#253247" font-weight="400" text-anchor="start">Solver experience guides environment construction; accepted tasks feed the next training round</text>
+<rect x="30" y="112" width="280" height="440" rx="12" fill="#EFF7F5" stroke="#237E7B" stroke-width="2"/>
+<text x="50" y="152" font-size="24" fill="#237E7B" font-weight="700" text-anchor="start">Solver training</text>
+<rect x="65" y="190" width="215" height="67" rx="9" fill="#FFFFFF" stroke="#77AAA3" stroke-width="2"/>
+<text x="172.5" y="231" font-size="22" fill="#237E7B" font-weight="700" text-anchor="middle">Policy</text>
+<rect x="65" y="306" width="215" height="76" rx="9" fill="#FFFFFF" stroke="#77AAA3" stroke-width="2"/>
+<text x="172.5" y="351" font-size="22" fill="#237E7B" font-weight="700" text-anchor="middle">Terminals</text>
+<path d="M173 257V306" fill="none" stroke="#237E7B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#teal-arrow)"/>
+<text x="190" y="286" font-size="15" fill="#237E7B" font-weight="400" text-anchor="start">Rollout</text>
+<path d="M65 344H46V224H65" fill="none" stroke="#237E7B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#teal-arrow)"/>
+<text x="50" y="412" font-size="15" fill="#237E7B" font-weight="600" text-anchor="start">Verifier rewards → RL updates</text>
+<rect x="50" y="447" width="240" height="76" rx="9" fill="#FFFFFF" stroke="#77AAA3" stroke-width="2"/>
+<text x="170" y="478" font-size="20" fill="#237E7B" font-weight="700" text-anchor="middle">Training pool</text>
+<text x="170" y="503" font-size="15" fill="#526173" font-weight="400" text-anchor="middle">Accepted environments</text>
+<path d="M173 447V431H297V382H280" fill="none" stroke="#237E7B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#teal-arrow)"/>
+<path d="M310 274H390" fill="none" stroke="#237E7B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#teal-arrow)"/>
+<text x="350" y="246" font-size="15" fill="#526173" font-weight="600" text-anchor="middle">Solver</text>
+<text x="350" y="265" font-size="15" fill="#526173" font-weight="600" text-anchor="middle">rollouts</text>
+<rect x="390" y="112" width="650" height="440" rx="12" fill="#F5F0FA" stroke="#6B3FA0" stroke-width="2"/>
+<text x="410" y="152" font-size="24" fill="#31006E" font-weight="700" text-anchor="start">Sandbox + coding harness</text>
+<rect x="410" y="181" width="270" height="328" rx="9" fill="#FFFFFF" stroke="#C7B4DD" stroke-width="2"/>
+<text x="430" y="215" font-size="21" fill="#31006E" font-weight="700" text-anchor="start">workspace/</text>
+<text x="430" y="256" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">past_rollouts/</text>
+<text x="430" y="296" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">  failed/</text>
+<text x="430" y="336" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">  successful/</text>
+<text x="430" y="376" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">past_environments/</text>
+<text x="430" y="416" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">memory/</text>
+<text x="430" y="456" font-size="18" fill="#4D3D61" font-weight="400" text-anchor="start">tools/</text>
+<rect x="710" y="181" width="310" height="165" rx="9" fill="#3F2A5D" stroke="#3F2A5D" stroke-width="2"/>
+<text x="730" y="216" font-size="23" fill="#FFFFFF" font-weight="700" text-anchor="start">Proposer</text>
+<text x="730" y="253" font-size="17" fill="#FFFFFF" font-weight="400" text-anchor="start">$ inspect experience</text>
+<text x="730" y="285" font-size="17" fill="#FFFFFF" font-weight="400" text-anchor="start">$ build + repair</text>
+<text x="730" y="317" font-size="17" fill="#FFFFFF" font-weight="400" text-anchor="start">$ validate environment</text>
+<path d="M683 275H707" fill="none" stroke="#9076B1" stroke-width="2.5" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<rect x="710" y="400" width="145" height="109" rx="9" fill="#FFFFFF" stroke="#77AAA3" stroke-width="2"/>
+<text x="782.5" y="433" font-size="16" fill="#237E7B" font-weight="700" text-anchor="middle">Child sandboxes</text>
+<text x="782.5" y="463" font-size="15" fill="#526173" font-weight="400" text-anchor="middle">Build tasks</text>
+<text x="782.5" y="486" font-size="15" fill="#526173" font-weight="400" text-anchor="middle">Execute tests</text>
+<rect x="875" y="400" width="145" height="109" rx="9" fill="#FFFFFF" stroke="#C7B4DD" stroke-width="2"/>
+<text x="947.5" y="433" font-size="17" fill="#6B3FA0" font-weight="700" text-anchor="middle">Web search</text>
+<text x="947.5" y="463" font-size="15" fill="#526173" font-weight="400" text-anchor="middle">Docs / sources</text>
+<text x="947.5" y="486" font-size="15" fill="#526173" font-weight="400" text-anchor="middle">Tool resources</text>
+<path d="M865 346V373H782V400" fill="none" stroke="#9076B1" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M865 373H948V400" fill="none" stroke="#9076B1" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1040 274H1110" fill="none" stroke="#6B3FA0" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#purple-arrow)"/>
+<rect x="1110" y="112" width="300" height="440" rx="12" fill="#F2F8F6" stroke="#77AAA3" stroke-width="2"/>
+<text x="1130" y="152" font-size="24" fill="#237E7B" font-weight="700" text-anchor="start">Harbor task</text>
+<text x="1135" y="210" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">task.toml</text>
+<text x="1135" y="253" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">instruction.md</text>
+<text x="1135" y="296" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">environment/</text>
+<text x="1135" y="339" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">  Dockerfile</text>
+<text x="1135" y="382" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">solution/</text>
+<text x="1135" y="425" font-size="20" fill="#3F2A5D" font-weight="400" text-anchor="start">tests/</text>
+<rect x="1130" y="478" width="260" height="54" rx="8" fill="#3F2A5D" stroke="#3F2A5D" stroke-width="2"/>
+<text x="1260" y="512" font-size="20" fill="#C1E4DB" font-weight="600" text-anchor="middle">$ execute task</text>
+<path d="M1260 552V623H170V523" fill="none" stroke="#237E7B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#teal-arrow)"/>
+<rect x="490" y="600" width="510" height="40" rx="0" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2"/>
+<text x="745" y="627" font-size="21" fill="#237E7B" font-weight="700" text-anchor="middle">Accepted new environments → training pool</text>
+<text x="30" y="671" font-size="15" fill="#64748B" font-weight="400" text-anchor="start">Schematic reconstruction: file hierarchy and feedback loop retained; icon artwork simplified.</text>
+</g>
+</svg>
+```
+
+
 ---
 
 ## Figure 3: Environment Design and Calibrated Self-Play

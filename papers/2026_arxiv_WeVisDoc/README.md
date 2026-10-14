@@ -94,6 +94,118 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Appearance augmentation | ![#EEBB90](https://placehold.co/20x20/EEBB90/EEBB90.svg) | Orange | `#EEBB90` |
 | Synthetic record cards | ![#9CBEE0](https://placehold.co/20x20/9CBEE0/9CBEE0.svg) | Blue | `#9CBEE0` |
 
+### Editable Diagram Code
+
+Note: Editable schematic reconstruction; not author-provided source. Fine-grained layout and icon artwork are simplified.
+
+Save the code below as an `.svg` file. Edit `<text>` labels, `fill` / `stroke` colors, and `<path d="...">` connections to customize the diagram; all shapes and labels remain vector-editable.
+
+```svg
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 930" role="img" aria-labelledby="title desc">
+<title id="title">WeVisDoc — Stage I data construction</title>
+<desc id="desc">Editable schematic: collected sources are labeled and validated; exact synthetic records join a clean pool; source-conditioned appearance augmentation preserves targets for the Stage I mixture.</desc>
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+<path d="M0 0L10 5L0 10Z" fill="#64748B"/>
+</marker>
+  <marker id="teal-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10Z" fill="#237E7B"/>
+</marker>
+  <marker id="purple-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+<path d="M0 0L10 5L0 10Z" fill="#6B3FA0"/>
+</marker>
+</defs>
+<rect width="1440" height="930" fill="#FFFFFF"/>
+<g font-family="Arial, Helvetica, sans-serif">
+<text x="30" y="44" font-size="30" fill="#253247" font-weight="700" text-anchor="start">WeVisDoc · Stage I data construction</text>
+<text x="30" y="73" font-size="17" fill="#253247" font-weight="400" text-anchor="start">Coverage, reliable annotation, exact synthesis, and target-preserving augmentation</text>
+<rect x="30" y="105" width="310" height="410" rx="12" fill="#F8F5FC" stroke="#AF96D3" stroke-width="2"/>
+<text x="50" y="141" font-size="21" fill="#6B3FA0" font-weight="700" text-anchor="start">1  Sources &amp; coverage</text>
+<text x="50" y="185" font-size="17" fill="#6B3FA0" font-weight="700" text-anchor="start">Content &amp; domains</text>
+<text x="50" y="212" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Papers, textbooks, reports</text>
+<text x="50" y="235" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Forms, news, handwritten notes</text>
+<text x="50" y="274" font-size="17" fill="#1F5FA8" font-weight="700" text-anchor="start">Layout &amp; element composition</text>
+<text x="50" y="301" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Single / multi-column, free-form</text>
+<text x="50" y="324" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Formula-rich, table-rich, mixed</text>
+<text x="50" y="363" font-size="17" fill="#1B6B3A" font-weight="700" text-anchor="start">Language &amp; writing</text>
+<text x="50" y="390" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Chinese, English, multilingual</text>
+<text x="50" y="413" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Printed text and handwriting</text>
+<text x="50" y="452" font-size="17" fill="#A56214" font-weight="700" text-anchor="start">Acquisition conditions</text>
+<text x="50" y="478" font-size="15" fill="#526173" font-weight="400" text-anchor="start">PDFs, scans, photos, screenshots</text>
+<rect x="380" y="105" width="550" height="410" rx="12" fill="#F3FAF6" stroke="#96CEAC" stroke-width="2"/>
+<text x="400" y="141" font-size="21" fill="#1B6B3A" font-weight="700" text-anchor="start">2  Expert annotation &amp; assessment</text>
+<rect x="400" y="165" width="510" height="39" rx="8" fill="#FFFFFF" stroke="#A8B7A8" stroke-width="2"/>
+<text x="655" y="191" font-size="17" fill="#253247" font-weight="700" text-anchor="middle">Input documents</text>
+<path d="M655 204V220M477 220H824M477 220V230" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M655 220V230" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M824 220V230" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="400" y="232" width="154" height="45" rx="8" fill="#FFFFFF" stroke="#96CEAC" stroke-width="2"/>
+<text x="477" y="261" font-size="15" fill="#253247" font-weight="700" text-anchor="middle">MinerU2.5-Pro</text>
+<rect x="571" y="232" width="167" height="45" rx="8" fill="#F1F6FD" stroke="#9CBEE0" stroke-width="2"/>
+<text x="654.5" y="261" font-size="14" fill="#253247" font-weight="700" text-anchor="middle">PaddleOCR-VL-1.6</text>
+<rect x="756" y="232" width="154" height="45" rx="8" fill="#FFF8F1" stroke="#EEBB90" stroke-width="2"/>
+<text x="833" y="261" font-size="16" fill="#253247" font-weight="700" text-anchor="middle">dots.mocr</text>
+<path d="M477 277V290H833V277M655 290V302" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="400" y="304" width="510" height="39" rx="8" fill="#F5F0FC" stroke="#AF96D3" stroke-width="2"/>
+<text x="655" y="330" font-size="17" fill="#6B3FA0" font-weight="700" text-anchor="middle">Agreement &amp; reliability assessment</text>
+<path d="M400 324H390V432H400" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M655 343V357" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="400" y="359" width="510" height="39" rx="8" fill="#FFFBF3" stroke="#DFBE83" stroke-width="2"/>
+<text x="655" y="385" font-size="15" fill="#825E25" font-weight="600" text-anchor="middle">Low agreement: human + stronger-model review</text>
+<path d="M655 398V412" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="400" y="414" width="510" height="36" rx="8" fill="#FFFFFF" stroke="#96CEAC" stroke-width="2"/>
+<text x="655" y="438" font-size="17" fill="#1B6B3A" font-weight="700" text-anchor="middle">Reliable targets</text>
+<path d="M655 450V464" fill="none" stroke="#64748B" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="400" y="466" width="510" height="33" rx="8" fill="#EDF5FC" stroke="#9CBEE0" stroke-width="2"/>
+<text x="655" y="488" font-size="15" fill="#1F5FA8" font-weight="600" text-anchor="middle">Difficulty stratification: easy · medium · hard</text>
+<path d="M340 184H400" fill="none" stroke="#6B3FA0" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#purple-arrow)"/>
+<rect x="1010" y="202" width="390" height="255" rx="12" fill="#EBF4F8" stroke="#1B5E70" stroke-width="2"/>
+<text x="1205" y="240" font-size="23" fill="#1B5E70" font-weight="700" text-anchor="middle">Shared clean pool</text>
+<rect x="1030" y="269" width="350" height="68" rx="9" fill="#F3FAF6" stroke="#96CEAC" stroke-width="2"/>
+<text x="1205" y="296" font-size="17" fill="#1B6B3A" font-weight="600" text-anchor="middle">Validated collected records</text>
+<text x="1205" y="320" font-size="17" fill="#1B6B3A" font-weight="600" text-anchor="middle">Reliable targets + difficulty</text>
+<rect x="1030" y="352" width="350" height="68" rx="9" fill="#F1F6FD" stroke="#9CBEE0" stroke-width="2"/>
+<text x="1205" y="379" font-size="16" fill="#1F5FA8" font-weight="600" text-anchor="middle">Exact synthetic records</text>
+<text x="1205" y="403" font-size="16" fill="#1F5FA8" font-weight="600" text-anchor="middle">Rendered image + structured target</text>
+<path d="M910 483H965V305H1010" fill="none" stroke="#1B6B3A" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="30" y="565" width="900" height="290" rx="12" fill="#F5F9FE" stroke="#9CBEE0" stroke-width="2"/>
+<text x="50" y="604" font-size="21" fill="#1F5FA8" font-weight="700" text-anchor="start">3  Broad-coverage synthesis</text>
+<rect x="50" y="635" width="228" height="173" rx="9" fill="#FFFFFF" stroke="#9CBEE0" stroke-width="2"/>
+<text x="68" y="663" font-size="16" fill="#1F5FA8" font-weight="700" text-anchor="start">Factorized page program</text>
+<text x="68" y="694" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Semantic content</text>
+<text x="68" y="721" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Element composition</text>
+<text x="68" y="748" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Density and typography</text>
+<text x="68" y="775" font-size="16" fill="#526173" font-weight="400" text-anchor="start">Layout organization</text>
+<rect x="318" y="635" width="198" height="75" rx="9" fill="#FFFFFF" stroke="#9CBEE0" stroke-width="2"/>
+<text x="417" y="666" font-size="16" fill="#1F5FA8" font-weight="600" text-anchor="middle">Semantic HTML/CSS</text>
+<text x="417" y="689" font-size="16" fill="#1F5FA8" font-weight="600" text-anchor="middle">Page rendering</text>
+<rect x="556" y="635" width="354" height="173" rx="9" fill="#FFFFFF" stroke="#9CBEE0" stroke-width="2"/>
+<text x="574" y="663" font-size="18" fill="#1F5FA8" font-weight="700" text-anchor="start">Paired training records</text>
+<text x="574" y="697" font-size="15" fill="#526173" font-weight="400" text-anchor="start">Rendered page images</text>
+<text x="574" y="724" font-size="15" fill="#526173" font-weight="400" text-anchor="start">Exact structured targets:</text>
+<text x="574" y="751" font-size="15" fill="#526173" font-weight="400" text-anchor="start">Markdown · bounding boxes · categories</text>
+<text x="574" y="778" font-size="15" fill="#526173" font-weight="400" text-anchor="start">HTML tables · LaTeX formulas</text>
+<path d="M278 673H318" fill="none" stroke="#1F5FA8" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M516 673H556" fill="none" stroke="#1F5FA8" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M910 765H980V389H1010" fill="none" stroke="#1F5FA8" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1010" y="550" width="390" height="185" rx="12" fill="#FFFAF4" stroke="#EEBB90" stroke-width="2"/>
+<text x="1030" y="584" font-size="21" fill="#A56214" font-weight="700" text-anchor="start">4  Appearance augmentation</text>
+<text x="1030" y="617" font-size="16" fill="#805923" font-weight="400" text-anchor="start">Source-conditioned views</text>
+<text x="1030" y="646" font-size="16" fill="#805923" font-weight="400" text-anchor="start">Propagation: texture, noise, printing</text>
+<text x="1030" y="675" font-size="16" fill="#805923" font-weight="400" text-anchor="start">Acquisition: perspective, blur, recapture</text>
+<text x="1030" y="704" font-size="16" fill="#805923" font-weight="400" text-anchor="start">Targets remain unchanged</text>
+<path d="M1205 457V550" fill="none" stroke="#1B5E70" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<rect x="1010" y="791" width="390" height="81" rx="12" fill="#EAF4F7" stroke="#1B5E70" stroke-width="2"/>
+<text x="1205" y="822" font-size="22" fill="#1B5E70" font-weight="700" text-anchor="middle">Stage I training pool</text>
+<text x="1205" y="850" font-size="13" fill="#1B5E70" font-weight="400" text-anchor="middle">Clean originals + target-preserving augmented records</text>
+<path d="M1205 735V791" fill="none" stroke="#A56214" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<path d="M1400 420H1420V832H1400" fill="none" stroke="#1B5E70" stroke-width="2.5" stroke-linejoin="round" marker-end="url(#arrow)"/>
+<text x="30" y="898" font-size="15" fill="#64748B" font-weight="400" text-anchor="start">Schematic reconstruction: modules and data relationships retained; fine-grained artwork simplified.</text>
+</g>
+</svg>
+```
+
+
 ---
 
 ## Figure 5: Stage II: Capability-Aware Data Refinement
