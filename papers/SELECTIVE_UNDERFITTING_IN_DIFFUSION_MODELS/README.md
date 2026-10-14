@@ -157,6 +157,17 @@
 |---|---|
 | Preview Image | [image1.png](result_figures/image1.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FF4500](https://placehold.co/20x20/FF4500/FF4500.svg) | Orange | `#FF4500` |
+| Representative color 2 | ![#4169E1](https://placehold.co/20x20/4169E1/4169E1.svg) | Blue | `#4169E1` |
+| Representative color 3 | ![#FF8F66](https://placehold.co/20x20/FF8F66/FF8F66.svg) | Orange | `#FF8F66` |
+| Representative color 4 | ![#8EA5EC](https://placehold.co/20x20/8EA5EC/8EA5EC.svg) | Blue | `#8EA5EC` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -228,6 +239,15 @@ plt.show()
 |---|---|
 | Preview Image | [image2.png](result_figures/image2.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#623E99](https://placehold.co/20x20/623E99/623E99.svg) | Purple | `#623E99` |
+| Representative color 2 | ![#556B2F](https://placehold.co/20x20/556B2F/556B2F.svg) | Green | `#556B2F` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -292,6 +312,20 @@ plt.show()
 | Asset | Link |
 |---|---|
 | Preview Image | [image3.png](result_figures/image3.png) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#C0B2D6](https://placehold.co/20x20/C0B2D6/C0B2D6.svg) | Purple | `#C0B2D6` |
+| Representative color 2 | ![#8165AD](https://placehold.co/20x20/8165AD/8165AD.svg) | Purple | `#8165AD` |
+| Representative color 3 | ![#B37557](https://placehold.co/20x20/B37557/B37557.svg) | Orange | `#B37557` |
+| Representative color 4 | ![#AAB597](https://placehold.co/20x20/AAB597/AAB597.svg) | Green | `#AAB597` |
+| Representative color 5 | ![#D5DACB](https://placehold.co/20x20/D5DACB/D5DACB.svg) | Green | `#D5DACB` |
+| Representative color 6 | ![#809063](https://placehold.co/20x20/809063/809063.svg) | Green | `#809063` |
+| Representative color 7 | ![#A0522D](https://placehold.co/20x20/A0522D/A0522D.svg) | Brown | `#A0522D` |
 
 ### Plotting Code
 

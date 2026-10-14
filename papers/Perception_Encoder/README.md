@@ -122,6 +122,20 @@
 |---|---|
 | Preview Image | [image1.png](result_figures/image1.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#DFE8F6](https://placehold.co/20x20/DFE8F6/DFE8F6.svg) | Blue | `#DFE8F6` |
+| Representative color 2 | ![#D0E1DC](https://placehold.co/20x20/D0E1DC/D0E1DC.svg) | Green | `#D0E1DC` |
+| Representative color 3 | ![#51587A](https://placehold.co/20x20/51587A/51587A.svg) | Blue | `#51587A` |
+| Representative color 4 | ![#00536B](https://placehold.co/20x20/00536B/00536B.svg) | Teal | `#00536B` |
+| Representative color 5 | ![#3C6F96](https://placehold.co/20x20/3C6F96/3C6F96.svg) | Blue | `#3C6F96` |
+| Representative color 6 | ![#627FA7](https://placehold.co/20x20/627FA7/627FA7.svg) | Blue | `#627FA7` |
+| Representative color 7 | ![#8EACC1](https://placehold.co/20x20/8EACC1/8EACC1.svg) | Blue | `#8EACC1` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -204,6 +218,18 @@ plt.show()
 | Asset | Link |
 |---|---|
 | Preview Image | [image2.png](result_figures/image2.png) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#E5E1F6](https://placehold.co/20x20/E5E1F6/E5E1F6.svg) | Blue | `#E5E1F6` |
+| Representative color 2 | ![#6B347B](https://placehold.co/20x20/6B347B/6B347B.svg) | Purple | `#6B347B` |
+| Representative color 3 | ![#914CAC](https://placehold.co/20x20/914CAC/914CAC.svg) | Purple | `#914CAC` |
+| Representative color 4 | ![#6E5D95](https://placehold.co/20x20/6E5D95/6E5D95.svg) | Purple | `#6E5D95` |
+| Representative color 5 | ![#B89EE1](https://placehold.co/20x20/B89EE1/B89EE1.svg) | Purple | `#B89EE1` |
 
 ### Plotting Code
 

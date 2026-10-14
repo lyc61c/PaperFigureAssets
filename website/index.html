@@ -7,9 +7,9 @@
   <meta name="theme-color" content="#f3f7ff">
   <title>Figarium · 图圃 — Curate the figure. Keep the recipe.</title>
   <link rel="preload" href="fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="styles.css?v=20261015-clean-intro">
-  <script src="catalog.js?v=20261015-clean-intro" defer></script>
-  <script src="app.js?v=20261015-clean-intro" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261015-figure-palettes">
+  <script src="catalog.js?v=20261015-figure-palettes" defer></script>
+  <script src="app.js?v=20261015-figure-palettes" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">跳到主要内容</a>
@@ -107,11 +107,11 @@ python -m http.server 8000 --directory website/dist</code><a class="small-link c
     <div class="dialog-body"><div class="dialog-visual">
       <div class="dialog-image-wrap"><img id="dialog-image" alt=""></div>
       <div class="dialog-image-actions"><div class="image-view-actions"><button class="text-button" id="zoom-image" aria-pressed="false"><span data-icon="search"></span> 放大查看</button><a id="original-link" class="small-link" target="_blank" rel="noopener noreferrer">原图 ↗</a></div><button class="text-button" id="dialog-save"><span data-icon="bookmark"></span> 保存</button></div>
-      <h2 id="dialog-title"></h2><p id="dialog-paper"></p><p class="reconstruction-note" id="dialog-reconstruction"></p><a id="dialog-readme" class="small-link" target="_blank" rel="noopener noreferrer">论文条目与完整说明 ↗</a>
+      <h2 id="dialog-title"></h2><p id="dialog-paper"></p><p class="reconstruction-note" id="dialog-reconstruction" hidden></p><a id="dialog-readme" class="small-link" target="_blank" rel="noopener noreferrer">论文条目与完整说明 ↗</a>
     </div><div class="dialog-detail">
       <div class="detail-tabs" role="tablist" aria-label="配图详细内容"><button role="tab" id="tab-code" data-detail-tab="code" aria-controls="panel-code" aria-selected="true">源码 / PPTX</button><button role="tab" id="tab-palette" data-detail-tab="palette" aria-controls="panel-palette" aria-selected="false">配色</button><button role="tab" id="tab-citation" data-detail-tab="citation" aria-controls="panel-citation" aria-selected="false">来源</button></div>
-      <section id="panel-code" role="tabpanel" aria-labelledby="tab-code"><div class="code-toolbar" id="code-toolbar"><select id="code-select" aria-label="选择源码"></select><button class="icon-button" id="copy-code" aria-label="复制当前源码"><span data-icon="copy"></span></button></div><pre class="source-code" id="source-code" tabindex="0" aria-label="可复制的重建源码"><code id="source-code-text"></code></pre><div class="no-code" id="no-code" hidden><span data-icon="code"></span><h3>可编辑资源</h3><p>以条目中实际提供的源码、PPTX 和重建说明为准。</p><button class="button button-outline" id="copy-rebuild-prompt">复制补充重建指令</button></div><div class="source-bottom" id="source-bottom"><p id="source-help">源码为重建版本，请结合论文核对。</p><button class="button button-dark" id="download-code"><span data-icon="download"></span> 下载源码</button></div><div id="extra-downloads"></div></section>
-      <section id="panel-palette" role="tabpanel" aria-labelledby="tab-palette" hidden><p class="detail-intro" id="palette-intro">点击色值复制，让配色成为下一张图的起点。</p><div id="palette-list"></div></section>
+      <section id="panel-code" role="tabpanel" aria-labelledby="tab-code"><div class="code-toolbar" id="code-toolbar"><select id="code-select" aria-label="选择源码"></select><button class="icon-button" id="copy-code" aria-label="复制当前源码"><span data-icon="copy"></span></button></div><pre class="source-code" id="source-code" tabindex="0" aria-label="可复制的重建源码"><code id="source-code-text"></code></pre><div class="no-code" id="no-code" hidden><span data-icon="code"></span><h3>可编辑资源</h3><p>以条目中实际提供的源码、PPTX 和重建说明为准。</p><button class="button button-outline" id="copy-rebuild-prompt">复制补充重建指令</button></div><div class="source-bottom" id="source-bottom"><p id="source-help">源码为重建版本，请结合论文核对。</p><button class="button button-dark" id="download-code"><span data-icon="download"></span> 下载源码</button></div><div id="extra-downloads"></div><div id="method-palette" class="method-palette" hidden></div></section>
+      <section id="panel-palette" role="tabpanel" aria-labelledby="tab-palette" hidden><div id="palette-content"><h3 class="palette-heading" id="palette-heading">图中配色</h3><p class="detail-intro" id="palette-intro">点击色值复制，让配色成为下一张图的起点。</p><div id="palette-list"></div></div></section>
       <section id="panel-citation" role="tabpanel" aria-labelledby="tab-citation" hidden><dl class="citation-list" id="citation-list"></dl><div class="citation-actions"><a class="button button-outline" id="paper-link" target="_blank" rel="noopener noreferrer">阅读论文 <span aria-hidden="true">↗</span></a><button class="text-button" id="copy-citation">复制引用 <span data-icon="copy"></span></button></div><p class="license-warning">原图与重建源码的权利边界不同。图中数值可能为估读；可编译不等于实验复现。使用前请核对原论文及其许可。</p></section>
     </div></div>
   </dialog>

@@ -43,6 +43,22 @@ PPT 子流程已内置于 `paper-asset-builder`，在人工图片确认后由 ag
 
 PPT 重建的源脚本、对象 inventory、局部素材与 QA 结果留在隔离任务目录，不随公开图库默认上传。公开条目默认包含批准图片、逐图/合并 PPT 和 README；可复现源码可写在 README 中，单独源文件导出按用户请求处理。发布前检查 PPT 文件自身及来源许可，不要把本地任务目录一起推送。
 
+## 图详情与配色
+
+方法图在同一个“PPT 与配色”栏展示单图 PPT 下载和配色；结果图分别展示重建源码、配色和来源；表格只展示源码和来源，不显示配色。
+
+配色与源码一样，以对应论文 README 为源资料。在具体图表的小节里添加 `### Color Palette`，采用 `Role | Swatch | Color | Hex` 四列表，Hex 写成六位色值（例如 `#237ABC`）。方法图可以记录已人工核对的语义角色；自动采样的结果图只标代表色，不猜测其对应模型或曲线。
+
+维护者可用可选取色工具从一张明确指定的本地原图中提取代表色：
+
+```bash
+# 仅取色工具需要 Pillow；常规静态构建仍只需要 Python 标准库。
+python -m pip install Pillow
+python website/extract_palettes.py papers/YourPaper/result_figures/fig1.png --format markdown
+```
+
+工具只读取指定图片并向终端输出，不改图像或 README。检查输出后，将配色段放入对应图表的小节，再运行构建。自动取色段保留 `Representative colors sampled from the original image; HEX values are approximate.` 说明；网页据此标为原图采样，点击色值即可复制。采样会尽量避开白底、坐标轴文字和浅网格；照片中的代表色并不等于曲线配色，采样色值也不是作者提供的官方色板。替换原图后应重新取色。
+
 ## 本地构建与预览
 
 需要 Python。进入仓库根目录：

@@ -120,6 +120,19 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Preview Image | [fig2_domain_coverage_and_task_difficulty.png](result_figures/fig2_domain_coverage_and_task_difficulty.png) |
 | Source | Figure 2, PDF page 5 of the [paper](https://arxiv.org/abs/2605.10832v2) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#7B83BF](https://placehold.co/20x20/7B83BF/7B83BF.svg) | Blue | `#7B83BF` |
+| Representative color 2 | ![#C0C6E0](https://placehold.co/20x20/C0C6E0/C0C6E0.svg) | Blue | `#C0C6E0` |
+| Representative color 3 | ![#3D4A8C](https://placehold.co/20x20/3D4A8C/3D4A8C.svg) | Blue | `#3D4A8C` |
+| Representative color 4 | ![#2E2E5C](https://placehold.co/20x20/2E2E5C/2E2E5C.svg) | Blue | `#2E2E5C` |
+| Representative color 5 | ![#5DB1B8](https://placehold.co/20x20/5DB1B8/5DB1B8.svg) | Teal | `#5DB1B8` |
+| Representative color 6 | ![#B8DDD8](https://placehold.co/20x20/B8DDD8/B8DDD8.svg) | Teal | `#B8DDD8` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -190,6 +203,17 @@ plt.show()
 |---|---|
 | Preview Image | [fig3_visual_native_harness_ablation.png](result_figures/fig3_visual_native_harness_ablation.png) |
 | Source | Figure 3, PDF page 7 of the [paper](https://arxiv.org/abs/2605.10832v2) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#8791C9](https://placehold.co/20x20/8791C9/8791C9.svg) | Blue | `#8791C9` |
+| Representative color 2 | ![#D7DCEE](https://placehold.co/20x20/D7DCEE/D7DCEE.svg) | Blue | `#D7DCEE` |
+| Representative color 3 | ![#26305F](https://placehold.co/20x20/26305F/26305F.svg) | Blue | `#26305F` |
+| Representative color 4 | ![#78B3C8](https://placehold.co/20x20/78B3C8/78B3C8.svg) | Teal | `#78B3C8` |
 
 ### Plotting Code
 
@@ -282,6 +306,16 @@ plt.show()
 | Preview Image | [fig4_static_synthesis_vs_data_evolution.png](result_figures/fig4_static_synthesis_vs_data_evolution.png) |
 | Source | Figure 4, PDF page 8 of the [paper](https://arxiv.org/abs/2605.10832v2) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#8791C9](https://placehold.co/20x20/8791C9/8791C9.svg) | Blue | `#8791C9` |
+| Representative color 2 | ![#D7DCEE](https://placehold.co/20x20/D7DCEE/D7DCEE.svg) | Blue | `#D7DCEE` |
+| Representative color 3 | ![#26305F](https://placehold.co/20x20/26305F/26305F.svg) | Blue | `#26305F` |
+
 ### Plotting Code
 
 Plotted values reproduce the printed numerical annotations; layout and styling are reconstructed.
@@ -359,6 +393,17 @@ plt.show()
 |---|---|
 | Preview Image | [fig5_sft_and_rl_mechanism_analysis.png](result_figures/fig5_sft_and_rl_mechanism_analysis.png) |
 | Source | Figure 5, PDF page 9 of the [paper](https://arxiv.org/abs/2605.10832v2) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#26305F](https://placehold.co/20x20/26305F/26305F.svg) | Blue | `#26305F` |
+| Representative color 2 | ![#DCDFEC](https://placehold.co/20x20/DCDFEC/DCDFEC.svg) | Blue | `#DCDFEC` |
+| Representative color 3 | ![#46559C](https://placehold.co/20x20/46559C/46559C.svg) | Blue | `#46559C` |
+| Representative color 4 | ![#9EA8D6](https://placehold.co/20x20/9EA8D6/9EA8D6.svg) | Blue | `#9EA8D6` |
 
 ### Plotting Code
 

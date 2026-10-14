@@ -293,6 +293,8 @@ body:has(dialog[open]),body.menu-open { overflow:hidden; }
 .extra-download[download$=".pptx"] { background:var(--action-gradient); color:#fff; border-color:#234f7b; font-weight:650; box-shadow:0 6px 16px rgba(29,65,107,.13); }
 .extra-download[download$=".pptx"]:hover { background:var(--action-hover); border-color:#183f66; }
 .detail-intro { color:var(--muted); font-size:14px; line-height:1.9; margin-bottom:15px; }
+.method-palette { margin-top:25px; padding-top:22px; border-top:1px solid var(--line); }
+.palette-heading { font-size:16px; line-height:1.5; font-weight:650; margin-bottom:8px; }
 .palette-row { display:flex; align-items:center; gap:12px; width:100%; padding:14px 0; border-bottom:1px solid var(--line); text-align:left; }
 .palette-swatch { width:34px; height:34px; border-radius:8px; border:1px solid #00000012; flex:none; }
 .palette-role { flex:1; min-width:0; overflow-wrap:anywhere; font-size:14px; color:var(--muted); }

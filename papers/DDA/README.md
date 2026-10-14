@@ -131,6 +131,18 @@
 |---|---|
 | Preview Image | [image1.png](result_figures/image1.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#253494](https://placehold.co/20x20/253494/253494.svg) | Blue | `#253494` |
+| Representative color 2 | ![#93BDD9](https://placehold.co/20x20/93BDD9/93BDD9.svg) | Blue | `#93BDD9` |
+| Representative color 3 | ![#C6D3E8](https://placehold.co/20x20/C6D3E8/C6D3E8.svg) | Blue | `#C6D3E8` |
+| Representative color 4 | ![#E9CABE](https://placehold.co/20x20/E9CABE/E9CABE.svg) | Orange | `#E9CABE` |
+| Representative color 5 | ![#DCE7DE](https://placehold.co/20x20/DCE7DE/DCE7DE.svg) | Green | `#DCE7DE` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -209,6 +221,16 @@ plt.show()
 |---|---|
 | Preview Image | [image2.png](result_figures/image2.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FF6347](https://placehold.co/20x20/FF6347/FF6347.svg) | Red | `#FF6347` |
+| Representative color 2 | ![#9932CC](https://placehold.co/20x20/9932CC/9932CC.svg) | Purple | `#9932CC` |
+| Representative color 3 | ![#FF0000](https://placehold.co/20x20/FF0000/FF0000.svg) | Red | `#FF0000` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -280,6 +302,18 @@ plt.show()
 | Asset | Link |
 |---|---|
 | Preview Image | [image3.png](result_figures/image3.png) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FFCB9C](https://placehold.co/20x20/FFCB9C/FFCB9C.svg) | Orange | `#FFCB9C` |
+| Representative color 2 | ![#A0C3DC](https://placehold.co/20x20/A0C3DC/A0C3DC.svg) | Blue | `#A0C3DC` |
+| Representative color 3 | ![#E68F96](https://placehold.co/20x20/E68F96/E68F96.svg) | Red | `#E68F96` |
+| Representative color 4 | ![#AAD8A9](https://placehold.co/20x20/AAD8A9/AAD8A9.svg) | Green | `#AAD8A9` |
+| Representative color 5 | ![#E4D8EE](https://placehold.co/20x20/E4D8EE/E4D8EE.svg) | Purple | `#E4D8EE` |
 
 ### Plotting Code
 

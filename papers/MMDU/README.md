@@ -120,6 +120,17 @@
 |---|---|
 | Preview Image | [image1.png](result_figures/image1.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FCBF33](https://placehold.co/20x20/FCBF33/FCBF33.svg) | Orange | `#FCBF33` |
+| Representative color 2 | ![#51A3BB](https://placehold.co/20x20/51A3BB/51A3BB.svg) | Teal | `#51A3BB` |
+| Representative color 3 | ![#014D65](https://placehold.co/20x20/014D65/014D65.svg) | Teal | `#014D65` |
+| Representative color 4 | ![#FF5F2F](https://placehold.co/20x20/FF5F2F/FF5F2F.svg) | Red | `#FF5F2F` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.

@@ -101,6 +101,31 @@ test('method cards display only PPTX even when a legacy catalog has diagram code
   assert.doesNotMatch(context.html, / SOURCE|SVG|TikZ|Editable Diagram Code/);
 });
 
+test('table cards never advertise colors and missing source opens details instead of palette', () => {
+  const asset = {...sampleAssets[2], codes: [], palette: [{hex: '#112233', role: 'Unused table color'}]};
+  const context = evaluate(`${hasSourceDefinition}\n${between('function card(', 'function renderPapers(')}\nhtml = card(asset);`, {
+    asset, papers: samplePapers, saved: new Set(), shortPaper: (paper) => paper.title,
+    safeUrl: (url) => url, esc: String, icon: () => '', typeLabels: {table: '论文表格'},
+  });
+  assert.match(context.html, /查看详情/);
+  assert.match(context.html, /data-tab="code"/);
+  assert.doesNotMatch(context.html, /palette-dots|palette-dot"|data-tab="palette"|配色 \/ 参考|#112233/);
+});
+
+test('setTab ignores hidden tabs and restores focus if the selected tab becomes hidden', () => {
+  const tabs = ['code', 'palette', 'citation'].map((name) => nodeStub({dataset: {detailTab: name}, hidden: name === 'palette'}));
+  const panels = new Map(tabs.map((button) => ['panel-' + button.dataset.detailTab, nodeStub()]));
+  evaluate(`${between('function setTab(', 'function selectedCode()')}\nsetTab('palette');`, {
+    $: (id) => panels.get(id), document: {querySelectorAll: () => tabs, activeElement: tabs[1]},
+  });
+  assert.equal(tabs[0].getAttribute('aria-selected'), 'true');
+  assert.equal(tabs[0].focusCount, 1);
+  assert.equal(tabs[1].getAttribute('aria-selected'), 'false');
+  assert.equal(tabs[1].tabIndex, -1);
+  assert.equal(panels.get('panel-palette').hidden, true);
+  assert.equal(panels.get('panel-code').hidden, false);
+});
+
 test('homepage has no featured-figure module or its former initializer', () => {
   const html = fs.readFileSync(path.join(website, 'index.html'), 'utf8');
   assert.doesNotMatch(html, /hero-feature|馆藏选图/);
@@ -118,9 +143,9 @@ test('method dialog presents the corresponding PPTX without asking for diagram c
   assert.equal(nodes.get('source-bottom').hidden, true);
   assert.equal(nodes.get('no-code').hidden, false);
   assert.equal(nodes.get('copy-rebuild-prompt').hidden, true);
-  assert.equal(nodes.get('tab-code').textContent, 'PPT 下载');
+  assert.equal(nodes.get('tab-code').textContent, 'PPT 与配色');
   assert.match(heading.textContent, /PPTX/);
-  assert.match(description.textContent, /重建范围、近似内容及验证记录/);
+  assert.equal(description.textContent, '下载对应本图的 PPTX，在 PowerPoint 中继续编辑。');
   assert.doesNotMatch(description.textContent, /暂无.*代码|合并版|Editable Diagram Code/);
 });
 
@@ -433,7 +458,7 @@ test('opening the next image resets zoom and preserves the initial outside-dialo
     assetsById: new Map([['a', {...asset, id: 'a'}], ['b', {...asset, id: 'b'}]]), papers: samplePapers,
     activeAsset: null, previousFocus: null, document: doc, nextButton,
     $: get, cleanText: String, safeUrl: String, typeLabels: {method: 'METHOD'},
-    setImageExpanded: (expanded) => zoomChanges.push(expanded), renderSourceState: () => {}, renderCode: () => {},
+    setImageExpanded: (expanded) => zoomChanges.push(expanded), renderSourceState: () => {}, renderCode: () => {}, renderPalette: () => {},
     updateDialogSave: () => {}, updateDialogNavigation: () => {}, setTab: () => {},
     relatedDownloads: () => [], downloadLinks: () => '', esc: String, icon: () => '',
   });
@@ -703,7 +728,13 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.match(h.find('#dialog-label').textContent, /^方法框架/);
   assert.equal(h.find('#dialog-position').textContent, '1 / 25'); assert.equal(h.find('#previous-asset').disabled, true);
   assert.equal(h.find('#source-code').hidden, true); assert.match(h.find('#no-code h3').textContent, /PPTX/);
-  assert.equal(h.find('#tab-code').textContent, 'PPT 下载');
+  assert.equal(h.find('#tab-code').textContent, 'PPT 与配色');
+  assert.equal(h.find('#tab-palette').hidden, true);
+  assert.equal(h.find('#palette-content').parentElement.id, 'method-palette');
+  assert.equal(h.find('#method-palette').hidden, false);
+  assert.equal(h.find('#palette-list').querySelectorAll('.palette-row').length, 1);
+  assert.equal(h.find('#dialog-reconstruction').hidden, true);
+  assert.equal(h.find('#dialog-reconstruction').textContent, '');
   assert.equal(h.find('#code-select').querySelectorAll('option').length, 0);
   assert.equal(h.find('#source-code-text').textContent, '');
   assert.equal(h.find('#download-code').disabled, true);
@@ -723,13 +754,18 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('#dialog-position').textContent, '2 / 25');
   h.key('#dialog-title', 'ArrowRight', {ctrlKey: true}); assert.equal(h.find('#dialog-position').textContent, '2 / 25');
   h.key('#dialog-title', 'ArrowRight'); assert.equal(h.find('#dialog-position').textContent, '3 / 25');
-  assert.equal(h.find('#panel-palette').hidden, false); assert.equal(h.find('#source-code').hidden, true);
+  assert.equal(h.find('#panel-palette').hidden, true); assert.equal(h.find('#source-code').hidden, true);
+  assert.equal(h.find('#panel-code').hidden, false);
+  assert.equal(h.find('#tab-palette').hidden, true);
+  assert.equal(h.find('#tab-palette').getAttribute('aria-selected'), 'false');
+  assert.equal(h.find('#palette-list').children.length, 0);
   for (let i = 3; i < 25; i++) h.click('#next-asset');
   assert.equal(h.find('#dialog-position').textContent, '25 / 25'); assert.equal(h.find('#next-asset').disabled, true);
   assert.match(h.find('#no-code h3').textContent, /PPTX 尚未收录/);
   assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 0);
   assert.equal(h.find('#copy-rebuild-prompt').hidden, false);
-  assert.match(h.find('#dialog-reconstruction').textContent, /PPTX（若有）/);
+  assert.equal(h.find('#dialog-reconstruction').textContent, '');
+  assert.equal(h.find('#dialog-reconstruction').hidden, true);
   h.click('#copy-rebuild-prompt'); await Promise.resolve();
   assert.match(h.clipboard.at(-1), /对应本图的可编辑 PPTX/);
   assert.match(h.clipboard.at(-1), /原生文字、形状和路径/);
@@ -789,6 +825,76 @@ test('optional DOM smoke initializes an empty gallery without a featured module'
   assert.deepEqual(h.cardIds(), []);
 });
 
+test('optional DOM smoke merges method palette, keeps result palette and removes table palette across navigation', {
+  skip: !process.env.FIGARIUM_DOM_MODULE_PATH,
+}, async () => {
+  const color = {hex: '#112233', role: 'Accent', color: 'Blue'};
+  const rows = [
+    {id: 'm', type: 'method', approximate: true, palette: [color], paletteSource: 'readme', downloads: [{format: 'pptx', local: true, label: 'Editable PPTX', filename: 'm.pptx', url: 'assets/papers/p/method_figures/m.pptx'}]},
+    {id: 'r', type: 'result', approximate: true, palette: [color], paletteSource: 'image-sample', codes: [{language: 'python', label: 'Python', code: '# specific approximation stays in source'}]},
+    {id: 't', type: 'table', palette: [color], approximate: false},
+    {id: 'm-empty', type: 'method', palette: []},
+    {id: 'r-empty', type: 'result', palette: []},
+    {id: 't-approx', type: 'table', approximate: true, codes: [{language: 'latex', code: '% specific data approximation'}]},
+  ].map((asset) => ({paperId: 'p', title: asset.id, filename: asset.id + '.png', src: 'assets/papers/p/' + asset.id + '.png', readmeUrl: 'https://example.com/readme', codes: [], downloads: [], ...asset}));
+  const catalog = {
+    site: {name: 'Archive', chineseName: '图集', tagline: 'Research figures', description: 'Paper library', repositoryUrl: 'https://github.com/example/library', featuredPaperIds: []},
+    stats: {paperCount: 1, assetCount: rows.length, sourceCount: 3, pptxCount: 1},
+    papers: [{id: 'p', title: 'A real paper', year: '2026', paperUrl: 'https://example.com/paper'}], assets: rows,
+  };
+  const h = domHarness(catalog);
+  const palette = h.find('#palette-content');
+  const selected = () => [...h.document.querySelectorAll('[data-detail-tab]')].filter((tab) => tab.getAttribute('aria-selected') === 'true');
+  const assertSelected = (name) => { assert.equal(selected().length, 1); assert.equal(selected()[0].dataset.detailTab, name); assert.equal(selected()[0].hidden, false); };
+  h.click('.asset-image-button[data-open="m"]');
+  assert.equal(h.find('#tab-code').textContent, 'PPT 与配色');
+  assert.equal(palette.parentElement.id, 'method-palette');
+  assert.equal(h.find('#method-palette').hidden, false);
+  assert.equal(h.find('#tab-palette').hidden, true);
+  assert.equal(h.find('#extra-downloads').querySelectorAll('a').length, 1);
+  assert.equal(h.find('#dialog-reconstruction').hidden, true);
+  assert.equal(h.find('#dialog-reconstruction').textContent, '');
+  assert.match(h.find('#palette-intro').textContent, /论文条目的色彩手记/);
+  h.click('[data-color="#112233"]'); await Promise.resolve(); assert.equal(h.clipboard.at(-1), '#112233');
+  h.key('#tab-code', 'ArrowRight'); assertSelected('citation');
+  h.key('#tab-citation', 'ArrowLeft'); assertSelected('code');
+  h.key('#tab-palette', 'ArrowRight'); assertSelected('code');
+  h.click('#next-asset');
+  assert.equal(h.find('#tab-palette').hidden, false);
+  assert.equal(palette.parentElement.id, 'panel-palette');
+  assert.equal(h.find('#method-palette').hidden, true);
+  assert.equal(h.find('#palette-intro').textContent, '从原图自动提取的代表色，色值为近似值。点击复制。');
+  assert.equal(h.find('#dialog-reconstruction').hidden, false);
+  assert.match(h.find('#source-code-text').textContent, /specific approximation/);
+  h.click('#tab-palette'); h.find('#tab-palette').focus(); assertSelected('palette');
+  h.click('#next-asset');
+  assert.equal(h.find('#dialog-title').textContent, 't');
+  assert.equal(h.find('#tab-palette').hidden, true);
+  assert.equal(palette.hidden, true);
+  assert.equal(h.find('#palette-list').children.length, 0);
+  assert.equal(h.find('#palette-intro').textContent, '');
+  assertSelected('code'); assert.equal(h.document.activeElement.id, 'tab-code');
+  assert.equal(h.find('#dialog-reconstruction').hidden, true);
+  assert.equal(h.find('#dialog-reconstruction').textContent, '');
+  assert.doesNotMatch(h.find('#no-code').textContent, /配色/);
+  h.click('#tab-palette'); assertSelected('code');
+  h.key('#tab-code', 'End'); assertSelected('citation');
+  h.key('#tab-citation', 'Home'); assertSelected('code');
+  h.click('#previous-asset'); h.click('#tab-palette'); h.click('#previous-asset');
+  assert.equal(h.find('#dialog-title').textContent, 'm'); assertSelected('code');
+  assert.equal(h.find('#palette-content'), palette, 'Type changes must move the same palette content, not duplicate IDs');
+  assert.equal(palette.parentElement.id, 'method-palette'); assert.equal(palette.hidden, false);
+  h.click('#close-dialog');
+  h.click('.asset-image-button[data-open="m-empty"]');
+  assert.equal(h.find('#method-palette').hidden, false); assert.equal(h.find('#palette-list').children.length, 0);
+  assert.match(h.find('#palette-intro').textContent, /尚未记录配色/); assert.match(h.find('#no-code h3').textContent, /PPTX 尚未收录/);
+  h.click('#next-asset'); h.click('#tab-palette'); assertSelected('palette');
+  assert.equal(h.find('#palette-list').children.length, 0); assert.match(h.find('#palette-intro').textContent, /尚未记录配色/);
+  h.click('#next-asset'); assertSelected('code');
+  assert.equal(h.find('#dialog-reconstruction').hidden, false); assert.match(h.find('#source-code-text').textContent, /specific data approximation/);
+  assert.equal(h.document.querySelectorAll('#palette-content').length, 1);
+});
+
 test('optional real catalog DOM smoke matches published counts and actual PPTX downloads', {
   skip: !process.env.FIGARIUM_DOM_MODULE_PATH || !fs.existsSync(path.join(website, 'dist', 'catalog.json')),
 }, () => {
@@ -819,12 +925,44 @@ test('optional real catalog DOM smoke matches published counts and actual PPTX d
     const link = [...h.document.querySelectorAll('#extra-downloads a')].find((node) => node.getAttribute('href') === download.url);
     assert.ok(link, 'Actual local PPTX must be linked from its detail');
     assert.equal(link.getAttribute('download'), download.filename); assert.equal(link.getAttribute('target'), null);
-    assert.equal(h.find('#tab-code').textContent, 'PPT 下载');
+    assert.equal(h.find('#tab-code').textContent, 'PPT 与配色');
+    assert.equal(h.find('#tab-palette').hidden, true);
+    assert.equal(h.find('#palette-content').parentElement.id, 'method-palette');
+    assert.equal(h.find('#method-palette').hidden, false);
+    assert.equal(h.find('#dialog-reconstruction').textContent, '');
+    assert.equal(h.find('#dialog-reconstruction').hidden, true);
     assert.equal(h.find('#code-select').querySelectorAll('option').length, 0);
     assert.equal(h.find('#source-code').hidden, true);
     assert.equal(h.find('#source-code-text').textContent, '');
     assert.equal(h.find('#download-code').disabled, true);
     assert.doesNotMatch(h.find('#no-code').textContent, /暂无.*代码|合并版/);
     h.click('#close-dialog');
+  }
+  for (const type of ['result', 'table']) {
+    const rows = catalog.assets.filter((asset) => asset.type === type);
+    assert.equal(rows.length, catalog.stats.counts[type]);
+    for (const asset of rows) {
+      h.change('#paper-select', asset.paperId);
+      const button = [...h.document.querySelectorAll('.asset-image-button')].find((node) => node.dataset.open === asset.id);
+      assert.ok(button); button.click();
+      assert.equal(h.find('#tab-code').textContent, '重建源码');
+      assert.equal(h.find('#tab-palette').hidden, type === 'table');
+      assert.equal(h.find('#method-palette').hidden, true);
+      assert.equal(h.find('#palette-content').parentElement.id, 'panel-palette');
+      if (type === 'table') {
+        assert.equal(h.find('#palette-list').children.length, 0);
+        assert.equal(h.find('#palette-content').hidden, true);
+        assert.equal(button.closest('.asset-card').querySelector('.palette-dots'), null);
+      } else {
+        h.click('#tab-palette');
+        assert.equal(h.find('#panel-palette').hidden, false);
+        assert.equal(h.find('#palette-content').hidden, false);
+        assert.ok(asset.palette.length, 'Each currently collected result figure must expose its recorded or sampled palette');
+        assert.equal(h.find('#palette-list').querySelectorAll('.palette-row').length, asset.palette.length);
+      }
+      assert.equal(h.find('#dialog-reconstruction').hidden, !Boolean(asset.approximate));
+      if (!asset.approximate) assert.equal(h.find('#dialog-reconstruction').textContent, '');
+      h.click('#close-dialog');
+    }
   }
 });

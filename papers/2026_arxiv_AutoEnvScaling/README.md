@@ -232,6 +232,18 @@ Save the code below as an `.svg` file. Edit `<text>` labels, `fill` / `stroke` c
 | Preview Image | [fig1_generation_training_self_improvement.png](result_figures/fig1_generation_training_self_improvement.png) |
 | Source | Figure 1, PDF page 1 of the [paper](https://arxiv.org/abs/2610.14163v1) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#32006E](https://placehold.co/20x20/32006E/32006E.svg) | Purple | `#32006E` |
+| Representative color 2 | ![#208C8D](https://placehold.co/20x20/208C8D/208C8D.svg) | Teal | `#208C8D` |
+| Representative color 3 | ![#7A55B5](https://placehold.co/20x20/7A55B5/7A55B5.svg) | Purple | `#7A55B5` |
+| Representative color 4 | ![#B9B4C7](https://placehold.co/20x20/B9B4C7/B9B4C7.svg) | Purple | `#B9B4C7` |
+| Representative color 5 | ![#3A3145](https://placehold.co/20x20/3A3145/3A3145.svg) | Purple | `#3A3145` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -320,6 +332,16 @@ plt.show()
 | Preview Image | [fig4_valid_environment_rate_comparison.png](result_figures/fig4_valid_environment_rate_comparison.png) |
 | Source | Figure 4, PDF page 6 of the [paper](https://arxiv.org/abs/2610.14163v1) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#32006E](https://placehold.co/20x20/32006E/32006E.svg) | Purple | `#32006E` |
+| Representative color 2 | ![#7A55B5](https://placehold.co/20x20/7A55B5/7A55B5.svg) | Purple | `#7A55B5` |
+| Representative color 3 | ![#CDBCEA](https://placehold.co/20x20/CDBCEA/CDBCEA.svg) | Purple | `#CDBCEA` |
+
 ### Plotting Code
 
 Rates and confidence intervals use the numerical values reported in Table 2; minor rounding can differ from the figure labels.
@@ -392,6 +414,19 @@ plt.show()
 |---|---|
 | Preview Image | [fig6_recursive_self_improvement.png](result_figures/fig6_recursive_self_improvement.png) |
 | Source | Figure 6, PDF page 8 of the [paper](https://arxiv.org/abs/2610.14163v1) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#3A3145](https://placehold.co/20x20/3A3145/3A3145.svg) | Purple | `#3A3145` |
+| Representative color 2 | ![#32006E](https://placehold.co/20x20/32006E/32006E.svg) | Purple | `#32006E` |
+| Representative color 3 | ![#DED8EC](https://placehold.co/20x20/DED8EC/DED8EC.svg) | Purple | `#DED8EC` |
+| Representative color 4 | ![#208C8D](https://placehold.co/20x20/208C8D/208C8D.svg) | Teal | `#208C8D` |
+| Representative color 5 | ![#D07832](https://placehold.co/20x20/D07832/D07832.svg) | Orange | `#D07832` |
+| Representative color 6 | ![#8C8FC2](https://placehold.co/20x20/8C8FC2/8C8FC2.svg) | Blue | `#8C8FC2` |
 
 ### Plotting Code
 

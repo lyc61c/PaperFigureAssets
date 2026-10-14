@@ -244,6 +244,10 @@ def palette_colors(block: str) -> list[dict[str, str]]:
     return colors
 
 
+PALETTE_SECTION_RE = re.compile(r"^###\s+Color Palette\s*\r?\n.*?(?=^#{1,3}\s|\Z)", re.I | re.M | re.S)
+SAMPLED_PALETTE_NOTE = "Representative colors sampled from the original image; HEX values are approximate."
+
+
 def section_type(title: str) -> str | None:
     title = re.sub(r"^\d+\.\s*", "", title).casefold()
     return {"method figures": "method", "result analysis figures": "result", "result figures": "result", "paper tables": "table", "tables": "table"}.get(title)
@@ -396,17 +400,24 @@ def parse_paper(entry: dict, site: dict) -> tuple[dict, list[dict], list[tuple[P
         presentations, presentation_copies = pptx_downloads(ppt_value, paper_dir, paper_id)
         downloads.extend(presentations)
         copies.extend(presentation_copies)
+        palette = [] if kind == "table" else palette_colors(prose)
+        palette_notes = "\n".join(match.group(0) for match in PALETTE_SECTION_RE.finditer(prose))
+        palette_source = ("image-sample" if SAMPLED_PALETTE_NOTE in palette_notes else "readme") if palette else ""
+        # Approximate HEX samples do not imply that the experiment's data were
+        # estimated. Keep the reconstruction disclosure independent of color notes.
+        reconstruction_prose = prose.replace(SAMPLED_PALETTE_NOTE, "")
         asset = {
             "id": f"{paper_id}--{kind}--{image.stem}", "paperId": paper_id,
             "title": plain_text(label_match.group(2)), "type": kind,
             "src": quote(destination, safe="/"), "filename": image.name,
             "sourceLabel": source_match.group(1) if source_match else label_match.group(1),
             "page": int(page_match.group(1)) if page_match else None,
-            "approximate": bool(re.search(r"\bapproximate(?:ly)?\b|\bestimat(?:ed|ion|ing)\b|\b(?:structural|schematic) reconstruction\b|\bsimplif(?:ied|ication)\b|近似|估读|简化", prose, re.I)),
+            "approximate": bool(re.search(r"\bapproximate(?:ly)?\b|\bestimat(?:ed|ion|ing)\b|\b(?:structural|schematic) reconstruction\b|\bsimplif(?:ied|ication)\b|近似|估读|简化", reconstruction_prose, re.I)),
             "validation": plain_text(metadata.get("latex validation", NOT_DOCUMENTED)) if kind == "table" else NOT_DOCUMENTED,
             # Method figures are delivered as their own PPTX. Keep legacy
             # diagram snippets in the canonical README, not the gallery UI.
-            "codes": [] if kind == "method" else code_examples(block), "palette": palette_colors(prose),
+            "codes": [] if kind == "method" else code_examples(block),
+            "palette": palette, "paletteSource": palette_source,
             "downloads": downloads,
             "readmeUrl": github_readme(site["repositoryUrl"], paper_id, heading_anchor(title)),
             "paperUrl": paper["paperUrl"],

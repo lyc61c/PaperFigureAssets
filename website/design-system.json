@@ -41,6 +41,12 @@
     "menuBreakpointPx": 900,
     "alignment": "Centered, single-column introduction; left-aligned collection content; centered figures inside complete white image mounts"
   },
+  "figureDetails": {
+    "method": "One PPT and palette tab containing the single figure-specific download followed by its palette; provenance in a separate tab.",
+    "result": "Reconstruction source, palette, and provenance tabs; sampled colors are explicitly identified as approximate image samples.",
+    "table": "Reconstruction source and provenance only; no palette tab or color swatches.",
+    "notes": "No boilerplate original-image/PPT notice below every figure; preserve specific approximation disclosures for reconstruction data and the complete README records."
+  },
   "principles": [
     "The collection is the visual focus; no featured-figure or recommendation module in the introduction.",
     "Differentiate method figures, result figures, and tables with labels, icons, and semantic colors.",

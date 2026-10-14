@@ -129,10 +129,11 @@
     const assetType = ['method', 'result', 'table'].includes(a.type) ? a.type : 'figure';
     const source = hasSource(a);
     const langs = [...new Set([...(hasLocalPptx(a) ? ['PPTX'] : []), ...(hasCode(a) ? a.codes : []).filter((c) => !/required packages/i.test(c.label)).map((c) => c.language.toUpperCase())])];
-    const badge = source ? icon(a.type === 'method' ? 'download' : 'code') + ' ' + esc(langs.join(' / ') || '资源') : icon('palette') + ' 配色 / 参考';
-    const colors = [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
+    const badge = source ? icon(a.type === 'method' ? 'download' : 'code') + ' ' + esc(langs.join(' / ') || '资源') : a.type === 'table' ? icon('book') + ' 查看详情' : icon('palette') + ' 配色 / 参考';
+    const detailTab = a.type === 'result' && !source ? 'palette' : 'code';
+    const colors = a.type === 'table' ? [] : [...new Set((Array.isArray(a.palette) ? a.palette : []).map((row) => String(row?.hex || '')).filter((hex) => /^#[0-9a-f]{6}$/i.test(hex)))].slice(0, 4);
     const swatches = colors.length ? '<span class="palette-dots" aria-hidden="true">' + colors.map((hex) => '<i class="palette-dot" style="background:' + hex + '" title="' + hex.toUpperCase() + '"></i>').join('') + '</span>' : '';
-    return '<article class="asset-card" data-asset-type="' + assetType + '"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '取消收藏' : '收藏图表') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + assetType + '">' + esc(typeLabels[assetType] || '图表') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + (source ? 'code' : 'palette') + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
+    return '<article class="asset-card" data-asset-type="' + assetType + '"><div class="asset-preview"><button class="asset-image-button" data-open="' + esc(a.id) + '" aria-label="查看 ' + esc(a.title) + '"><img src="' + esc(safeUrl(a.src)) + '" alt="' + esc(a.title) + '" loading="lazy" decoding="async"></button><button class="save-button' + (saved.has(a.id) ? ' saved' : '') + '" data-save="' + esc(a.id) + '" aria-label="' + (saved.has(a.id) ? '取消收藏' : '收藏图表') + '" aria-pressed="' + saved.has(a.id) + '">' + icon('bookmark') + '</button></div><div class="asset-info"><div class="asset-kicker"><span class="asset-type ' + assetType + '">' + esc(typeLabels[assetType] || '图表') + '</span><span class="asset-source-label">' + esc(a.sourceLabel || '—') + '</span>' + swatches + '</div><button class="asset-title-button" data-open="' + esc(a.id) + '"><h3>' + esc(a.title) + '</h3></button><p class="asset-paper">' + esc(shortPaper(p)) + '</p><div class="asset-bottom"><span class="asset-venue">' + esc(p.venue || 'Paper') + ' · ' + esc(p.year || '—') + '</span><button class="' + (source ? 'code-badge' : 'palette-badge') + '" data-open="' + esc(a.id) + '" data-tab="' + detailTab + '">' + (a.approximate ? '<span class="approx-dot" title="包含估读或简化"></span>' : '') + badge + '</button></div></div></article>';
   }
   function renderPapers() {
     const sorted = [...catalog.papers].sort((a, b) => rank(a.id) - rank(b.id) || Number(b.year) - Number(a.year));
@@ -290,11 +291,16 @@
     $('dialog-save').setAttribute('aria-pressed', String(selected));
   }
   function setTab(name) {
-    document.querySelectorAll('[data-detail-tab]').forEach((button) => {
-      const selected = button.dataset.detailTab === name;
+    const tabs = [...document.querySelectorAll('[data-detail-tab]')];
+    const visible = tabs.filter((button) => !button.hidden);
+    const target = visible.find((button) => button.dataset.detailTab === name) || visible[0];
+    const restoreFocus = tabs.some((button) => button.hidden && button === document.activeElement);
+    tabs.forEach((button) => {
+      const selected = button === target;
       button.setAttribute('aria-selected', String(selected)); button.tabIndex = selected ? 0 : -1;
       $('panel-' + button.dataset.detailTab).hidden = !selected;
     });
+    if (restoreFocus) target?.focus();
   }
   function selectedCode() { return activeAsset?.type === 'method' ? null : activeAsset?.codes?.[Number($('code-select').value)] || null; }
   function renderCode() {
@@ -328,14 +334,27 @@
   function renderSourceState(a) {
     const method = a.type === 'method';
     const code = hasCode(a), pptx = method ? relatedDownloads(a).length > 0 : hasLocalPptx(a);
-    $('tab-code').textContent = method ? 'PPT 下载' : '重建源码';
+    $('tab-code').textContent = method ? 'PPT 与配色' : '重建源码';
     ['code-toolbar', 'source-code', 'source-bottom'].forEach((id) => { $(id).hidden = !code; });
     $('no-code').hidden = code;
-    $('no-code').querySelector('h3').textContent = pptx ? '本图 PPTX，可直接下载' : method ? '本图的 PPTX 尚未收录' : '先留下配色，也可以继续重建';
+    $('no-code').querySelector('h3').textContent = pptx ? '本图 PPTX，可直接下载' : method ? '本图的 PPTX 尚未收录' : a.type === 'table' ? '本表的重建源码尚未收录' : '先留下配色，也可以继续重建';
     $('no-code').querySelector('p').textContent = method
-      ? pptx ? '下载对应本图的 PPTX，在 PowerPoint 中继续编辑。重建范围、近似内容及验证记录见论文条目。' : '当前没有本图对应的 PPTX。可以先查看原图与配色，或复制指令补充可编辑重建。'
-      : pptx ? '本图已收录本地 PPTX。文件格式检查不代表视觉或原生对象可编辑性验收，请结合条目的重建与 QA 说明核对。' : '本图暂未收录单独的代码或 PPTX。可先查看原图和配色参考，或继续补充重建资源。';
+      ? pptx ? '下载对应本图的 PPTX，在 PowerPoint 中继续编辑。' : '当前没有本图对应的 PPTX。可以先查看原图与配色，或复制指令补充可编辑重建。'
+      : pptx ? '本图已收录本地 PPTX。文件格式检查不代表视觉或原生对象可编辑性验收，请结合条目的重建与 QA 说明核对。' : a.type === 'table' ? '可以查看原表，或复制指令补充重建源码。' : '本图暂未收录单独的代码或 PPTX。可先查看原图和配色参考，或继续补充重建资源。';
     $('copy-rebuild-prompt').hidden = pptx;
+  }
+  function renderPalette(a) {
+    const method = a.type === 'method', table = a.type === 'table';
+    $('tab-palette').hidden = a.type !== 'result';
+    $('method-palette').hidden = !method;
+    const content = $('palette-content');
+    (method ? $('method-palette') : $('panel-palette')).append(content);
+    content.hidden = table;
+    $('palette-heading').textContent = '配色';
+    const palette = table ? [] : (Array.isArray(a.palette) ? a.palette : []).filter((row) => /^#[0-9a-f]{6}$/i.test(row?.hex || ''));
+    $('palette-intro').textContent = table ? '' : !palette.length ? '这个条目尚未记录配色，可以在论文 README 中补充后重建网页。'
+      : a.paletteSource === 'image-sample' ? '从原图自动提取的代表色，色值为近似值。点击复制。' : '配色来自论文条目的色彩手记。点击色值复制。';
+    $('palette-list').innerHTML = palette.map((row) => '<button class="palette-row" data-color="' + esc(row.hex) + '"><span class="palette-swatch" style="background:' + row.hex + '"></span><span class="palette-role">' + esc(row.role || row.color) + '<small>' + esc(row.color || '') + '</small></span><span class="palette-hex">' + esc(row.hex.toUpperCase()) + ' ' + icon('copy') + '</span></button>').join('');
   }
   function openAsset(id, tab = 'code') {
     const a = assetsById.get(id); if (!a) return;
@@ -348,18 +367,16 @@
     $('dialog-paper').textContent = cleanText(p.title) + ' · ' + (p.venue || '') + ' ' + (p.year || '');
     $('dialog-image').src = safeUrl(a.src); $('dialog-image').alt = a.title;
     $('original-link').href = safeUrl(a.src); $('dialog-readme').href = safeUrl(a.readmeUrl); $('paper-link').href = safeUrl(p.paperUrl);
-    $('dialog-reconstruction').textContent = a.type === 'method'
-      ? '原图来自论文；PPTX（若有）的具体编辑能力、近似内容与验证记录请查看完整条目。'
-      : a.approximate ? '重建提示：该条目包含估读数据或简化结构。请将原图视为事实来源，源码视为可编辑参考。' : '原图来自论文；源码（若有）为条目中的重建版本。请结合原论文和完整条目核对。';
+    const showApproximation = a.type !== 'method' && Boolean(a.approximate);
+    $('dialog-reconstruction').hidden = !showApproximation;
+    $('dialog-reconstruction').textContent = showApproximation ? '重建提示：该条目包含估读数据或简化结构。请将原图视为事实来源，源码视为可编辑参考。' : '';
     renderSourceState(a);
     const codes = hasCode(a) ? a.codes : [];
     $('code-select').innerHTML = codes.map((c, i) => '<option value="' + i + '">' + esc(c.label || c.language) + '</option>').join('');
     const first = codes.findIndex((c) => !/required packages/i.test(c.label));
     if (first >= 0) $('code-select').value = String(first);
     renderCode(); updateDialogSave();
-    const palette = (a.palette || []).filter((row) => /^#[0-9a-f]{6}$/i.test(row.hex || ''));
-    $('palette-intro').textContent = palette.length ? '配色来自论文条目的色彩手记。点击色值复制。' : '这个条目尚未记录配色，可以在论文 README 中补充后重建网页。';
-    $('palette-list').innerHTML = palette.map((row) => '<button class="palette-row" data-color="' + esc(row.hex) + '"><span class="palette-swatch" style="background:' + row.hex + '"></span><span class="palette-role">' + esc(row.role || row.color) + '<small>' + esc(row.color || '') + '</small></span><span class="palette-hex">' + esc(row.hex.toUpperCase()) + ' ' + icon('copy') + '</span></button>').join('');
+    renderPalette(a);
     const fields = [['论文', p.title], ['图表编号', a.sourceLabel || '该条目未记录'], ['页码', a.page || '该条目未记录'], ['作者', p.authors || '该条目未记录'], ['许可', p.license || '该条目未记录；请核对原论文'], ['验证状态', a.validation || '没有显式验证记录；未将“有代码”当作“已验证”']];
     $('citation-list').innerHTML = fields.map(([key, value]) => '<dt>' + esc(key) + '</dt><dd>' + esc(cleanText(value)) + '</dd>').join('');
     $('extra-downloads').innerHTML = downloadLinks(relatedDownloads(a, p));
@@ -494,8 +511,8 @@
       e.preventDefault(); closeDrawer(false); if (!['explore', 'saved'].includes(state.view)) changeView('explore', false); $('search').focus(); $('collection').scrollIntoView();
     }
     const tab = e.target.closest('[data-detail-tab]');
-    if (tab && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
-      e.preventDefault(); const tabs = [...document.querySelectorAll('[data-detail-tab]')]; let i = tabs.indexOf(tab);
+    if (tab && !tab.hidden && ['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) {
+      e.preventDefault(); const tabs = [...document.querySelectorAll('[data-detail-tab]')].filter((button) => !button.hidden); let i = tabs.indexOf(tab);
       i = e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
       setTab(tabs[i].dataset.detailTab); tabs[i].focus();
       return;

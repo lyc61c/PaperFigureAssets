@@ -169,6 +169,19 @@ Original figure/table previews are excerpts from [the cited paper](https://arxiv
 | Preview Image | [fig6_benchmark_composition.png](result_figures/fig6_benchmark_composition.png) |
 | Source | Figure 6, PDF page 13 of the [paper](https://arxiv.org/abs/2606.24597v1) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#81A9CC](https://placehold.co/20x20/81A9CC/81A9CC.svg) | Blue | `#81A9CC` |
+| Representative color 2 | ![#E48C6A](https://placehold.co/20x20/E48C6A/E48C6A.svg) | Orange | `#E48C6A` |
+| Representative color 3 | ![#5A8EC0](https://placehold.co/20x20/5A8EC0/5A8EC0.svg) | Blue | `#5A8EC0` |
+| Representative color 4 | ![#3D5874](https://placehold.co/20x20/3D5874/3D5874.svg) | Blue | `#3D5874` |
+| Representative color 5 | ![#1B3A5C](https://placehold.co/20x20/1B3A5C/1B3A5C.svg) | Blue | `#1B3A5C` |
+| Representative color 6 | ![#C23728](https://placehold.co/20x20/C23728/C23728.svg) | Red | `#C23728` |
+
 ### Plotting Code
 
 Counts, average context lengths, and average turns reproduce the figure's printed values; dashboard layout is reconstructed.
@@ -277,6 +290,17 @@ plt.show()
 | Preview Image | [fig8_cross_domain_generalization.png](result_figures/fig8_cross_domain_generalization.png) |
 | Source | Figure 8, PDF page 16 of the [paper](https://arxiv.org/abs/2606.24597v1) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#B03A2E](https://placehold.co/20x20/B03A2E/B03A2E.svg) | Red | `#B03A2E` |
+| Representative color 2 | ![#1A5276](https://placehold.co/20x20/1A5276/1A5276.svg) | Blue | `#1A5276` |
+| Representative color 3 | ![#CA6F1E](https://placehold.co/20x20/CA6F1E/CA6F1E.svg) | Orange | `#CA6F1E` |
+| Representative color 4 | ![#4A6B5D](https://placehold.co/20x20/4A6B5D/4A6B5D.svg) | Green | `#4A6B5D` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -341,6 +365,15 @@ plt.show()
 |---|---|
 | Preview Image | [fig9_simulated_vs_real_rl.png](result_figures/fig9_simulated_vs_real_rl.png) |
 | Source | Figure 9, PDF page 20 of the [paper](https://arxiv.org/abs/2606.24597v1) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#003F75](https://placehold.co/20x20/003F75/003F75.svg) | Blue | `#003F75` |
+| Representative color 2 | ![#A6192E](https://placehold.co/20x20/A6192E/A6192E.svg) | Red | `#A6192E` |
 
 ### Plotting Code
 

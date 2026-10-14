@@ -122,6 +122,20 @@
 |---|---|
 | Preview Image | [image1.png](result_figures/image1.png) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FBE9D4](https://placehold.co/20x20/FBE9D4/FBE9D4.svg) | Orange | `#FBE9D4` |
+| Representative color 2 | ![#9DC5BD](https://placehold.co/20x20/9DC5BD/9DC5BD.svg) | Teal | `#9DC5BD` |
+| Representative color 3 | ![#ACCFF1](https://placehold.co/20x20/ACCFF1/ACCFF1.svg) | Blue | `#ACCFF1` |
+| Representative color 4 | ![#5587BC](https://placehold.co/20x20/5587BC/5587BC.svg) | Blue | `#5587BC` |
+| Representative color 5 | ![#ADAAEF](https://placehold.co/20x20/ADAAEF/ADAAEF.svg) | Blue | `#ADAAEF` |
+| Representative color 6 | ![#6E61E4](https://placehold.co/20x20/6E61E4/6E61E4.svg) | Blue | `#6E61E4` |
+| Representative color 7 | ![#F1B3AC](https://placehold.co/20x20/F1B3AC/F1B3AC.svg) | Red | `#F1B3AC` |
+
 ### Plotting Code
 
 Note: The following code is an approximate visual reconstruction based on the provided figure.
@@ -240,6 +254,20 @@ plt.show()
 | Asset | Link |
 |---|---|
 | Preview Image | [image2.png](result_figures/image2.png) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#FF95D3](https://placehold.co/20x20/FF95D3/FF95D3.svg) | Pink | `#FF95D3` |
+| Representative color 2 | ![#B386CB](https://placehold.co/20x20/B386CB/B386CB.svg) | Purple | `#B386CB` |
+| Representative color 3 | ![#28BE7F](https://placehold.co/20x20/28BE7F/28BE7F.svg) | Green | `#28BE7F` |
+| Representative color 4 | ![#C759A0](https://placehold.co/20x20/C759A0/C759A0.svg) | Pink | `#C759A0` |
+| Representative color 5 | ![#6575C3](https://placehold.co/20x20/6575C3/6575C3.svg) | Blue | `#6575C3` |
+| Representative color 6 | ![#3488AC](https://placehold.co/20x20/3488AC/3488AC.svg) | Teal | `#3488AC` |
+| Representative color 7 | ![#00ADEF](https://placehold.co/20x20/00ADEF/00ADEF.svg) | Teal | `#00ADEF` |
 
 ### Plotting Code
 

@@ -248,6 +248,20 @@ Save the code below as an `.svg` file. Edit `<text>` labels, `fill` / `stroke` c
 | Preview Image | [fig1_document_parsing_benchmark_comparison.png](result_figures/fig1_document_parsing_benchmark_comparison.png) |
 | Source | Figure 1, PDF page 1 of the [paper](https://arxiv.org/abs/2609.20423v1) |
 
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#4BC88A](https://placehold.co/20x20/4BC88A/4BC88A.svg) | Green | `#4BC88A` |
+| Representative color 2 | ![#9DE4BE](https://placehold.co/20x20/9DE4BE/9DE4BE.svg) | Green | `#9DE4BE` |
+| Representative color 3 | ![#6AB5AB](https://placehold.co/20x20/6AB5AB/6AB5AB.svg) | Teal | `#6AB5AB` |
+| Representative color 4 | ![#98A2AF](https://placehold.co/20x20/98A2AF/98A2AF.svg) | Blue | `#98A2AF` |
+| Representative color 5 | ![#F4C77F](https://placehold.co/20x20/F4C77F/F4C77F.svg) | Orange | `#F4C77F` |
+| Representative color 6 | ![#BCB0E0](https://placehold.co/20x20/BCB0E0/BCB0E0.svg) | Purple | `#BCB0E0` |
+| Representative color 7 | ![#9881BC](https://placehold.co/20x20/9881BC/9881BC.svg) | Purple | `#9881BC` |
+
 ### Plotting Code
 
 Bar values reproduce the rounded annotations in the original figure; visual styling is reconstructed.
@@ -309,6 +323,16 @@ plt.show()
 |---|---|
 | Preview Image | [fig8_equal_budget_cluster_rebalancing.png](result_figures/fig8_equal_budget_cluster_rebalancing.png) |
 | Source | Figure 8, PDF page 16 of the [paper](https://arxiv.org/abs/2609.20423v1) |
+
+### Color Palette
+
+Representative colors sampled from the original image; HEX values are approximate.
+
+| Role | Swatch | Color | Hex |
+|---|---|---|---|
+| Representative color 1 | ![#2E7D5B](https://placehold.co/20x20/2E7D5B/2E7D5B.svg) | Green | `#2E7D5B` |
+| Representative color 2 | ![#797E86](https://placehold.co/20x20/797E86/797E86.svg) | Blue | `#797E86` |
+| Representative color 3 | ![#B9BDC3](https://placehold.co/20x20/B9BDC3/B9BDC3.svg) | Blue | `#B9BDC3` |
 
 ### Plotting Code
 

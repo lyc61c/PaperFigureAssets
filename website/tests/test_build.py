@@ -159,10 +159,38 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(method["sourceLabel"], "Figure 2")
         self.assertEqual(method["page"], 3)
         self.assertEqual(method["palette"], [{"role": "Main path", "color": "Teal", "hex": "#0F766E"}])
+        self.assertEqual(method["paletteSource"], "readme")
         self.assertEqual(len(method["downloads"]), 1)
         self.assertTrue(catalog["assets"][1]["approximate"])
         self.assertFalse(method["approximate"])
         self.assertIn("visually checked", catalog["assets"][2]["validation"])
+
+    def test_sampled_palette_has_provenance_without_claiming_estimated_data(self):
+        palette = "\n### Color Palette\n\n" + builder.SAMPLED_PALETTE_NOTE + "\n\n| Role | Swatch | Color | Hex |\n|---|---|---|---|\n| Representative color 1 | square | Blue | `#237ABC` |\n"
+        self.replace_paper("Note: This is an approximate visual reconstruction.", "Values transcribed from published annotations.")
+        self.replace_paper("### Plotting Code", palette + "\n### Plotting Code")
+        catalog, _ = builder.make_catalog(self.root)
+        result = next(asset for asset in catalog["assets"] if asset["type"] == "result")
+        self.assertEqual(result["paletteSource"], "image-sample")
+        self.assertEqual(result["palette"][0]["hex"], "#237ABC")
+        self.assertFalse(result["approximate"])
+        self.replace_paper("Values transcribed from published annotations.", "Values are estimated.")
+        catalog, _ = builder.make_catalog(self.root)
+        self.assertTrue(next(asset for asset in catalog["assets"] if asset["type"] == "result")["approximate"])
+
+    def test_real_approximation_note_inside_palette_section_is_preserved(self):
+        self.replace_paper("Note: This is an approximate visual reconstruction.", "")
+        palette = "### Color Palette\n\n" + builder.SAMPLED_PALETTE_NOTE + "\n\nData values in the reconstruction were estimated from the chart.\n\n"
+        self.replace_paper("### Plotting Code", palette + "### Plotting Code")
+        catalog, _ = builder.make_catalog(self.root)
+        self.assertTrue(next(asset for asset in catalog["assets"] if asset["type"] == "result")["approximate"])
+
+    def test_tables_never_publish_palette_metadata(self):
+        self.replace_paper("### LaTeX Source", "### Color Palette\n| Role | Swatch | Color | Hex |\n|---|---|---|---|\n| Header | square | Blue | `#237ABC` |\n\n### LaTeX Source")
+        catalog, _ = builder.make_catalog(self.root)
+        table = next(asset for asset in catalog["assets"] if asset["type"] == "table")
+        self.assertEqual(table["palette"], [])
+        self.assertEqual(table["paletteSource"], "")
 
     def test_examples_are_inert_text_and_packages_are_separate(self):
         catalog, _ = builder.make_catalog(self.root)
