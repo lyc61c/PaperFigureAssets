@@ -110,11 +110,12 @@ main { max-width:1480px; margin:0 auto; padding:0 44px; }
 .collection-tools { position:sticky; top:calc(var(--header-height) + 10px); z-index:20; padding:16px; margin-top:0; background:rgba(255,255,255,.9); border:1px solid var(--glass-border); border-radius:var(--radius-card); box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.8); -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); transition:background-color .18s ease,box-shadow .18s ease; }
 /* Only the glass becomes translucent; text and icons retain their full opacity.
    :where keeps the later solid/reduced-transparency fallbacks authoritative. */
-.collection-tools:where(.is-stuck) { --muted:var(--ink); --tools-control:rgba(255,255,255,.35); --tools-active:rgba(229,239,251,.72); background:rgba(255,255,255,.62); box-shadow:0 6px 22px rgba(54,83,138,.035),inset 0 1px 0 rgba(255,255,255,.55); -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
-.collection-tools:where(.is-stuck:focus-within) { --tools-control:#fff; --tools-active:var(--green-soft); background:rgba(255,255,255,.96); box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.8); }
+.collection-tools:where(.is-stuck) { --muted:var(--ink); --tools-control:rgba(255,255,255,.5); --tools-label:rgba(255,255,255,.5); --tools-active:rgba(229,239,251,.72); background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.28); box-shadow:none; -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
 @media (hover:hover) and (pointer:fine) {
-  .collection-tools:where(.is-stuck:hover) { --tools-control:#fff; --tools-active:var(--green-soft); background:rgba(255,255,255,.96); box-shadow:var(--shadow-soft),inset 0 1px 0 rgba(255,255,255,.8); }
+  .collection-tools:where(.is-stuck:hover) { --tools-control:rgba(255,255,255,.7); --tools-label:rgba(255,255,255,.7); background:rgba(255,255,255,.4); }
 }
+/* Focus wins over hover; only an actively used tray restores the clear panel. */
+.collection-tools:where(.is-stuck:focus-within) { --tools-control:#fff; --tools-label:#fff; --tools-active:var(--green-soft); background:rgba(255,255,255,.96); border-color:var(--glass-border); }
 .search-row { display:flex; align-items:center; gap:12px; }
 .search-field { display:flex; align-items:center; gap:11px; border:1px solid var(--input-line); border-radius:var(--radius-control); padding:13px 15px; background:var(--tools-control,#fff); min-width:0; flex:1; min-height:50px; color:var(--muted); box-shadow:inset 0 1px 2px rgba(63,89,136,.025); transition:background-color .18s ease; }
 .search-field:focus-within { border-color:var(--green); box-shadow:0 0 0 3px rgba(22,76,118,.12); }
@@ -131,12 +132,13 @@ input::placeholder { color:var(--muted); opacity:1; }
 .filter-row { display:flex; align-items:center; justify-content:space-between; gap:15px; margin-top:12px; }
 .filter-selects { display:flex; align-items:center; flex-wrap:wrap; gap:5px; min-width:0; }
 .select-field { min-width:0; }
-.select-field select { cursor:pointer; max-width:200px; min-height:36px; border:1px solid transparent; border-radius:8px; padding:6px 26px 6px 8px; color:var(--muted); font-size:13px; background:transparent; text-overflow:ellipsis; }
+.select-field select { cursor:pointer; max-width:200px; min-height:36px; border:1px solid transparent; border-radius:8px; padding:6px 26px 6px 8px; color:var(--muted); font-size:13px; background:var(--tools-label,transparent); text-overflow:ellipsis; }
 .select-field select:hover { background:#edf3fd; border-color:var(--line); }
 .year-field select { max-width:120px; }
 .source-filter { display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer; min-height:36px; margin-left:7px; }
 .source-filter input { width:15px; height:15px; margin:0; accent-color:var(--green); }
 .clear-filters { font-size:12px; color:var(--muted); padding:6px 5px; }
+.source-filter,.clear-filters { background:var(--tools-label,transparent); border-radius:8px; }
 .density-control { display:flex; border:1px solid var(--line); border-radius:var(--radius-control); padding:3px; gap:2px; background:var(--tools-control,#fff); flex:none; }
 .density-button { display:flex; align-items:center; gap:7px; padding:6px 9px; font-size:12px; color:var(--muted); border-radius:8px; min-height:30px; }
 .density-button svg { width:15px; height:15px; }
@@ -503,14 +505,14 @@ body:has(dialog[open]),body.menu-open { overflow:hidden; }
 /* A solid alternative keeps the interface readable without backdrop support. */
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
   .site-header,.hero,.collection-tools,.asset-card,.paper-row,.guide-card,.workflow-callout,.workflow-note,.guide-footnote,.asset-dialog,.dialog-detail { background:#fafdff; }
-  .collection-tools { --tools-control:#fff; --tools-active:var(--green-soft); }
+  .collection-tools { --tools-control:#fff; --tools-label:#fff; --tools-active:var(--green-soft); }
   .site-nav.open { background:#fafdff; }
   .asset-dialog::backdrop { background:rgba(26,49,87,.45); }
 }
 @media (prefers-reduced-transparency:reduce) {
   body { background-image:none; }
   .site-header,.hero,.collection-tools,.asset-card,.paper-row,.guide-card,.workflow-callout,.workflow-note,.guide-footnote,.asset-dialog,.dialog-detail { background:#fff; -webkit-backdrop-filter:none; backdrop-filter:none; }
-  .collection-tools { --tools-control:#fff; --tools-active:var(--green-soft); }
+  .collection-tools { --tools-control:#fff; --tools-label:#fff; --tools-active:var(--green-soft); }
   .site-nav.open { background:#fff; }
   .asset-dialog::backdrop { background:rgba(26,49,87,.45); -webkit-backdrop-filter:none; backdrop-filter:none; }
 }

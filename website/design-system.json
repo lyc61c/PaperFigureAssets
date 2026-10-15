@@ -32,9 +32,12 @@
     "stickyWhiteOpacity": 0.9,
     "searchGlass": {
       "restingWhiteOpacity": 0.9,
-      "stuckWhiteOpacity": 0.62,
+      "stuckWhiteOpacity": 0.18,
+      "stuckControlWhiteOpacity": 0.5,
+      "stuckBackdropBlurPx": 3,
+      "hoverWhiteOpacity": 0.4,
       "interactiveWhiteOpacity": 0.96,
-      "behavior": "Only an actually stuck desktop search/filter tray becomes more translucent; hover or keyboard/input focus restores a clearer surface. Text and icons stay fully opaque, with darker labels over the lighter glass. Mobile remains non-sticky; reduced transparency or missing backdrop-filter uses solid surfaces."
+      "behavior": "The stuck desktop tray uses a nearly transparent, shadowless background with minimal blur. Small local control/label surfaces preserve legibility without whitening the whole panel. Hover only gently strengthens the glass; actual input or keyboard focus restores the clear surface and takes priority over hover. Text and icons stay fully opaque. Mobile remains non-sticky; reduced transparency or missing backdrop-filter uses solid surfaces."
     },
     "controlBoundary": "#7387a5",
     "scientificImages": "Pure white opaque image surfaces with no image opacity, recoloring, blur or cropping.",

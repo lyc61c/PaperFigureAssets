@@ -144,7 +144,8 @@ test('default brand is ReFigure 图续 without changing legacy config and font p
   assert.match(html, /git clone https:\/\/github\.com\/lyc61c\/PaperFigureAssets\.git ReFigure/);
   assert.match(html, /value="My ReFigure"/);
   assert.doesNotMatch(html, /Figarium|图圃/);
-  for (const asset of ['styles.css', 'app.js']) assert.ok(html.includes(asset + '?v=20261015-search-glass'));
+  assert.ok(html.includes('styles.css?v=20261015-search-airy'));
+  assert.ok(html.includes('app.js?v=20261015-search-glass'));
   assert.ok(html.includes('catalog.js?v=20261015-refigure'));
   assert.match(source, /重建 ReFigure 网页/);
   assert.match(source, /window\.FIGARIUM_CATALOG/);
@@ -619,22 +620,48 @@ test('glass controls keep readable text over dark figures and provide a solid fa
   const stuck = css.match(/\.collection-tools:where\(\.is-stuck\)\s*\{([^}]+)\}/)[1];
   const ink = css.match(/--ink:(#[0-9a-f]{6})/i)[1];
   const glassAlpha = Number(stuck.match(/background:rgba\(255,255,255,([\d.]+)\)/)[1]);
-  assert.ok(glassAlpha < .9 && glassAlpha > 0, 'Pinned background should reveal more of the figure');
-  assert.ok(contrast(rgb(ink), [255 * glassAlpha, 255 * glassAlpha, 255 * glassAlpha]) >= 4.5, 'Pinned text remains readable even over black pixels');
+  assert.equal(glassAlpha, .18, 'The broad pinned panel should be mostly transparent');
+  assert.match(stuck, /(?:^|;)\s*box-shadow:none(?:;|$)/);
+  assert.match(stuck, /(?:^|;)\s*backdrop-filter:blur\(3px\)/);
+  assert.match(stuck, /-webkit-backdrop-filter:blur\(3px\)/);
+  assert.match(stuck, /border-color:rgba\(255,255,255,\.28\)/);
+  // Text lives on compact control/label backplates rather than an opaque panel.
+  // Composite their white paint over the panel's white paint and black figures.
+  for (const token of ['tools-control', 'tools-label']) {
+    const alpha = Number(stuck.match(new RegExp('--' + token + ':rgba\\(255,255,255,([\\d.]+)\\)'))[1]);
+    assert.equal(alpha, .5);
+    const compositeAlpha = glassAlpha + alpha * (1 - glassAlpha);
+    assert.ok(contrast(rgb(ink), [255 * compositeAlpha, 255 * compositeAlpha, 255 * compositeAlpha]) >= 4.5, `${token} text remains readable even over black pixels`);
+  }
   assert.match(stuck, /--muted:var\(--ink\)/);
   assert.doesNotMatch(stuck, /(?:^|;)\s*opacity\s*:/, 'Never fade text, icons or focus indicators as a group');
-  for (const state of ['focus-within', 'hover']) {
-    const active = css.match(new RegExp('\\.collection-tools:where\\(\\.is-stuck:' + state + '\\)\\s*\\{([^}]+)\\}'))[1];
-    assert.match(active, /background:rgba\(255,255,255,\.96\)/);
-    assert.match(active, /--tools-control:#fff/);
+  for (const selector of ['search-field', 'type-filter', 'export-saved', 'density-control']) {
+    const rule = css.match(new RegExp('\\.' + selector + '\\s*\\{([^}]+)\\}'))[1];
+    assert.match(rule, /background:var\(--tools-control,#fff\)/, selector);
   }
+  for (const selector of ['select-field select', 'source-filter', 'clear-filters']) {
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    assert.ok(rules.some(([, selectors, body]) => selectors.split(',').some((value) => value.trim() === '.' + selector)
+      && /background:var\(--tools-label,transparent\)/.test(body)), `${selector} needs its own readable text backplate`);
+  }
+  const hovered = css.match(/\.collection-tools:where\(\.is-stuck:hover\)\s*\{([^}]+)\}/)[1];
+  assert.match(hovered, /background:rgba\(255,255,255,\.4\)/);
+  for (const token of ['tools-control', 'tools-label']) assert.match(hovered, new RegExp('--' + token + ':rgba\\(255,255,255,\\.7\\)'));
+  assert.doesNotMatch(hovered, /background:rgba\(255,255,255,\.96\)/, 'Incidental hover should not restore a large opaque panel');
+  const focused = css.match(/\.collection-tools:where\(\.is-stuck:focus-within\)\s*\{([^}]+)\}/)[1];
+  assert.match(focused, /background:rgba\(255,255,255,\.96\)/);
+  for (const token of ['tools-control', 'tools-label']) assert.match(focused, new RegExp('--' + token + ':#fff'));
+  assert.ok(css.indexOf('.collection-tools:where(.is-stuck:focus-within)') > css.indexOf('.collection-tools:where(.is-stuck:hover)'), 'Keyboard/input focus must override hover for full readability');
   const glassIndex = css.indexOf('.collection-tools:where(.is-stuck)');
   const fallbackIndex = css.indexOf('@supports not ((backdrop-filter:');
   const reducedIndex = css.indexOf('@media (prefers-reduced-transparency:reduce)');
   assert.ok(fallbackIndex > glassIndex && reducedIndex > glassIndex, 'Equal-specificity solid fallbacks must win after pinned styles');
   assert.match(css.slice(fallbackIndex, reducedIndex), /\.collection-tools[^{}]*\{[^}]*background:#fafdff/);
   assert.match(css.slice(reducedIndex), /\.collection-tools[^{}]*\{[^}]*background:#fff/);
-  assert.match(css.slice(reducedIndex), /\.collection-tools\s*\{[^}]*--tools-control:#fff/);
+  for (const block of [css.slice(fallbackIndex, reducedIndex), css.slice(reducedIndex)]) {
+    assert.match(block, /\.collection-tools\s*\{[^}]*--tools-control:#fff/);
+    assert.match(block, /\.collection-tools\s*\{[^}]*--tools-label:#fff/);
+  }
   for (const token of ['action-gradient', 'action-hover']) {
     const gradient = css.match(new RegExp('--' + token + ':([^;]+)'))[1];
     for (const color of gradient.match(/#[0-9a-f]{6}/gi)) {
