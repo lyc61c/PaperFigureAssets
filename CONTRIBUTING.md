@@ -1,6 +1,6 @@
 # Contributing
 
-Figarium · 图圃 (in the compatible `PaperFigureAssets` repository) is a human-curated, reproducible paper-figure library with a static gallery. Keep contributions simple, reproducible, and license-aware.
+ReFigure · 图续 (in the compatible `PaperFigureAssets` repository) is a human-curated, reproducible paper-figure library with a static gallery. Keep contributions simple, reproducible, and license-aware.
 
 ## Guidelines
 

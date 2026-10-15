@@ -1,4 +1,4 @@
-/* Figarium: a static, local-first viewer. Source snippets are text, never executed. */
+/* ReFigure: a static, local-first viewer. Source snippets are text, never executed. */
 (() => {
   'use strict';
   const $ = (id) => document.getElementById(id);
@@ -47,6 +47,7 @@
   const typeNames = {method: '方法框架', result: '结果分析', table: '论文表格'};
   const typeLabels = {method: '方法框架', result: '结果分析', table: '论文表格'};
   const state = {view: 'explore', type: 'all', query: '', year: 'all', paperId: null, sourceOnly: false, sort: 'curated', density: 'comfortable', limit: 18};
+  // Preserve the legacy key so existing browser-local collections survive the rename.
   const storageKey = 'figarium:saved:v1:' + encodeURIComponent(catalog.site.repositoryUrl);
   let saved;
   try { saved = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]').filter((id) => assetsById.has(id))); }
@@ -421,7 +422,7 @@
     document.querySelectorAll('.guide-doc-link').forEach((el) => { el.href = 'guides/GETTING_STARTED.md'; });
     document.querySelectorAll('.customize-doc-link').forEach((el) => { el.href = 'guides/CUSTOMIZATION.md'; });
     $('fork-link').href = repository + '/fork';
-    $('clone-code').textContent = 'git clone ' + repository + '.git Figarium';
+    $('clone-code').textContent = 'git clone ' + repository + '.git ReFigure';
     $('install-prompt').textContent = '$skill-installer 请从 ' + repository + ' 的 paper-asset-builder 目录安装 skill。';
     $('stat-papers').textContent = catalog.stats.paperCount; $('stat-assets').textContent = catalog.stats.assetCount;
     $('stat-pptx').textContent = catalog.stats.pptxCount ?? assets.filter(hasLocalPptx).length;
@@ -490,16 +491,17 @@
       : '补充可编辑重建源码。';
     copy('$paper-asset-builder 请为 ' + papers.get(activeAsset.paperId).title + ' 的 ' + activeAsset.title + ' ' + deliverable + '先读取已有条目 ' + activeAsset.readmeUrl + '，仅处理这一张；说明估读、简化或不可重建部分，不虚构原始数据。');
   });
-  $('export-saved').addEventListener('click', () => download(JSON.stringify({library: catalog.site.name, note: 'Browser-local bookmarks; original image rights remain with their authors.', assets: assets.filter((a) => saved.has(a.id)).map((a) => ({id: a.id, title: a.title, paper: papers.get(a.paperId).title, paperUrl: a.paperUrl, readmeUrl: a.readmeUrl}))}, null, 2), 'figarium-inspiration.json', 'application/json'));
+  $('export-saved').addEventListener('click', () => download(JSON.stringify({library: catalog.site.name, note: 'Browser-local bookmarks; original image rights remain with their authors.', assets: assets.filter((a) => saved.has(a.id)).map((a) => ({id: a.id, title: a.title, paper: papers.get(a.paperId).title, paperUrl: a.paperUrl, readmeUrl: a.readmeUrl}))}, null, 2), 'refigure-inspiration.json', 'application/json'));
   $('make-prompt').addEventListener('click', () => {
     const paper = $('paper-input').value.trim();
     if (!paper) { toast('先写下论文名称、链接或本地 PDF 路径。'); $('paper-input').focus(); return; }
-    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实的本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。方法图默认只提供对应 PPTX，不添加 Editable Diagram Code 或 SVG/TikZ 代码；网页每张方法图只显示一个对应 PPTX 下载入口。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 Figarium 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
+    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实的本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。方法图默认只提供对应 PPTX，不添加 Editable Diagram Code 或 SVG/TikZ 代码；网页每张方法图只显示一个对应 PPTX 下载入口。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 ReFigure 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
     $('generated-prompt').hidden = false;
   });
   $('download-config').addEventListener('click', () => {
     const name = $('library-name').value.trim(); if (!name) { $('library-name').focus(); return; }
     const config = {...catalog.site, name}; delete config.stats;
+    // The builder still accepts the established configuration filename.
     download(JSON.stringify(config, null, 2) + '\n', 'figarium.config.json', 'application/json');
     toast('把配置放到 website/figarium.config.json 后重新构建。');
   });

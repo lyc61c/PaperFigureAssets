@@ -1,4 +1,4 @@
-"""Offline tests for Figarium's README-to-catalog boundary."""
+"""Offline tests for ReFigure's README-to-catalog boundary."""
 
 import importlib.util
 import json
@@ -493,11 +493,17 @@ class CatalogTests(unittest.TestCase):
         self.assertTrue(protected.is_file())
         self.assertTrue(stale.is_symlink())
 
+    def test_refigure_defaults_preserve_existing_export_ownership(self):
+        catalog, _ = builder.make_catalog(self.root)
+        self.assertEqual((catalog["site"]["name"], catalog["site"]["chineseName"]), ("ReFigure", "图续"))
+        self.assertEqual(builder.GENERATED_MANIFEST, ".figarium-generated.json")
+        self.assertEqual(builder.MANIFEST_SCHEMA, "figarium-generated-files")
+
     def test_custom_branding_without_code_change(self):
-        config = {"name": "My Figure Garden", "chineseName": "我的图圃", "tagline": "My recipes", "description": "My library", "repositoryUrl": "https://github.com/example/library", "featuredPaperIds": ["approved", "unindexed"]}
+        config = {"name": "My Figure Collection", "chineseName": "我的图库", "tagline": "My recipes", "description": "My library", "repositoryUrl": "https://github.com/example/library", "featuredPaperIds": ["approved", "unindexed"]}
         (self.root / "website" / "figarium.config.json").write_text(json.dumps(config), encoding="utf-8")
         catalog, _ = builder.make_catalog(self.root)
-        self.assertEqual(catalog["site"]["name"], "My Figure Garden")
+        self.assertEqual(catalog["site"]["name"], "My Figure Collection")
         self.assertEqual(catalog["site"]["featuredPaperIds"], ["approved"])
         self.assertEqual(catalog["papers"][0]["readmeUrl"], "https://github.com/example/library/blob/main/papers/approved/README.md")
 

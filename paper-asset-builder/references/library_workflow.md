@@ -1,10 +1,10 @@
-# Personal Figarium Library Workflow
+# Personal ReFigure Library Workflow
 
 Read this reference when helping a new user install the skill, create a personal paper-figure library, or connect existing entries to the static gallery. Routine single-paper updates can follow `SKILL.md` directly.
 
 ## Product boundaries
 
-Figarium · 图圃 (Figure + Herbarium) has three separate layers:
+ReFigure · 图续 has three separate layers:
 
 - The local agent uses `paper-asset-builder` to inspect PDFs, extract/classify assets, pause for human review, then automatically run its built-in method-PPT subprocess and other reconstructions after confirmation.
 - `papers/<paper_id>/README.md`, approved images, and delivered PPTX files form the library. Python, method reconstruction source, optional SVG/TikZ, and table LaTeX can live in README blocks; reconstruction scope, editability, verification status, and original provenance travel with each asset.

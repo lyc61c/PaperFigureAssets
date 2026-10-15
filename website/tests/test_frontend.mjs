@@ -132,6 +132,27 @@ test('homepage has no featured-figure module or its former initializer', () => {
   assert.doesNotMatch(source, /hero-feature|renderFeatured/);
 });
 
+test('default brand is ReFigure 图续 without changing legacy config and font paths', () => {
+  const html = fs.readFileSync(path.join(website, 'index.html'), 'utf8');
+  const config = JSON.parse(fs.readFileSync(path.join(website, 'figarium.config.json'), 'utf8'));
+  const css = fs.readFileSync(path.join(website, 'styles.css'), 'utf8');
+  assert.equal(config.name, 'ReFigure');
+  assert.equal(config.chineseName, '图续');
+  assert.equal(config.tagline, 'Curate the figure. Keep the recipe.');
+  assert.match(html, /<title>ReFigure · 图续 — Curate the figure\. Keep the recipe\.<\/title>/);
+  assert.match(html, /aria-label="ReFigure 图续 首页"/);
+  assert.match(html, /git clone https:\/\/github\.com\/lyc61c\/PaperFigureAssets\.git ReFigure/);
+  assert.match(html, /value="My ReFigure"/);
+  assert.doesNotMatch(html, /Figarium|图圃/);
+  for (const asset of ['styles.css', 'catalog.js', 'app.js']) {
+    assert.ok(html.includes(asset + '?v=20261015-refigure'));
+  }
+  assert.match(source, /重建 ReFigure 网页/);
+  assert.match(source, /window\.FIGARIUM_CATALOG/);
+  assert.match(source, /'figarium\.config\.json'/);
+  assert.match(css, /font-family:"Figarium Sans"; src:url\("fonts\/manrope-latin\.woff2"\)/);
+});
+
 test('method dialog presents the corresponding PPTX without asking for diagram code', () => {
   const heading = {textContent: ''}, description = {textContent: ''};
   const nodes = new Map(['code-toolbar', 'source-code', 'source-bottom', 'copy-rebuild-prompt', 'tab-code'].map((id) => [id, {hidden: false}]));
@@ -581,13 +602,13 @@ test('the three category modules are unique buttons with their own unique counte
 // through FIGARIUM_DOM_MODULE_PATH; the repository has no npm dependency and
 // this test never installs packages, opens a browser, loads media or makes HTTP.
 // Missing layout/focus/modal APIs are deliberately simulated, not browser QA.
-function domHarness(catalog) {
+function domHarness(catalog, initialStorage = []) {
   const require = createRequire(import.meta.url);
   const {parseHTML} = require(process.env.FIGARIUM_DOM_MODULE_PATH);
   const {window, document} = parseHTML(fs.readFileSync(path.join(website, 'index.html'), 'utf8'));
   let focused = document.body;
   let width = 1200;
-  const storage = new Map(), clipboard = [], downloads = [], blobs = [];
+  const storage = new Map(initialStorage), clipboard = [], downloads = [], blobs = [];
   Object.defineProperty(document, 'activeElement', {get: () => focused});
   window.HTMLElement.prototype.focus = function () { focused = this; };
   window.HTMLElement.prototype.scrollIntoView = function () {};
@@ -642,6 +663,37 @@ function domHarness(catalog) {
   };
 }
 
+test('optional DOM smoke keeps legacy bookmarks through the ReFigure rename', {
+  skip: !process.env.FIGARIUM_DOM_MODULE_PATH,
+}, async () => {
+  const site = JSON.parse(fs.readFileSync(path.join(website, 'figarium.config.json'), 'utf8'));
+  const catalog = {
+    site,
+    stats: {paperCount: 2, assetCount: 3, sourceCount: 2, pptxCount: 0},
+    papers: [...samplePapers].map(([id, paper]) => ({id, ...paper})),
+    assets: sampleAssets.map((asset) => ({...asset, src: 'assets/papers/' + asset.paperId + '/' + asset.filename, downloads: [], palette: []})),
+  };
+  const oldKey = 'figarium:saved:v1:' + encodeURIComponent(site.repositoryUrl);
+  const h = domHarness(catalog, [[oldKey, JSON.stringify(['method', 'table', 'removed-asset'])]]);
+  assert.equal(h.document.title, 'ReFigure · 图续 — Curate the figure. Keep the recipe.');
+  assert.equal(h.find('.brand').getAttribute('aria-label'), 'ReFigure 图续 首页');
+  assert.equal(h.find('.brand-wordmark strong').textContent, 'ReFigure');
+  assert.equal(h.find('.brand-wordmark small').textContent, '图续');
+  assert.match(h.find('footer > span:first-child').textContent, /^ReFigure图续 · Curate the figure/);
+  assert.doesNotMatch(h.document.body.textContent, /Figarium|图圃/);
+  assert.equal(h.find('#nav-saved-count').textContent, '2');
+  h.click('.nav-item[data-view="saved"]');
+  assert.deepEqual(h.cardIds(), ['method', 'table']);
+  h.click('#export-saved');
+  assert.equal(h.downloads.at(-1).filename, 'refigure-inspiration.json');
+  const exported = JSON.parse(await h.blobs.at(-1).text());
+  assert.equal(exported.library, 'ReFigure');
+  assert.deepEqual(exported.assets.map((asset) => asset.id), ['method', 'table']);
+  h.click('[data-save="method"]');
+  assert.deepEqual(JSON.parse(h.storage.get(oldKey)), ['table']);
+  assert.deepEqual([...h.storage.keys()], [oldKey], 'Do not create a new key and strand existing bookmarks');
+});
+
 test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigation and inert recipes', {
   skip: !process.env.FIGARIUM_DOM_MODULE_PATH && 'Set FIGARIUM_DOM_MODULE_PATH to an existing linkedom entry for the optional DOM smoke',
 }, async () => {
@@ -669,7 +721,7 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   });
   papers[0].downloads = [{label: 'Combined PPTX', url: 'assets/papers/older/method_figures/combined.pptx', format: 'pptx', filename: 'combined.pptx', local: true}];
   const catalog = {site: {
-    name: 'My <img src=x onerror=unsafeExecuted=true>', chineseName: '图圃', tagline: 'Keep the recipe.',
+    name: 'My <img src=x onerror=unsafeExecuted=true>', chineseName: '自选图集', tagline: 'Keep the recipe.',
     description: '<script>unsafeExecuted=true</script> personal archive', repositoryUrl: 'https://github.com/example/library', featuredPaperIds: ['older'],
   }, stats: {paperCount: 3, assetCount: 25, sourceCount: 2, pptxCount: 1}, papers, assets};
   const h = domHarness(catalog);
@@ -688,6 +740,12 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.equal(h.find('.asset-card[data-asset-type="method"] .asset-type').textContent, '方法框架');
   assert.equal(h.find('#paper-select').querySelectorAll('option').length, 4);
   assert.equal(h.find('.brand-wordmark strong').textContent, catalog.site.name);
+  assert.equal(h.find('.brand-wordmark small').textContent, catalog.site.chineseName);
+  assert.equal(h.document.title, catalog.site.name + ' · ' + catalog.site.chineseName + ' — ' + catalog.site.tagline);
+  assert.equal(h.find('.brand').getAttribute('aria-label'), catalog.site.name + ' ' + catalog.site.chineseName + ' 首页');
+  assert.equal(h.find('meta[name="description"]').content, catalog.site.description);
+  assert.equal(h.find('footer > span:first-child').textContent, catalog.site.name + catalog.site.chineseName + ' · ' + catalog.site.tagline);
+  assert.equal(h.find('#clone-code').textContent, 'git clone ' + catalog.site.repositoryUrl + '.git ReFigure');
   assert.equal(h.document.querySelector('.brand-wordmark img'), null);
   assert.equal(h.document.querySelector('.hero-description script'), null);
   assert.equal(h.find('.guide-doc-link').getAttribute('href'), 'guides/GETTING_STARTED.md');

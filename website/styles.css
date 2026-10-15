@@ -1,4 +1,5 @@
-/* Figarium — soft blue glass around a clear, editable research collection. */
+/* ReFigure — soft blue glass around a clear, editable research collection.
+   Legacy font-family aliases stay unchanged to preserve the existing typography. */
 @font-face { font-family:"Figarium Sans"; src:url("fonts/manrope-latin.woff2") format("woff2"); font-style:normal; font-weight:200 800; font-display:swap; }
 :root {
   --paper:#f3f7ff; --surface:#fff; --ink:#152d50; --muted:#4e627e;

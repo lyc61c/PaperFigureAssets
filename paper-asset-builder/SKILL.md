@@ -1,11 +1,11 @@
 ---
 name: paper-asset-builder
-description: Build a personal Figarium paper-figure library from a paper title, URL/PDF, or material directory. Extract and classify whole-paper figures and tables, pause for human selection, then reconstruct Method Figures as visually faithful editable PowerPoint decks, generate README source, and update the index and gallery.
+description: Build a personal ReFigure paper-figure library from a paper title, URL/PDF, or material directory. Extract and classify whole-paper figures and tables, pause for human selection, then reconstruct Method Figures as visually faithful editable PowerPoint decks, generate README source, and update the index and gallery.
 ---
 
-# Figarium · Paper Asset Builder
+# ReFigure · 图续 — Paper Asset Builder
 
-Build a library the user can curate and reproduce, not merely a screenshot collection. Figarium (Figure + Herbarium, 图圃) is the project brand; keep the compatible invocation name `paper-asset-builder`. Do not rename the user's checkout, GitHub repository, or remote as part of using this skill.
+Build a library the user can curate and reproduce, not merely a screenshot collection. ReFigure · 图续 is the project brand: human-selected paper figures become editable, reusable resources for further creation. Keep the compatible invocation name `paper-asset-builder`. Do not rename the user's checkout, GitHub repository, or remote as part of using this skill.
 
 Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory and extract all numbered figures and tables throughout the PDF, including appendices, by default. Report the actual local directory and stop for human selection. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
 
@@ -37,7 +37,7 @@ Accepted parameters:
 ```text
 material_dir=...      Optional. Use existing images here; otherwise prepare this directory from the paper.
 paper=...             Required unless discoverable. Paper title, arXiv/publisher URL, or local PDF path.
-repo_root=...         Optional. Target Figarium/PaperFigureAssets repository root; discover it from the workspace when omitted.
+repo_root=...         Optional. Target ReFigure/PaperFigureAssets repository root; discover it from the workspace when omitted.
 paper_id=...          Optional. Output folder name under papers/.
 extract_assets=...    Optional. auto (default), true (inspect/extract from the paper), or false (use supplied images only).
 selection=...         Optional. all (default: every numbered figure/table, including appendices) or curated (agent-selected subset).

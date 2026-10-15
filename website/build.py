@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build Figarium from PAPER_INDEX.md and canonical paper READMEs.
+"""Build ReFigure from PAPER_INDEX.md and canonical paper READMEs.
 
 Python standard library only. Fenced examples are copied as inert text, never
 executed. Unindexed folders, PDFs, materials, and temporary QA files are not
@@ -25,8 +25,8 @@ from urllib.parse import quote, unquote, urlsplit
 
 
 DEFAULT_SITE = {
-    "name": "Figarium",
-    "chineseName": "图圃",
+    "name": "ReFigure",
+    "chineseName": "图续",
     "tagline": "Curate the figure. Keep the recipe.",
     "description": "Human-curated research figures with reusable reconstruction recipes.",
     "repositoryUrl": "https://github.com/lyc61c/PaperFigureAssets",
@@ -40,6 +40,8 @@ IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg"}
 CODE_LANGUAGES = {"python": "python", "py": "python", "latex": "latex", "tex": "latex", "svg": "svg", "tikz": "tikz"}
 NOT_DOCUMENTED = "Not documented in the paper README."
 LINK_RE = re.compile(r"\[([^\]]+)\]\(([^\s)]+)(?:\s+\"[^\"]*\")?\)")
+# Keep the existing manifest identity so previous exports retain ownership and
+# safe stale-file cleanup across the public brand rename.
 GENERATED_MANIFEST = ".figarium-generated.json"
 MANIFEST_SCHEMA = "figarium-generated-files"
 FRONTEND_FILES = ("index.html", "styles.css", "app.js")
@@ -659,7 +661,7 @@ def build(repo_root: Path, out: Path) -> dict:
     }
     output_target(out, GENERATED_MANIFEST).write_text(json.dumps(manifest, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     if stale:
-        print(f"Figarium removed {len(stale)} unchanged stale generated image/guide/PPTX/font file(s); unknown files were preserved.")
+        print(f"ReFigure removed {len(stale)} unchanged stale generated image/guide/PPTX/font file(s); unknown files were preserved.")
     return catalog
 
 
@@ -672,10 +674,10 @@ def main(argv: list[str] | None = None) -> int:
     try:
         catalog = build(arguments.repo_root, out)
     except (BuildError, OSError, json.JSONDecodeError) as error:
-        print(f"Figarium build failed: {error}", file=sys.stderr)
+        print(f"ReFigure build failed: {error}", file=sys.stderr)
         return 1
     stats = catalog["stats"]
-    print(f"Figarium: {stats['paperCount']} papers, {stats['assetCount']} figures, {stats['sourceCount']} with reconstruction source -> {out.resolve()}")
+    print(f"ReFigure: {stats['paperCount']} papers, {stats['assetCount']} figures, {stats['sourceCount']} with reconstruction source -> {out.resolve()}")
     return 0
 
 

@@ -1,13 +1,14 @@
-# Self-hosted Figarium typography
+# Self-hosted ReFigure typography
 
 These WOFF2 files were downloaded from the official Google Fonts service on
-2026-10-14 and are served from the same site as the gallery. Browsing Figarium
+2026-10-14 and are served from the same site as the gallery. Browsing ReFigure
 does not request fonts from Google or another third-party font CDN.
 
 The binaries are **unmodified Google Fonts webfont payloads**, including the
 service-generated Latin and headline-only subsets. Internal font family names
 remain the upstream names. `Figarium Sans`, `Figarium Serif`, and
-`Figarium Editorial SC` are CSS family aliases, not modified font releases.
+`Figarium Editorial SC` are legacy CSS family aliases, not modified font releases.
+The ReFigure rename preserves these aliases and font filenames for compatibility.
 
 | Local file | Upstream family | Style / weight | Size | Included characters |
 |---|---|---|---:|---|

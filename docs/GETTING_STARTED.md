@@ -1,6 +1,6 @@
-# 从一篇论文开始，种下你的图圃
+# 从一篇论文开始，让好图延续
 
-Figarium · 图圃不是一份固定图单，而是一套可以 Fork、定制和复现的个人论文图收藏工作流。名字来自 Figure + Herbarium：像整理标本一样，为每张论文图保存来源、人工选择和可编辑的重建方式。
+ReFigure · 图续不是一份固定图单，而是一套可以 Fork、定制和复现的个人论文图收藏工作流。为选中的论文图保存来源、配色和可编辑的重建资源，让它们在你的下一次创作中继续发挥作用。
 
 你负责审美和取舍，skill 负责繁琐整理；网页负责让收藏容易浏览和使用。
 
@@ -22,7 +22,7 @@ git clone https://github.com/YOUR_NAME/PaperFigureAssets.git
 cd PaperFigureAssets
 ```
 
-只想本地体验，也可以直接 clone [原项目](https://github.com/lyc61c/PaperFigureAssets)。Figarium 是产品名称，现有 GitHub 仓库名和 `paper-asset-builder` 调用名保持兼容，不需要为了使用它重命名本地目录。
+只想本地体验，也可以直接 clone [原项目](https://github.com/lyc61c/PaperFigureAssets)。ReFigure 是产品名称，现有 GitHub 仓库名和 `paper-asset-builder` 调用名保持兼容，不需要为了使用它重命名本地目录。
 
 将这个仓库根目录在 Codex 或 Claude Code 中打开。这里的根目录应同时包含 `papers/`、`README.md`、`paper-asset-builder/` 和 `website/`，不是它们的上一级。
 

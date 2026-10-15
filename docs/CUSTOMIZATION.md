@@ -1,15 +1,15 @@
-# 把 Figarium 变成你的个人图库
+# 把 ReFigure 变成你的个人图库
 
-Figarium 的收藏内容与展示层分开维护：`papers/` 中的论文 README 和图片是源资料；`website/build.py` 读取它们，生成可部署的静态站点。网站不需要论文数据库或 agent 后端，也不会执行访客复制的代码。
+ReFigure 的收藏内容与展示层分开维护：`papers/` 中的论文 README 和图片是源资料；`website/build.py` 读取它们，生成可部署的静态站点。网站不需要论文数据库或 agent 后端，也不会执行访客复制的代码。
 
 ## 改自己的名字、介绍和精选论文
 
-编辑仓库中的 `website/figarium.config.json`。例如：
+编辑仓库中的 `website/figarium.config.json`（保留原配置文件名以兼容已有图库）。例如：
 
 ```json
 {
-  "name": "My Figure Garden",
-  "chineseName": "我的图圃",
+  "name": "My ReFigure",
+  "chineseName": "我的图库",
   "tagline": "Good figures, reproducible recipes.",
   "description": "我收藏的方法框架、实验图与表格，保留人工筛选和重建说明。",
   "repositoryUrl": "https://github.com/YOUR_NAME/YOUR_REPOSITORY",
@@ -91,7 +91,7 @@ python website/build.py --repo-root /path/to/my-library --out /path/to/my-static
 3. 本仓库已提供 [Pages workflow](../.github/workflows/pages.yml)，不要再创建重复任务；按自己的分支名称调整其中的 `main`。它会运行构建器测试，从批准的论文索引生成静态图库，然后部署到 Pages。
 4. 提交/推送源码后检查 Actions 日志和 Pages deployment URL。启用 Pages、提交或推送均是你明确选择的发布动作；本地预览成功不等于已经上线。
 
-工作流使用 GitHub 官方 actions，仅部署 job 拥有 Pages 写入和 OIDC 权限。推送 `main` 上的论文、`PAPER_INDEX.md`、主 README、网站源码或指南更新会自动触发；也可以在 **Actions → Publish Figarium → Run workflow** 手动部署。`website/dist/` 是干净构建产物，不提交到源码分支；`website/.openai/` 的本机私有预览绑定也不提交。
+工作流使用 GitHub 官方 actions，仅部署 job 拥有 Pages 写入和 OIDC 权限。推送 `main` 上的论文、`PAPER_INDEX.md`、主 README、网站源码或指南更新会自动触发；也可以在 **Actions → Publish ReFigure → Run workflow** 手动部署。`website/dist/` 是干净构建产物，不提交到源码分支；`website/.openai/` 的本机私有预览绑定也不提交。
 
 权限和部署环境的说明见 [GitHub Pages 自定义 workflow 文档](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)，Python 配置见 [setup-python 文档](https://github.com/actions/setup-python)。
 
@@ -111,4 +111,4 @@ python website/build.py --repo-root /path/to/my-library --out /path/to/my-static
 - 在线 LaTeX 测试仅在得到针对服务和内容的授权后上传最小源码；私有论文优先本地/自托管。
 - 发布前查看实际 `website/dist/` 文件清单，确保没有 PDF、绝对私有路径、token、临时日志或未授权第三方素材。
 
-这样你获得的是一座真正属于自己的图圃：原始图片用于参照，重建方式可以编辑，收藏选择可以追溯，网站也可以独立迁移。
+这样你获得的是一个真正属于自己的图库：原始图片用于参照，重建方式可以编辑，收藏选择可以追溯，网站也可以独立迁移。

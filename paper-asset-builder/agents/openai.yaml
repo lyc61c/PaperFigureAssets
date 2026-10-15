@@ -1,4 +1,4 @@
 interface:
-  display_name: "Figarium · 图圃"
+  display_name: "ReFigure · 图续"
   short_description: "Curate paper figures and reconstruct editable PowerPoint diagrams"
   default_prompt: "Use $paper-asset-builder to extract this paper's figures, pause for my local selection, then reconstruct the Method Figures as editable PPTX and update my library."
