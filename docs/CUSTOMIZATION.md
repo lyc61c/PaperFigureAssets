@@ -33,6 +33,8 @@ Fork 后先改 `repositoryUrl`，否则网站的源码链接仍会指向原仓�
 
 新增论文用 [入门指南](GETTING_STARTED.md) 的 skill 流程。默认全文提取，人工筛选后才生成条目。你决定收藏哪些图；这个选择比网站的配色更重要。
 
+仓库根目录的 `PAPER_INDEX.md` 是已批准论文的收录清单，网页只构建其中的条目，不自动扫描公开整个 `papers/`。主 README 保持简洁；索引更新写入独立文件的标记区域。构建器仅在独立索引不存在时兼容旧版主 README 索引，索引有误时会停止，不会退回旧清单。
+
 修改已有论文时，让 agent 使用当前本地材料目录或已有 paper entry，明确说明要更新图片、数据还是 metadata。删除已发布条目中的图需要同步该条目已知的旧文件、README 与索引；不要通过删除整个仓库或整个 `papers/` 来重置。已有用户文件应保留。
 
 源码在论文 README 中：方法图可记录可复现的 PPT 生成代码或辅助 SVG/TikZ，数值实验图有 Python，表格有 LaTeX。网站导出的代码下载内容从这些块生成；想改重建代码，应改 README 后重建，避免源文件和下载内容分叉。方法图默认另有逐图同名 `.pptx` 和每篇 `method_figures/method_figures_editable.pptx` 合并版，供用户在 PowerPoint 中编辑；PPT 可下载与 README 有源码是两个独立能力，不能互相冒充。
@@ -89,7 +91,7 @@ python website/build.py --repo-root /path/to/my-library --out /path/to/my-static
 3. 本仓库已提供 [Pages workflow](../.github/workflows/pages.yml)，不要再创建重复任务；按自己的分支名称调整其中的 `main`。它会运行构建器测试，从批准的论文索引生成静态图库，然后部署到 Pages。
 4. 提交/推送源码后检查 Actions 日志和 Pages deployment URL。启用 Pages、提交或推送均是你明确选择的发布动作；本地预览成功不等于已经上线。
 
-工作流使用 GitHub 官方 actions，仅部署 job 拥有 Pages 写入和 OIDC 权限。推送 `main` 上的论文、主 README、网站源码或指南更新会自动触发；也可以在 **Actions → Publish Figarium → Run workflow** 手动部署。`website/dist/` 是干净构建产物，不提交到源码分支；`website/.openai/` 的本机私有预览绑定也不提交。
+工作流使用 GitHub 官方 actions，仅部署 job 拥有 Pages 写入和 OIDC 权限。推送 `main` 上的论文、`PAPER_INDEX.md`、主 README、网站源码或指南更新会自动触发；也可以在 **Actions → Publish Figarium → Run workflow** 手动部署。`website/dist/` 是干净构建产物，不提交到源码分支；`website/.openai/` 的本机私有预览绑定也不提交。
 
 权限和部署环境的说明见 [GitHub Pages 自定义 workflow 文档](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)，Python 配置见 [setup-python 文档](https://github.com/actions/setup-python)。
 

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Build Figarium from the approved root Paper Index and canonical paper READMEs.
+"""Build Figarium from PAPER_INDEX.md and canonical paper READMEs.
 
 Python standard library only. Fenced examples are copied as inert text, never
 executed. Unindexed folders, PDFs, materials, and temporary QA files are not
 published. Existing unrelated output files are deliberately left untouched.
+Legacy collections may keep the marked Paper Index in their root README.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import shutil
+import stat
 import sys
 from urllib.parse import quote, unquote, urlsplit
 
@@ -148,18 +150,40 @@ def read_metadata(markdown: str) -> dict[str, str]:
 
 
 def approved_papers(repo_root: Path) -> list[dict[str, str | Path]]:
-    text = (repo_root / "README.md").read_text(encoding="utf-8-sig")
+    repo_root = repo_root.resolve()
+    index_path = repo_root / "PAPER_INDEX.md"
+    # Only an absent standalone index enables legacy compatibility. An invalid
+    # index must never resurrect stale README approvals or scan paper folders.
+    try:
+        index_path.lstat()
+    except FileNotFoundError:
+        index_path = repo_root / "README.md"
+    except OSError as error:
+        raise BuildError("Cannot inspect PAPER_INDEX.md; publication is blocked.") from error
+    try:
+        file_stat = index_path.lstat()
+        if (not stat.S_ISREG(file_stat.st_mode) or index_path.is_symlink()
+                or getattr(index_path, "is_junction", lambda: False)()
+                or not inside(index_path.resolve(), repo_root)):
+            raise BuildError(f"{index_path.name} must be a regular file, not a symlink or junction.")
+        text = index_path.read_text(encoding="utf-8-sig")
+    except (OSError, UnicodeError) as error:
+        raise BuildError(f"Cannot read {index_path.name}; publication is blocked.") from error
     start_marker, end_marker = "<!-- PAPER_INDEX_START -->", "<!-- PAPER_INDEX_END -->"
     if text.count(start_marker) != 1 or text.count(end_marker) != 1:
-        raise BuildError("Root README must contain exactly one marked Paper Index.")
+        raise BuildError(f"{index_path.name} must contain exactly one marked Paper Index.")
     start, end = text.index(start_marker) + len(start_marker), text.index(end_marker)
     if end < start:
         raise BuildError("Paper Index markers are out of order.")
     result, seen = [], set()
     for line in text[start:end].splitlines():
         cells = table_cells(line)
-        if not cells or not (match := LINK_RE.search(cells[0])):
+        if not cells:
             continue
+        if not (match := LINK_RE.search(cells[0])):
+            if cells[0].casefold() == "paper" or all(re.fullmatch(r":?-+:?", cell) for cell in cells):
+                continue
+            raise BuildError("Paper Index data rows must link to a paper README.")
         reference = match.group(2)
         path = local_reference(repo_root, reference, repo_root)
         relative = path.relative_to(repo_root)

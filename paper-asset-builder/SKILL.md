@@ -43,7 +43,7 @@ extract_assets=...    Optional. auto (default), true (inspect/extract from the p
 selection=...         Optional. all (default: every numbered figure/table, including appendices) or curated (agent-selected subset).
 latex_test=...        Optional. auto (default), online, local, or off. Online testing requires authorization to send table source to the selected service.
 method_pptx=...       Optional. on (default) or off. After image approval, reconstruct every Method Figure as editable PPTX; off explicitly skips this deliverable.
-update_index=false    Optional. Skip root README paper index update only when explicitly false.
+update_index=false    Optional. Skip the repository's paper index update only when explicitly false.
 force=true            Optional. Overwrite an existing paper README when intentional.
 ```
 
@@ -140,7 +140,7 @@ Use the template as the visual contract, not as disposable output.
 
 ## Workflow
 
-1. Parse the invocation and locate the target repository root. Use `repo_root=` when provided; otherwise discover a workspace directory containing `papers/`, the root `README.md`, and the `<!-- PAPER_INDEX_START -->` marker. Do not write `papers/` beside the repository merely because the workspace opened one level above it.
+1. Parse the invocation and locate the target repository root. Use `repo_root=` when provided; otherwise discover a workspace directory containing `papers/`, the root `README.md`, and an approved index in `PAPER_INDEX.md` (or the marked root README in legacy libraries). Follow Paper Index Update below to select the index. Do not write `papers/` beside the repository merely because the workspace opened one level above it.
 2. Resolve the paper source from `paper=...` (title, link, or PDF), an attachment, or an existing material directory.
 3. Read the paper to infer title, topic, venue, year, and a stable paper ID; locate or derive `material_dir`.
 4. Inspect existing asset folders and apply Automatic Paper Asset Preparation according to `extract_assets`. Verify that at least one supported image exists after preparation.
@@ -150,7 +150,7 @@ Use the template as the visual contract, not as disposable output.
 8. For each current Method Figure, read and execute `references/method_figure_to_pptx.md` unless `method_pptx=off`. Produce and validate a same-basename PPTX and a per-paper `method_figures_editable.pptx` containing the selected figures. This is an agent-driven reconstruction task, not merely copying an image into a slide. Preserve any user/author-provided PPT and resolve filename collisions safely. Do not label unverified attempts complete.
 9. Generate `README.md` following `templates/canonical_paper_readme.md`. Attribute extracted assets to their original figure/table label and PDF page in the asset tables only when provenance still matches the current images. Link each verified PPTX in its `PPT Source` row; add a `Method Figures PPT` metadata row for the verified per-paper deck. Report incomplete/skipped figures explicitly; PPTX files never increase image counts.
 10. Test present LaTeX tables according to Table Render Testing below. Repair the README source when a compilation or visual defect is found; the README remains the canonical source.
-11. Update the root `README.md` Paper Index by default unless `update_index=false`.
+11. Update the repository's approved Paper Index by default unless `update_index=false`; keep the main README concise when the index lives in `PAPER_INDEX.md`.
 12. If `<repo_root>/website/build.py` exists, rebuild the local static gallery with `python website/build.py` from `repo_root` and verify its output. This is a local build, not authorization to publish, commit, push, or change hosting. If the builder is absent, finish README/index generation without inventing a website workflow.
 13. Validate local links and report generated paper/site paths, reconstruction scope, test results, and any unverified assets.
 
@@ -225,13 +225,15 @@ A returned PDF proves compilation, not visual fidelity. Inspect every rendered t
 - For Codex usage, do not present this skill as a slash command. Use natural language or `$paper-asset-builder`.
 - For Claude Code usage, `/paper-asset-builder ...` is valid after the skill is installed in a Claude skills directory.
 
-## Root README Update
+## Paper Index Update
 
-Always update the root `README.md` after creating or updating a paper entry, unless the user explicitly sets `update_index=false`.
+Update the approved paper index after creating or updating a paper entry, unless the user explicitly sets `update_index=false`.
 
-Update the `## Paper Index` table, not `## Asset Types`. `Asset Types` describes the repository schema and should not list papers.
+Use root-level `PAPER_INDEX.md` when it exists. Only when it is absent, use the marked Paper Index in the root `README.md` for legacy libraries. Do not maintain duplicate indexes or recreate a paper table in the main README after it has been moved out. For a new library, create `PAPER_INDEX.md` and link to it from the main README.
 
-If these markers exist, replace only the marked region:
+The index is the publication allowlist, not a listing of every folder under `papers/`. Preserve existing valid rows and their order; add only the paper approved by the current task. A present but malformed, empty, or linked index is an error to resolve, not permission to fall back to an older README index or scan unapproved folders. Keep the index as a regular file in the repository root.
+
+Require exactly one ordered marker pair and replace only that marked region. If an existing index has missing, duplicate, or reversed markers, report the problem before modifying it:
 
 ```markdown
 <!-- PAPER_INDEX_START -->
@@ -278,6 +280,6 @@ Before finishing, verify:
 - LaTeX test outcomes are reported accurately, with successful compilation and visual inspection distinguished from skipped, unavailable, and failed checks;
 - third-party table uploads were authorized and temporary QA outputs were kept out of the paper gallery;
 - all local README links resolve;
-- root `README.md` Paper Index is updated unless `update_index=false`;
+- the active paper index (`PAPER_INDEX.md`, or the marked root README in legacy libraries) is updated unless `update_index=false`, without duplicating it in the main README;
 - an available local website builder was rerun and tested without executing visitor-supplied code or silently publishing;
 - default new-paper extraction covers the complete numbered figure/table inventory, including appendices, or reports the exact coverage gap.

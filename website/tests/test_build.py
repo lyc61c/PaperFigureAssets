@@ -144,6 +144,105 @@ class CatalogTests(unittest.TestCase):
         self.assertEqual(len(copies), 3)
         self.assertNotIn("secret.pdf", json.dumps(catalog))
 
+    def test_standalone_index_works_without_a_root_readme_and_preserves_catalog(self):
+        expected, expected_copies = builder.make_catalog(self.root)
+        (self.root / "PAPER_INDEX.md").write_text(ROOT_README, encoding="utf-8")
+        (self.root / "README.md").unlink()
+        catalog, copies = builder.make_catalog(self.root)
+        self.assertEqual(catalog, expected)
+        self.assertEqual(copies, expected_copies)
+
+    def test_standalone_index_takes_precedence_without_publishing_stale_root_entries(self):
+        (self.root / "PAPER_INDEX.md").write_text(ROOT_README, encoding="utf-8")
+        private = self.root / "papers" / "private"
+        shutil.copytree(self.paper, private)
+        stale_row = "| [Private draft](papers/private/README.md) | Internal | 2026 | Private | 3 |\n"
+        (self.root / "README.md").write_text(ROOT_README.replace("<!-- PAPER_INDEX_END -->", stale_row + "<!-- PAPER_INDEX_END -->"), encoding="utf-8")
+        out = self.root / "website" / "dist"
+        catalog = builder.build(self.root, out)
+        self.assertEqual([paper["id"] for paper in catalog["papers"]], ["approved"])
+        self.assertFalse((out / "assets/papers/private").exists())
+        self.assertTrue((private / "README.md").is_file())
+        # A landing page need not contain a table at all after migration.
+        (self.root / "README.md").write_text("# A concise landing page\n", encoding="utf-8")
+        self.assertEqual(builder.make_catalog(self.root)[0], catalog)
+
+    def test_standalone_index_uses_root_relative_paths_and_preserves_order_and_metadata(self):
+        other = self.root / "papers" / "Other Paper"
+        shutil.copytree(self.paper, other)
+        row = "| [Other title](papers/Other%20Paper/README.md) | Example venue | 2027 | Another topic | 3 |\n"
+        original = "| [Approved paper](papers/approved/README.md) | arXiv | 2026 | Test research | 3 |"
+        (self.root / "PAPER_INDEX.md").write_text(ROOT_README.replace(original, row + original), encoding="utf-8")
+        entries = builder.approved_papers(self.root)
+        self.assertEqual([entry["id"] for entry in entries], ["Other Paper", "approved"])
+        self.assertEqual(entries[0], {"id": "Other Paper", "path": (other / "README.md").resolve(), "title": "Other title", "venue": "Example venue", "year": "2027", "topic": "Another topic"})
+        self.assertEqual([paper["id"] for paper in builder.make_catalog(self.root)[0]["papers"]], ["Other Paper", "approved"])
+
+    def test_invalid_standalone_index_never_falls_back_to_valid_legacy_readme(self):
+        row = "| [Approved paper](papers/approved/README.md) | arXiv | 2026 | Test research | 3 |"
+        invalid = (
+            "", "# Index with no markers\n", ROOT_README.replace("<!-- PAPER_INDEX_END -->", ""),
+            ROOT_README + "<!-- PAPER_INDEX_START -->",
+            "<!-- PAPER_INDEX_END -->\n<!-- PAPER_INDEX_START -->",
+            ROOT_README.replace(row, ""),
+            ROOT_README.replace(row, row + "\n| Broken entry | arXiv | 2026 | Test | 3 |"),
+            ROOT_README.replace(row, row + "\n" + row),
+            ROOT_README.replace("papers/approved/README.md", "../secret/README.md"),
+            ROOT_README.replace("papers/approved/README.md", "materials/approved/README.md"),
+            ROOT_README.replace("papers/approved/README.md", "papers/missing/README.md"),
+        )
+        for content in invalid:
+            (self.root / "PAPER_INDEX.md").write_text(content, encoding="utf-8")
+            with self.subTest(content=content), self.assertRaises(builder.BuildError):
+                builder.make_catalog(self.root)
+
+    def test_non_utf8_standalone_index_fails_closed(self):
+        (self.root / "PAPER_INDEX.md").write_bytes(b"\xff\xfe\x00")
+        with self.assertRaisesRegex(builder.BuildError, "Cannot read PAPER_INDEX.md"):
+            builder.make_catalog(self.root)
+
+    def test_standalone_index_directory_fails_closed(self):
+        (self.root / "PAPER_INDEX.md").mkdir()
+        with self.assertRaisesRegex(builder.BuildError, "regular file"):
+            builder.make_catalog(self.root)
+
+    def test_standalone_index_symlinks_fail_closed_when_supported(self):
+        index = self.root / "PAPER_INDEX.md"
+        targets = (self.root / "README.md", self.root / "missing-index.md", self.root.parent / "outside-index.md")
+        for target in targets:
+            try:
+                index.symlink_to(target)
+            except (OSError, NotImplementedError):
+                self.skipTest("File symlinks are unavailable on this system.")
+            try:
+                with self.subTest(target=target), self.assertRaisesRegex(builder.BuildError, "regular file"):
+                    builder.make_catalog(self.root)
+            finally:
+                index.unlink()
+
+    def test_legacy_index_still_works_only_when_standalone_is_absent(self):
+        self.assertFalse((self.root / "PAPER_INDEX.md").exists())
+        self.assertEqual([entry["id"] for entry in builder.approved_papers(self.root)], ["approved"])
+        (self.root / "README.md").write_text("# No approvals\n", encoding="utf-8")
+        with self.assertRaisesRegex(builder.BuildError, "exactly one marked Paper Index"):
+            builder.make_catalog(self.root)
+
+    def test_removing_standalone_entry_prunes_export_without_using_stale_root_index(self):
+        other = self.root / "papers" / "other"
+        shutil.copytree(self.paper, other)
+        row = "| [Other paper](papers/other/README.md) | arXiv | 2026 | Another topic | 3 |\n"
+        content = ROOT_README.replace("<!-- PAPER_INDEX_END -->", row + "<!-- PAPER_INDEX_END -->")
+        index = self.root / "PAPER_INDEX.md"
+        index.write_text(content, encoding="utf-8")
+        (self.root / "README.md").write_text(content, encoding="utf-8")
+        out = self.root / "website" / "dist"
+        builder.build(self.root, out)
+        index.write_text(ROOT_README, encoding="utf-8")
+        catalog = builder.build(self.root, out)
+        self.assertEqual([paper["id"] for paper in catalog["papers"]], ["approved"])
+        self.assertEqual(list((out / "assets/papers/other").rglob("*.png")), [])
+        self.assertTrue((other / "README.md").is_file())
+
     def test_gallery_duplicates_are_not_catalog_assets(self):
         catalog, _ = builder.make_catalog(self.root)
         self.assertEqual(catalog["stats"], {"paperCount": 1, "assetCount": 3, "sourceCount": 2, "pptxCount": 0, "counts": {"method": 1, "result": 1, "table": 1}})

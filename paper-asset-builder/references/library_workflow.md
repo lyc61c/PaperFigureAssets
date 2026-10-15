@@ -34,7 +34,7 @@ $paper-asset-builder paper="Exact paper title or URL" repo_root="/path/to/my-lib
 
 Resolve metadata and an accessible PDF. Inventory all numbered figures/tables including appendices, extract verified regions into at most the three optional type folders, and maintain coverage/provenance. Report the absolute local path and stop. Do not immediately convert every extracted asset into a published library entry.
 
-The human may delete, replace, reclassify, rename, or add images. On `检查好了，继续`, rescan the current directory and use it as truth. Never rerun extraction to restore deleted files. Automatically run the built-in method-PPT subprocess for retained method figures, reconstruct the other retained assets, generate the canonical paper README, update the root index, and rebuild the available local static website. Rebuilding does not authorize external publishing.
+The human may delete, replace, reclassify, rename, or add images. On `检查好了，继续`, rescan the current directory and use it as truth. Never rerun extraction to restore deleted files. Automatically run the built-in method-PPT subprocess for retained method figures, reconstruct the other retained assets, generate the canonical paper README, update the approved index selected by `SKILL.md` (normally `PAPER_INDEX.md`), and rebuild the available local static website. Keep the main README as the project introduction instead of duplicating the index there. Rebuilding does not authorize external publishing.
 
 ## Built-in method-PPT delivery
 

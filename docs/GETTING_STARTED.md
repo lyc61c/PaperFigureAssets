@@ -134,7 +134,7 @@ materials/<paper_id>/
 
 ## 5. 生成可复现条目
 
-审核后的图片会进入 `papers/<paper_id>/`，对应 README 保留三类栏目和图库预览，主 README 的 Paper Index 同步更新。
+审核后的图片会进入 `papers/<paper_id>/`，对应 README 保留三类栏目和图库预览，独立的论文目录 `PAPER_INDEX.md` 同步更新。主 README 只作项目介绍，不再展开论文索引。
 
 | 资产 | 重建输出 | 需要理解的边界 |
 |---|---|---|
