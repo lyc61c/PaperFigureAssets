@@ -144,9 +144,8 @@ test('default brand is ReFigure 图续 without changing legacy config and font p
   assert.match(html, /git clone https:\/\/github\.com\/lyc61c\/PaperFigureAssets\.git ReFigure/);
   assert.match(html, /value="My ReFigure"/);
   assert.doesNotMatch(html, /Figarium|图圃/);
-  for (const asset of ['styles.css', 'catalog.js', 'app.js']) {
-    assert.ok(html.includes(asset + '?v=20261015-refigure'));
-  }
+  for (const asset of ['styles.css', 'app.js']) assert.ok(html.includes(asset + '?v=20261015-search-glass'));
+  assert.ok(html.includes('catalog.js?v=20261015-refigure'));
   assert.match(source, /重建 ReFigure 网页/);
   assert.match(source, /window\.FIGARIUM_CATALOG/);
   assert.match(source, /'figarium\.config\.json'/);
@@ -293,6 +292,70 @@ function nodeStub(extra = {}) {
   };
 }
 
+function glassHarness() {
+  let rect = {top: 180, bottom: 330};
+  let style = {position: 'sticky', top: '90px'};
+  let reads = 0, nextFrame = 0;
+  const frames = new Map();
+  const tools = nodeStub({getBoundingClientRect: () => { reads++; return rect; }});
+  const collection = nodeStub();
+  const window = {
+    scrollY: 0,
+    getComputedStyle: () => style,
+    requestAnimationFrame: (callback) => { const id = nextFrame++; frames.set(id, callback); return id; },
+  };
+  const context = evaluate(`let collectionGlassFrame = null;\n${between('function updateCollectionGlass()', 'function toast(')}\ncheck = updateCollectionGlass; queue = queueCollectionGlass;`, {
+    window, $: (id) => id === 'collection-tools' ? tools : collection,
+  });
+  return {
+    tools, collection, window, context,
+    setRect: (value) => { rect = value; }, setStyle: (value) => { style = value; },
+    pending: () => frames.size, reads: () => reads,
+    flush: () => { const pending = [...frames.values()]; frames.clear(); for (const callback of pending) callback(); },
+  };
+}
+
+test('collection glass follows the real sticky threshold and clears at the top or section end', () => {
+  const h = glassHarness();
+  const stuck = () => h.tools.classList.contains('is-stuck');
+  h.context.check(); assert.equal(stuck(), false);
+  h.window.scrollY = 100;
+  h.context.check(); assert.equal(stuck(), false, 'Scrolling alone is not enough before the toolbar reaches its sticky inset');
+  h.setRect({top: 91.1, bottom: 241.1}); h.context.check(); assert.equal(stuck(), false);
+  h.setRect({top: 91, bottom: 241}); h.context.check(); assert.equal(stuck(), true, 'Allow a one-pixel layout rounding tolerance');
+  h.setRect({top: 90, bottom: 240}); h.context.check(); assert.equal(stuck(), true);
+  h.window.scrollY = 0; h.context.check(); assert.equal(stuck(), false, 'Restored scroll position at the top must clear glass');
+  h.window.scrollY = 300;
+  h.setRect({top: -20, bottom: 90}); h.context.check(); assert.equal(stuck(), false, 'Do not retain glass after its section leaves the sticky inset');
+});
+
+test('collection glass is disabled for static mobile layout, invalid offsets and hidden views', () => {
+  const h = glassHarness();
+  const stuck = () => h.tools.classList.contains('is-stuck');
+  h.window.scrollY = 100; h.setRect({top: 90, bottom: 240});
+  h.context.check(); assert.equal(stuck(), true);
+  h.setStyle({position: 'static', top: '90px'}); h.context.check(); assert.equal(stuck(), false);
+  h.setStyle({position: 'sticky', top: 'auto'}); h.context.check(); assert.equal(stuck(), false);
+  h.setStyle({position: 'sticky', top: '90px'}); h.context.check(); assert.equal(stuck(), true);
+  h.tools.hidden = true; const reads = h.reads(); h.context.check(); assert.equal(stuck(), false);
+  assert.equal(h.reads(), reads, 'Hidden toolbar must not trigger layout reads');
+  h.tools.hidden = false; h.context.check(); assert.equal(stuck(), true);
+  h.collection.hidden = true; h.context.check(); assert.equal(stuck(), false);
+  assert.equal(h.reads(), reads + 1, 'Hidden parent must not trigger layout reads');
+});
+
+test('collection glass coalesces scroll work into one animation frame, including frame ID zero', () => {
+  const h = glassHarness();
+  h.window.scrollY = 100; h.setRect({top: 90, bottom: 240});
+  h.context.queue(); h.context.queue(); h.context.queue();
+  assert.equal(h.pending(), 1); assert.equal(h.reads(), 0);
+  h.flush(); assert.equal(h.reads(), 1); assert.equal(h.tools.classList.contains('is-stuck'), true);
+  h.window.scrollY = 0; h.context.queue(); h.context.queue();
+  assert.equal(h.pending(), 1); h.flush();
+  assert.equal(h.reads(), 2); assert.equal(h.tools.classList.contains('is-stuck'), false);
+  assert.match(source, /addEventListener\('scroll', queueCollectionGlass, \{passive: true\}\)/);
+});
+
 test('curated order is unchanged while newest/title sorts are stable and non-mutating', () => {
   const papers = new Map([
     ['old', {year: '2025'}], ['new-a', {year: '2026'}],
@@ -389,7 +452,7 @@ test('category rendering synchronizes modules, grid category and honest resource
   const state = {view: 'explore', type: 'all', limit: 18};
   const context = evaluate(`${between('function render()', 'function resetFilters()')}\nrun = render;`, {
     state, $: get, catalog: {papers: []}, saved: new Set(),
-    syncCollectionControls: () => {}, renderPapers: () => {}, card: (asset) => asset.id,
+    syncCollectionControls: () => {}, queueCollectionGlass: () => {}, renderPapers: () => {}, card: (asset) => asset.id,
     filteredAssets: (ignoreType) => sampleAssets.filter((asset) => ignoreType || state.type === 'all' || asset.type === state.type),
     document: {querySelectorAll: (selector) => selector === '[data-type]' ? buttons : []},
     typeNames: {method: '方法框架', result: '结果分析', table: '论文表格'},
@@ -553,6 +616,25 @@ test('glass controls keep readable text over dark figures and provide a solid fa
     const alpha = Number(rule.match(/background:rgba\(255,255,255,([\d.]+)\)/)[1]);
     assert.ok(contrast(rgb(muted), [255 * alpha, 255 * alpha, 255 * alpha]) >= 4.5, selector);
   }
+  const stuck = css.match(/\.collection-tools:where\(\.is-stuck\)\s*\{([^}]+)\}/)[1];
+  const ink = css.match(/--ink:(#[0-9a-f]{6})/i)[1];
+  const glassAlpha = Number(stuck.match(/background:rgba\(255,255,255,([\d.]+)\)/)[1]);
+  assert.ok(glassAlpha < .9 && glassAlpha > 0, 'Pinned background should reveal more of the figure');
+  assert.ok(contrast(rgb(ink), [255 * glassAlpha, 255 * glassAlpha, 255 * glassAlpha]) >= 4.5, 'Pinned text remains readable even over black pixels');
+  assert.match(stuck, /--muted:var\(--ink\)/);
+  assert.doesNotMatch(stuck, /(?:^|;)\s*opacity\s*:/, 'Never fade text, icons or focus indicators as a group');
+  for (const state of ['focus-within', 'hover']) {
+    const active = css.match(new RegExp('\\.collection-tools:where\\(\\.is-stuck:' + state + '\\)\\s*\\{([^}]+)\\}'))[1];
+    assert.match(active, /background:rgba\(255,255,255,\.96\)/);
+    assert.match(active, /--tools-control:#fff/);
+  }
+  const glassIndex = css.indexOf('.collection-tools:where(.is-stuck)');
+  const fallbackIndex = css.indexOf('@supports not ((backdrop-filter:');
+  const reducedIndex = css.indexOf('@media (prefers-reduced-transparency:reduce)');
+  assert.ok(fallbackIndex > glassIndex && reducedIndex > glassIndex, 'Equal-specificity solid fallbacks must win after pinned styles');
+  assert.match(css.slice(fallbackIndex, reducedIndex), /\.collection-tools[^{}]*\{[^}]*background:#fafdff/);
+  assert.match(css.slice(reducedIndex), /\.collection-tools[^{}]*\{[^}]*background:#fff/);
+  assert.match(css.slice(reducedIndex), /\.collection-tools\s*\{[^}]*--tools-control:#fff/);
   for (const token of ['action-gradient', 'action-hover']) {
     const gradient = css.match(new RegExp('--' + token + ':([^;]+)'))[1];
     for (const color of gradient.match(/#[0-9a-f]{6}/gi)) {
@@ -608,10 +690,16 @@ function domHarness(catalog, initialStorage = []) {
   const {window, document} = parseHTML(fs.readFileSync(path.join(website, 'index.html'), 'utf8'));
   let focused = document.body;
   let width = 1200;
+  let scrollY = 0, collectionTop = 200, nextFrame = 0;
+  const frames = new Map();
+  const flushFrames = () => { const pending = [...frames.values()]; frames.clear(); for (const callback of pending) callback(); };
   const storage = new Map(initialStorage), clipboard = [], downloads = [], blobs = [];
   Object.defineProperty(document, 'activeElement', {get: () => focused});
   window.HTMLElement.prototype.focus = function () { focused = this; };
   window.HTMLElement.prototype.scrollIntoView = function () {};
+  window.HTMLElement.prototype.getBoundingClientRect = function () {
+    return this.id === 'collection-tools' ? {top: collectionTop, bottom: collectionTop + 150, left: 0, right: 1000} : {top: 0, bottom: 0, left: 0, right: 0};
+  };
   Object.defineProperty(window.HTMLElement.prototype, 'inert', {
     configurable: true,
     get() { return this.hasAttribute('inert'); },
@@ -630,6 +718,9 @@ function domHarness(catalog, initialStorage = []) {
   window.HTMLAnchorElement.prototype.click = function () { downloads.push({url: this.href, filename: this.download}); };
   window.FIGARIUM_CATALOG = catalog;
   window.matchMedia = () => ({matches: width <= 900});
+  Object.defineProperty(window, 'scrollY', {configurable: true, get: () => scrollY});
+  window.getComputedStyle = () => ({position: width <= 900 ? 'static' : 'sticky', top: '90px'});
+  window.requestAnimationFrame = (callback) => { const id = nextFrame++; frames.set(id, callback); return id; };
   window.scrollTo = () => {};
   window.isSecureContext = true;
   const location = {hash: '#explore'};
@@ -643,6 +734,7 @@ function domHarness(catalog, initialStorage = []) {
     unsafeExecuted: false,
   });
   vm.runInContext(source, context, {timeout: 3000});
+  flushFrames();
   const find = (selector) => {
     const node = document.querySelector(selector);
     assert.ok(node, `Missing DOM node: ${selector}`);
@@ -659,9 +751,40 @@ function domHarness(catalog, initialStorage = []) {
     input: (selector, value) => { const node = find(selector); node.value = value; return dispatch(node, 'input'); },
     key: (selector, key, fields) => dispatch(find(selector), 'keydown', {key, ...fields}),
     resize: (nextWidth) => { width = nextWidth; window.dispatchEvent(new window.Event('resize')); },
+    scroll: (nextY, toolbarTop) => { scrollY = nextY; if (toolbarTop !== undefined) collectionTop = toolbarTop; window.dispatchEvent(new window.Event('scroll')); },
+    setScroll: (nextY, toolbarTop) => { scrollY = nextY; if (toolbarTop !== undefined) collectionTop = toolbarTop; },
+    pageshow: () => window.dispatchEvent(new window.Event('pageshow')),
+    pendingFrames: () => frames.size, flushFrames,
     cardIds: () => [...document.querySelectorAll('.asset-image-button')].map((node) => node.dataset.open),
   };
 }
+
+test('optional DOM smoke updates pinned search glass on scrolling, resize, restored pages and view changes', {
+  skip: !process.env.FIGARIUM_DOM_MODULE_PATH,
+}, () => {
+  const catalog = {
+    site: {name: 'Archive', chineseName: '图集', tagline: 'Research figures', description: 'A paper library', repositoryUrl: 'https://github.com/example/library', featuredPaperIds: []},
+    stats: {paperCount: 0, assetCount: 0, sourceCount: 0, pptxCount: 0}, papers: [], assets: [],
+  };
+  const h = domHarness(catalog);
+  const stuck = () => h.find('#collection-tools').classList.contains('is-stuck');
+  assert.equal(stuck(), false);
+  h.scroll(100, 120); h.flushFrames(); assert.equal(stuck(), false);
+  h.scroll(130, 90); h.scroll(140, 90); h.scroll(150, 90);
+  assert.equal(h.pendingFrames(), 1); assert.equal(stuck(), false, 'Visual update waits for the animation frame');
+  h.flushFrames(); assert.equal(stuck(), true);
+  h.resize(900); h.flushFrames(); assert.equal(stuck(), false, 'Mobile controls remain non-sticky and clear glass state');
+  h.resize(901); h.flushFrames(); assert.equal(stuck(), true);
+  h.click('.nav-item[data-view="papers"]'); h.flushFrames();
+  assert.equal(h.find('#collection-tools').hidden, true); assert.equal(stuck(), false);
+  h.click('.nav-item[data-view="explore"]'); h.flushFrames(); assert.equal(stuck(), true);
+  h.click('.nav-item[data-view="workflow"]'); h.flushFrames();
+  assert.equal(h.find('#collection').hidden, true); assert.equal(stuck(), false);
+  h.click('.nav-item[data-view="explore"]'); h.flushFrames(); assert.equal(stuck(), true);
+  h.scroll(0, 90); h.flushFrames(); assert.equal(stuck(), false);
+  h.setScroll(200, 90); h.pageshow(); h.flushFrames(); assert.equal(stuck(), true, 'Browser-restored scroll position is reconciled on pageshow');
+  h.setScroll(0, 200); h.pageshow(); h.flushFrames(); assert.equal(stuck(), false);
+});
 
 test('optional DOM smoke keeps legacy bookmarks through the ReFigure rename', {
   skip: !process.env.FIGARIUM_DOM_MODULE_PATH,

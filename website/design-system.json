@@ -30,6 +30,12 @@
     "atmosphere": "Broad, static, low-contrast blue-white radial gradients with a restrained cream highlight; no animation or external background image.",
     "glass": "High-white-opacity translucent panels, backdrop blur, a light inner highlight and a subtle blue-grey boundary; an opaque fallback preserves readability.",
     "stickyWhiteOpacity": 0.9,
+    "searchGlass": {
+      "restingWhiteOpacity": 0.9,
+      "stuckWhiteOpacity": 0.62,
+      "interactiveWhiteOpacity": 0.96,
+      "behavior": "Only an actually stuck desktop search/filter tray becomes more translucent; hover or keyboard/input focus restores a clearer surface. Text and icons stay fully opaque, with darker labels over the lighter glass. Mobile remains non-sticky; reduced transparency or missing backdrop-filter uses solid surfaces."
+    },
     "controlBoundary": "#7387a5",
     "scientificImages": "Pure white opaque image surfaces with no image opacity, recoloring, blur or cropping.",
     "rounding": "One coordinated radius family: controls 12px, cards 20px, large panels 28px.",

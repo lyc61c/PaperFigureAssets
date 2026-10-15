@@ -55,6 +55,24 @@
   let activeAsset = null;
   let previousFocus = null;
   let toastTimer;
+  let collectionGlassFrame = null;
+  function updateCollectionGlass() {
+    collectionGlassFrame = null;
+    const tools = $('collection-tools');
+    if (tools.hidden || $('collection').hidden) {
+      tools.classList.remove('is-stuck');
+      return;
+    }
+    const style = window.getComputedStyle(tools);
+    const top = Number.parseFloat(style.top);
+    const rect = tools.getBoundingClientRect();
+    // Follow the actual sticky position, including its containing section's end.
+    tools.classList.toggle('is-stuck', style.position === 'sticky' && Number.isFinite(top)
+      && window.scrollY > 0 && rect.top <= top + 1 && rect.bottom > top);
+  }
+  function queueCollectionGlass() {
+    if (collectionGlassFrame === null) collectionGlassFrame = window.requestAnimationFrame(updateCollectionGlass);
+  }
   function toast(message) {
     $('toast').textContent = message;
     $('toast').classList.add('visible');
@@ -144,6 +162,7 @@
     }).join('');
   }
   function render() {
+    queueCollectionGlass();
     const isPapers = state.view === 'papers';
     const isCollection = ['explore', 'saved', 'papers'].includes(state.view);
     $('hero').hidden = state.view !== 'explore';
@@ -523,5 +542,9 @@
   });
   window.addEventListener('hashchange', () => { if (['explore','saved','papers','workflow','guide'].includes(location.hash.slice(1))) changeView(location.hash.slice(1), false); });
   window.addEventListener('resize', updateDrawer);
+  window.addEventListener('scroll', queueCollectionGlass, {passive: true});
+  window.addEventListener('resize', queueCollectionGlass);
+  window.addEventListener('pageshow', queueCollectionGlass);
   initialize();
+  document.fonts?.ready.then(queueCollectionGlass);
 })();
