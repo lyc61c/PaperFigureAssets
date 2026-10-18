@@ -1,13 +1,13 @@
 ---
 name: paper-asset-builder
-description: Build a personal ReFigure paper-figure library from a paper title, URL/PDF, or material directory. Inventory whole-paper assets, extract and visually curate method diagrams, quantitative charts and distinctive tables, pause for human approval, then reconstruct editable PowerPoint diagrams, generate README source, and update the index and gallery.
+description: Build a personal ReFigure paper-figure library from a paper title, URL/PDF, or material directory. Inventory whole-paper assets, visually curate method diagrams, designed concept/capability overviews, quantitative charts and distinctive tables, pause for human approval, then reconstruct editable PowerPoint diagrams, generate README source, and update the index and gallery.
 ---
 
 # ReFigure · 图续 — Paper Asset Builder
 
 Build a library the user can curate and reproduce, not merely a screenshot collection. ReFigure · 图续 is the project brand: human-selected paper figures become editable, reusable resources for further creation. Keep the compatible invocation name `paper-asset-builder`. Do not rename the user's checkout, GitHub repository, or remote as part of using this skill.
 
-Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory all numbered figures and tables throughout the PDF, including appendices, then extract and visually screen them with `selection=curated` by default. Keep useful, well-designed method diagrams, quantitative charts, and tables with distinctive reusable structure or styling; exclude ordinary tables and non-quantitative result screenshots. Report the curated local directory and stop for human selection. Explicit `selection=all` bypasses this screening. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
+Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory all numbered figures and tables throughout the PDF, including appendices, then extract and visually screen them with `selection=curated` by default. Keep useful, well-designed method diagrams, concept/task/capability overviews, quantitative charts, and tables with distinctive reusable structure or styling; exclude ordinary tables and routine qualitative result grids/screenshots. A visually rich research teaser can qualify as a conceptual overview without being a quantitative chart; apply the overview criteria in `references/paper_to_materials.md`, not a blanket non-quantitative ban. Report the curated local directory and stop for human selection. Explicit `selection=all` bypasses this screening. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
 
 For first-time setup or a request to build a personal library, also read `references/library_workflow.md`. The website is a static viewer; the local coding agent runs this skill. Do not imply a deployed gallery can execute the skill or compile visitor-supplied code.
 
@@ -161,6 +161,8 @@ Process only asset types whose source folders exist and contain supported images
 
 ### Method Figures
 
+This category also includes designed concept, task and capability overviews with reusable explanatory composition, not just implementation architectures. Apply `references/paper_to_materials.md` to distinguish them from routine qualitative comparisons. Record `asset_role=conceptual_overview` and describe their actual purpose; do not invent an architecture or quantitative evidence. After approval, these overviews follow the same editable-PPT workflow, with photographs and complex artwork preserved as separate local raster components where necessary.
+
 Read `references/method_figure_reconstruction.md` and, by default, `references/method_figure_to_pptx.md`. If a host presentation-authoring skill is available, read and follow it as well; this bundled reference supplies the scientific reconstruction contract, not a replacement for host tool requirements.
 
 For each method figure:
@@ -177,7 +179,7 @@ For each method figure:
 
 ### Result Figures
 
-The default curated intake admits quantitative charts only; qualitative examples, photo grids, answer/code/configuration screenshots are excluded even when visually polished. Explicitly supplied/selected qualitative assets, legacy entries, and `selection=all` remain supported without automatic deletion. Read `references/result_figure_to_python.md` before reconstructing numerical result plots. Its data-estimation instructions do not apply to qualitative images; the exception below takes precedence over any generic code quota.
+Default curated `result_figures` are quantitative charts. Routine qualitative comparisons, photo grids, answer/code/configuration screenshots are excluded even when visually polished; evaluate designed concept/task/capability overviews under Method Figures instead, without pretending they are architectures. Explicitly supplied/selected qualitative assets, legacy entries, and `selection=all` remain supported without automatic deletion. Read `references/result_figure_to_python.md` before reconstructing numerical result plots. Its data-estimation instructions do not apply to qualitative images; the exception below takes precedence over any generic code quota.
 
 For each result figure:
 

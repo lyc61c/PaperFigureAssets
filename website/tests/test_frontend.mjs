@@ -995,7 +995,12 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   assert.match(h.find('#paper-prompt').value, /method_pptx=on/); assert.ok(h.find('#paper-prompt').value.includes(injection));
   assert.match(h.find('#paper-prompt').value, /selection=curated/);
   assert.doesNotMatch(h.find('#paper-prompt').value, /selection=all/);
-  assert.match(h.find('#paper-prompt').value, /result_figures 只保留定量 chart/);
+  assert.match(h.find('#paper-prompt').value, /method_figures 保留结构清晰的方法图/);
+  assert.match(h.find('#paper-prompt').value, /概念\/任务\/能力总览/);
+  assert.match(h.find('#paper-prompt').value, /不能只凭图片多或色彩丰富保留/);
+  assert.match(h.find('#paper-prompt').value, /result_figures 保留定量 chart/);
+  assert.match(h.find('#paper-prompt').value, /默认排除普通定性对比网格/);
+  assert.match(h.find('#paper-prompt').value, /不为概念总览或定性图片编造数值/);
   assert.match(h.find('#paper-prompt').value, /等我人工筛选确认/);
   assert.equal(h.document.querySelector('#generated-prompt script'), null);
   h.input('#library-name', injection); h.click('#download-config');
