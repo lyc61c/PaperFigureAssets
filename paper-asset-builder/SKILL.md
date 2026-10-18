@@ -1,13 +1,13 @@
 ---
 name: paper-asset-builder
-description: Build a personal ReFigure paper-figure library from a paper title, URL/PDF, or material directory. Extract and classify whole-paper figures and tables, pause for human selection, then reconstruct Method Figures as visually faithful editable PowerPoint decks, generate README source, and update the index and gallery.
+description: Build a personal ReFigure paper-figure library from a paper title, URL/PDF, or material directory. Inventory whole-paper assets, extract and visually curate method diagrams, quantitative charts and distinctive tables, pause for human approval, then reconstruct editable PowerPoint diagrams, generate README source, and update the index and gallery.
 ---
 
 # ReFigure · 图续 — Paper Asset Builder
 
 Build a library the user can curate and reproduce, not merely a screenshot collection. ReFigure · 图续 is the project brand: human-selected paper figures become editable, reusable resources for further creation. Keep the compatible invocation name `paper-asset-builder`. Do not rename the user's checkout, GitHub repository, or remote as part of using this skill.
 
-Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory and extract all numbered figures and tables throughout the PDF, including appendices, by default. Report the actual local directory and stop for human selection. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
+Accept a paper title, URL, attached/local PDF, or a paper with a prepared material directory. For a new paper, inventory all numbered figures and tables throughout the PDF, including appendices, then extract and visually screen them with `selection=curated` by default. Keep useful, well-designed method diagrams, quantitative charts, and tables with distinctive reusable structure or styling; exclude ordinary tables and non-quantitative result screenshots. Report the curated local directory and stop for human selection. Explicit `selection=all` bypasses this screening. Resume reconstruction, README/index, and available static-site generation only after confirmation; natural-language confirmation is sufficient.
 
 For first-time setup or a request to build a personal library, also read `references/library_workflow.md`. The website is a static viewer; the local coding agent runs this skill. Do not imply a deployed gallery can execute the skill or compile visitor-supplied code.
 
@@ -40,7 +40,7 @@ paper=...             Required unless discoverable. Paper title, arXiv/publisher
 repo_root=...         Optional. Target ReFigure/PaperFigureAssets repository root; discover it from the workspace when omitted.
 paper_id=...          Optional. Output folder name under papers/.
 extract_assets=...    Optional. auto (default), true (inspect/extract from the paper), or false (use supplied images only).
-selection=...         Optional. all (default: every numbered figure/table, including appendices) or curated (agent-selected subset).
+selection=...         Optional. curated (default: visual/reuse screening after whole-paper inventory) or all (explicitly retain every recoverable numbered figure/table).
 latex_test=...        Optional. auto (default), online, local, or off. Online testing requires authorization to send table source to the selected service.
 method_pptx=...       Optional. on (default) or off. After image approval, reconstruct every Method Figure as editable PPTX; off explicitly skips this deliverable.
 update_index=false    Optional. Skip the repository's paper index update only when explicitly false.
@@ -86,20 +86,21 @@ Read `references/paper_to_materials.md` when selecting or extracting assets from
 - In `auto` mode, use supplied images when any exist. When no supported images exist, obtain the paper PDF and prepare the material directory automatically.
 - With `extract_assets=true`, inspect the PDF and select assets even if the material directory already contains images. Preserve existing user files; do not silently replace colliding filenames or duplicate the same source figure.
 - With `extract_assets=false`, require prepared images and report the missing input if none exist.
-- In default `selection=all`, inspect the whole PDF, including appendices, and inventory every numbered figure and table before cropping. Extract all recoverable inventory items, not just attractive examples or raster image objects. Record inaccessible/ambiguous items and reasons; never claim complete coverage when any item is unresolved.
-- Use `selection=curated` only when requested. Choose attractive, useful examples without a fixed quota, while retaining the full inventory and explicit skip reasons so the subset is auditable.
+- In either selection mode, inspect the whole PDF, including appendices, and inventory every numbered figure and table before cropping. Record inaccessible/ambiguous items and reasons; distinguish full inventory inspection from selected-image coverage.
+- In default `selection=curated`, apply the content gates and visual/reuse screening in `references/paper_to_materials.md` after inspecting the extracted regions. Keep only selected images in the material type folders. Record every exclusion with a concrete reason; do not impose a quota or fill an empty category with unsuitable images.
+- With explicit `selection=all`, extract all recoverable inventory items without aesthetic/content exclusion, including ordinary tables and qualitative figures. Explicit user selections override defaults; never silently prune supplied images, previously approved material, or old library entries.
 - Render complete figure/table regions at sufficient resolution, preserving vector labels, legends, and table text. Use `scripts/pdf_asset_tools.py` for repeatable page inspection and region cropping when PyMuPDF is available; it is a crop helper, not an automatic caption detector or completeness verifier.
 - Save PNGs in the appropriate asset folders and record original labels, pages, captions, crop coordinates, hashes, inventory status, and coverage in `source_assets.json` as specified in `references/paper_to_materials.md`.
-- Inspect the final crops, then follow User Review Checkpoint. Do not continue directly into README or root index generation after extraction.
+- Inspect final crops and record screening decisions, then follow User Review Checkpoint. If screening leaves nothing, report that outcome and the exclusions rather than silently restoring unsuitable images. Do not continue directly into README or root index generation after extraction.
 
 ## User Review Checkpoint
 
 After collecting or revising extracted assets:
 
 1. Mark the extraction's `source_assets.json` review status as `pending`.
-2. Report the actual absolute material directory as a clickable local link, with the counts of method figures, result figures, and tables; include extraction coverage and any unresolved inventory items. Tell the user they may delete, replace, rename, reclassify, or add images before confirming.
+2. Report the actual absolute material directory as a clickable local link, with current counts of method figures, result figures, and tables; summarize screening exclusions and distinguish them from unresolved extraction gaps. Tell the user they may delete, replace, rename, reclassify, add, or explicitly restore excluded images before confirming.
 3. End the turn and wait for the user to explicitly confirm the images, for example `检查好了，继续` or `用这个目录里的图片生成 README`. Do not create/update the paper entry or either README during this checkpoint. Elapsed time, existing images, or an earlier request to run the whole workflow is not review confirmation.
-4. If the user requests extraction/crop changes, make those changes and return to this checkpoint before downstream generation.
+4. If the user requests extraction/crop/screening changes, make those changes and return to this checkpoint before downstream generation. A request to improve screening is not approval to generate PPT/README.
 
 On explicit confirmation, rescan the approved local directory and use its current files as the source of truth. Bypass automatic extraction on this resume, including when `extract_assets=true` appeared in the original invocation. Do not restore deleted images or overwrite user replacements. Use recorded SHA-256 hashes to identify unchanged extracted images, including renamed/moved copies; re-inspect changed/new images and do not attach stale provenance to replacements. Ignore metadata for removed files. If no supported images remain, report that condition instead of silently extracting again.
 
@@ -176,7 +177,7 @@ For each method figure:
 
 ### Result Figures
 
-Read `references/result_figure_to_python.md` before reconstructing numerical result plots. Its data-estimation instructions apply to numerical charts, not qualitative screenshots or photo grids; the qualitative exception below takes precedence over any generic code quota.
+The default curated intake admits quantitative charts only; qualitative examples, photo grids, answer/code/configuration screenshots are excluded even when visually polished. Explicitly supplied/selected qualitative assets, legacy entries, and `selection=all` remain supported without automatic deletion. Read `references/result_figure_to_python.md` before reconstructing numerical result plots. Its data-estimation instructions do not apply to qualitative images; the exception below takes precedence over any generic code quota.
 
 For each result figure:
 
@@ -191,7 +192,7 @@ For each result figure:
 
 ### Tables
 
-Read `references/table_image_to_latex.md` before reconstructing tables.
+Default curated intake excludes routine plain tables, including ordinary three-line/booktabs tables with only bold best values or basic grouped headers. Keep tables with meaningful reusable visual structure or styling according to `references/paper_to_materials.md`; do not exclude a well-designed table merely for being monochrome. Preserve explicit user selections. Read `references/table_image_to_latex.md` before reconstructing retained tables.
 
 For each table image:
 
@@ -282,4 +283,5 @@ Before finishing, verify:
 - all local README links resolve;
 - the active paper index (`PAPER_INDEX.md`, or the marked root README in legacy libraries) is updated unless `update_index=false`, without duplicating it in the main README;
 - an available local website builder was rerun and tested without executing visitor-supplied code or silently publishing;
-- default new-paper extraction covers the complete numbered figure/table inventory, including appendices, or reports the exact coverage gap.
+- the whole-paper inventory includes appendices; default curation has item-level keep/exclude reasons, selected counts, and separate unresolved gaps; explicit `selection=all` covers every recoverable numbered figure/table;
+- screening does not restore human-deleted files, prune user-supplied/approved images, or treat its own recommendation as human approval.

@@ -18,21 +18,39 @@ The helper writes numbered full-page previews and `pages.json` with text block c
 
 ## Inventory first, then apply the requested selection mode
 
-`selection=all` is the default for a new paper. Extract every recoverable numbered figure and table, including appendix items such as Figure A.1 and Table S2. Human review, not an agent's aesthetic preference, decides which images enter the library. Do not silently reduce a long paper to one or two framework diagrams. An unresolved crop is a coverage gap to report, not an item to omit from the inventory.
+`selection=curated` is the default for a new paper: complete inventory → region extraction/inspection → content and visual/reuse screening → selected local images → human approval. Include appendix labels such as Figure A.1 and Table S2 in the inventory even when excluded from the selected set. This is an agent preselection, not a replacement for the human's final choice. An unresolved crop is a coverage gap, not an aesthetic exclusion.
 
-`selection=curated` is an explicit alternative: use visual judgment to choose a useful subset without a fixed quota. Keep all inventoried items and mark unselected ones with `skipped_curated` and a concrete reason. This allows users to understand what is absent and request it later.
+`selection=all` is the explicit opt-out: extract every recoverable numbered figure/table without aesthetic or quantitative-only filtering. Ordinary tables and qualitative examples are included in this mode. A user can also explicitly keep individual exceptions. Neither mode authorizes pruning user-prepared images, already approved material, or old library entries. Apply a new screening rule to those only when requested.
 
-In curated mode, prefer coordinated colors, clear hierarchy, readable text, balanced spacing, useful legends, and reusable scientific layouts. In all mode these qualities help flag recommended picks for the user, but are not a reason to drop numbered assets.
+Use visual judgment without a quota. Do not choose a fixed number per paper, force every category to be populated, or require colorful/complex artwork. Keep the full inventory and a concrete item-level reason for every keep/exclude decision so users can request an excluded item later.
 
 Classify by content:
 
 - `method_figures/`: conceptual diagrams, architecture/framework overviews, pipelines, algorithm/module schematics.
-- `result_figures/`: experimental plots, ablations, statistical distributions, comparisons, scaling or trade-off curves.
-- `tables/`: actual row/column tables, including vector-text tables, not every rectangular figure.
+- `result_figures/`: quantitative experimental plots, ablations, statistical distributions, comparisons, scaling or trade-off curves.
+- `tables/`: actual row/column tables with reusable structural or visual design, including vector-text tables, not every rectangular figure.
 
-Qualitative result grids, examples, error cases, and statistical data visualizations belong in `result_figures/`, even when they cannot be recreated as a numeric plot. For a mixed framework/result figure, retain the complete figure in its primary category and record the classification rationale; do not duplicate it in counts by default. If a paper has algorithm boxes but no numbered figure/table label, treat extraction as an optional extra, not mandatory inventory coverage.
+Qualitative result grids, examples, error cases, and code/configuration screenshots are classified as result assets for the inventory, but excluded from default curated output. They may enter `result_figures/` only with explicit selection or `selection=all`; never invent numeric data to make them qualify. A quantitative plot embedded in a larger screenshot does not automatically qualify the entire screenshot. For mixed panels, retain the complete figure only when quantitative comparison or method structure is its primary purpose; explain the choice. An explicitly selected standalone chart panel must retain labels/axes/legends and be recorded as a partial scope, not full-figure coverage. Do not duplicate a source item in counts. Algorithm boxes without a Figure/Table label are optional extras.
 
 Preserve complete multi-panel figures. For a figure spanning multiple pages, save ordered parts and map all parts to the same inventory item; count images and numbered source items separately. A panel-only selection is appropriate only when requested or in curated mode; retain panel labels, axes/legends, and record its scope. Use original numbering in filenames such as `fig1_framework.png`, `fig_a1_error_cases.png`, and `table_s2_comparison.png`.
+
+## Content gates and visual/reuse screening
+
+Inspect the actual full-page artwork and candidate crops, not filenames or captions alone. Apply content gates before judging beauty:
+
+| Category | Keep by default | Exclude by default |
+|---|---|---|
+| Method | Readable architecture, pipeline or conceptual diagrams with useful grouping, visual hierarchy, consistent modules and traceable flows | Decorative or incoherent illustrations without a reusable method structure; irreparably unreadable diagrams |
+| Result | Quantitative charts whose measured variables/comparisons are identifiable: curves, bars, scatter, distributions, numeric heatmaps, scaling/trade-off plots | Photo/video grids, generated-answer dialogues, memory notes, qualitative case studies, code snippets/diffs and configuration screenshots, even with attractive colors |
+| Table | Distinctive, meaningful reusable design: integrated bars/heatmaps/glyphs, intentional visual grouping, unusually clear hierarchical/matrix organization or coherent semantic highlighting | Routine three-line/booktabs or grid tables, plain parameter/data lists; bold best values, basic merged headers or extra rows alone do not make a table distinctive |
+
+For candidates passing the content gate, assess **layout/hierarchy**, **legibility**, **color or monochrome contrast**, and **reusable design value**. State what is actually useful (for example, aligned comparison panels, semantic palette, clear legend/axes, or integrated quantitative encoding); avoid an unexplained beauty score. A simple well-spaced line chart can qualify. A monochrome table with genuinely distinctive organization can qualify. A colorful but generic table need not qualify. Repair a poor crop before judging the original design; a repairable crop defect is not a reason to reject the source artwork.
+
+Record `keep`, `exclude`, or `needs_review` per item, with a reason code and a short visible-content rationale. Suggested codes include `method_structure`, `quantitative_chart`, `distinctive_table`, `ordinary_table`, `non_quantitative_result`, `low_visual_reuse`, and `unresolved_crop`. Borderline items can remain pending human review with an explanation, but do not use this state to bypass the explicit ordinary-table/non-quantitative exclusions. When no candidate qualifies, report zero selected images and stop; do not pad the selection.
+
+Keep excluded generated crops recoverable outside the material directory, for example under `tmp/pdfs/<paper_id>/excluded/`, and record their archive paths when present. For a fresh paper, stage candidate crops in the review workspace and copy only the selected set into the three material folders. No fourth asset folder is needed. For an existing pending extraction, move only generated files whose identity matches their recorded SHA-256; preserve unknown/modified/user-supplied files and ask about conflicts. Validate exact source/destination paths, do not overwrite a conflicting archive, and never recursively delete a material directory. If a file has already been removed by the user, record it as missing/removed and do not re-extract it, even if it would pass the new criteria. Explicit restoration requires a user request.
+
+These are default intake criteria, not a retroactive cleanup mandate. Human-confirmed images remain authoritative on resume, including explicitly retained exceptions.
 
 ## Extract complete regions
 
@@ -51,7 +69,7 @@ Prepare a JSON crop specification after inspecting the pages. Each entry specifi
       "filename": "fig1_framework.png",
       "label": "Figure 1",
       "caption": "Original caption from the paper.",
-      "selection_reason": "Numbered Figure 1 retained by selection=all."
+      "selection_reason": "Retained after visual screening: readable framework with aligned modules and traceable flows."
     }
   ]
 }
@@ -61,7 +79,7 @@ Prepare a JSON crop specification after inspecting the pages. Each entry specifi
 python <skill_dir>/scripts/pdf_asset_tools.py crop --pdf <paper.pdf> --spec <regions.json> --out <material_dir> --dpi 300
 ```
 
-Start with 300 DPI; use 450-600 DPI for small text when needed. Higher DPI cannot restore detail absent from a raster source. The helper creates only selected type folders and `source_assets.json`; it refuses invalid page/bounds, path traversal, duplicate destinations, and accidental overwrites. It does not detect captions, select all figures, or verify inventory completeness automatically. After cropping, extend its manifest with inventory/coverage fields below. Use `--overwrite` only for intentionally correcting generated crops. For incremental updates, merge source metadata without discarding prior provenance or user review history.
+Start with 300 DPI; use 450-600 DPI for small text when needed. Higher DPI cannot restore detail absent from a raster source. The helper creates only selected type folders and `source_assets.json`; it refuses invalid page/bounds, path traversal, duplicate destinations, and accidental overwrites. It does not detect captions, judge beauty, apply the content gates, or verify inventory completeness automatically; screening is the agent's visual task. In curated mode, use a review-workspace `--out` for unfiltered candidates, then transfer selected images and matching provenance to the material directory. After cropping, extend its manifest with inventory/coverage fields below. Use `--overwrite` only for intentionally correcting generated crops. For incremental updates, merge source metadata without discarding prior provenance or user review history.
 
 Open every final PNG for visual review. Correct clipped labels, excess body text, blank crops, and unreadable content before continuing. Verify that a crop is the actual selected figure/table, not merely a successfully rendered rectangle.
 
@@ -88,11 +106,17 @@ Preserve the helper's existing `assets` records, including page/bbox/label/capti
 }
 ```
 
-Each numbered item needs a label, kind, pages, target category, status, and matching current output files or a reason. Use `extracted`, `unresolved`, or `skipped_curated` at the extraction stage; record user removals/changes in review history after confirmation. Coverage describes the extraction snapshot, not a promise that the human-selected library still includes every source item. Complete extraction means all pages were inspected and every numbered item has a verified complete crop; if there is a gap, report it explicitly. Do not turn caption-number continuity alone into proof of completeness. Preserve exact PDF version and hash when available so the inventory can be reproduced.
+Each numbered item needs a label, kind, pages, target category, status, and matching output files or a reason at the time of extraction. Use `extracted`, `unresolved`, or `skipped_curated` at that stage; record observed user removals/changes in review history on each rescan, including while approval is pending. Coverage describes the extraction snapshot, not a promise that the human-selected library still includes every source item. Complete extraction means all pages were inspected and every numbered item has a verified complete crop; if there is a gap, report it explicitly. Do not turn caption-number continuity alone into proof of completeness. Preserve exact PDF version and hash when available so the inventory can be reproduced.
+
+For curated runs, add a `curation` object with `mode`, `criteria_version`, per-item `decisions` (label, decision, reason code, rationale, source hash, and archive path when available), and `current_images` (current relative path and hash). Report `kept_items`, `excluded_items`, and `needs_review_items` separately from `unresolved_items`. A screened subset is not "all images extracted" just because every page was inspected. Distinguish `inventory_complete` (all pages/items inspected), `selected_complete` (all retained crops verified), and full-extraction `complete`. Intentionally skipped items are not unresolved crop failures. Keep `review.status=pending`; screening completion is not human approval.
+
+When changing the selection of an existing extraction, preserve its original `assets`, inventory and coverage as a labeled historical extraction snapshot rather than rewriting history or claiming removed files still exist. Add current screening decisions and current file hashes separately, and record already absent files in review history immediately, even while approval is pending. Use only the current directory on resume. Do not overwrite a user-modified manifest or attach an original hash to replacement pixels.
+
+For incremental recropping, render only the requested correction into a fresh review-workspace directory and merge its matching provenance. Do not rerun an old full crop specification with `--overwrite` against the material directory: the basic helper replaces its manifest and does not merge review/curation history or protect human-deleted selections.
 
 ## Pause for user review, then resume paper-asset-builder
 
-After extraction and visual QA, leave `source_assets.json` with `review.status` set to `pending`. Report the actual absolute material directory, per-type image counts, numbered-item coverage, and any unresolved/skipped items, then stop for local human review. Users may delete, replace, rename, reclassify, or add images. Do not copy assets into the paper entry or generate either README until explicit confirmation. Follow the User Review Checkpoint in `SKILL.md` for requested corrections and resume behavior.
+After extraction, screening and visual QA, leave `source_assets.json` with `review.status` set to `pending`. Report the actual absolute material directory, current per-type image counts, inventoried/retained/excluded counts, and any unresolved items, then stop for local human review. Users may delete, replace, rename, reclassify, add or explicitly restore images. Do not copy assets into the paper entry or generate either README until explicit confirmation. Follow the User Review Checkpoint in `SKILL.md` for requested corrections and resume behavior.
 
 After confirmation, rescan the local folders and process only their current images. The user may have deleted, replaced, renamed, or added files; do not rerun extraction or reinstate the original selection. Use matching provenance only, and record the confirmation and current relative image filenames in the manifest's `review` object. Use the source paper's exact values where available for plots/tables and explicitly label approximations otherwise. Preserve the canonical README layout, add valid source label/page attribution to asset tables, and update the approved Paper Index selected by `SKILL.md` (normally `PAPER_INDEX.md`) by default.
 

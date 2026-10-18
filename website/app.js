@@ -514,7 +514,7 @@
   $('make-prompt').addEventListener('click', () => {
     const paper = $('paper-input').value.trim();
     if (!paper) { toast('先写下论文名称、链接或本地 PDF 路径。'); $('paper-input').focus(); return; }
-    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=all, method_pptx=on：读取完整论文及附录，提取并分类全部编号图表到 materials/<PaperID>/{method_figures,result_figures,tables}，记录出处和覆盖情况。\n完成后告诉我真实的本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。方法图默认只提供对应 PPTX，不添加 Editable Diagram Code 或 SVG/TikZ 代码；网页每张方法图只显示一个对应 PPTX 下载入口。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 ReFigure 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
+    $('paper-prompt').value = '$paper-asset-builder 请收集论文：' + paper + '\nselection=curated, method_pptx=on：读取完整论文及附录，清点所有编号图表，提取后按美观度与复用价值初筛。保留结构清晰的方法图；result_figures 只保留定量 chart，排除定性案例、问答、代码/配置截图；tables 只保留有特色结构或样式的表格，排除普通三线表。把筛选后的图片放入 materials/<PaperID>/{method_figures,result_figures,tables}，不强求每类都有图片；记录出处、保留/排除原因及未解决的提取缺口。\n完成后告诉我真实的本地目录并停下来，等我人工筛选确认。确认后仅使用目录中保留的当前图片，不恢复已删除图片：逐图重建视觉完整、可编辑的 Method Figures PPTX（单图版及论文合并版），导出后渲染并与原图逐页核对，不以整张截图冒充可编辑重建；复杂照片/插图独立保留，说明近似和编辑边界。方法图默认只提供对应 PPTX，不添加 Editable Diagram Code 或 SVG/TikZ 代码；网页每张方法图只显示一个对应 PPTX 下载入口。\n结果图提供 Python，表格提供 LaTeX。生成含实际源码/PPTX链接和限制说明的论文 README、更新主索引，并重建 ReFigure 网页（若存在 website/build.py）。在线 LaTeX 测试及向外部上传须先得到我的授权。';
     $('generated-prompt').hidden = false;
   });
   $('download-config').addEventListener('click', () => {

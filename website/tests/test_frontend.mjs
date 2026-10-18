@@ -993,6 +993,10 @@ test('optional full DOM smoke: initialize, filters, views, PPTX, zoom, navigatio
   const injection = '</textarea><script>unsafeExecuted=true</script>';
   h.input('#paper-input', injection); h.click('#make-prompt');
   assert.match(h.find('#paper-prompt').value, /method_pptx=on/); assert.ok(h.find('#paper-prompt').value.includes(injection));
+  assert.match(h.find('#paper-prompt').value, /selection=curated/);
+  assert.doesNotMatch(h.find('#paper-prompt').value, /selection=all/);
+  assert.match(h.find('#paper-prompt').value, /result_figures 只保留定量 chart/);
+  assert.match(h.find('#paper-prompt').value, /等我人工筛选确认/);
   assert.equal(h.document.querySelector('#generated-prompt script'), null);
   h.input('#library-name', injection); h.click('#download-config');
   assert.equal(h.downloads.at(-1).filename, 'figarium.config.json');
@@ -1128,7 +1132,17 @@ test('optional real catalog DOM smoke matches published counts and actual PPTX d
     const button = [...h.document.querySelectorAll('.asset-image-button')].find((node) => node.dataset.open === pptAsset.id);
     assert.ok(button, 'A real local-PPTX card must be reachable in its paper'); button.click();
     const download = pptAsset.downloads.find((row) => row.format === 'pptx' && row.local === true);
-    assert.ok(download, 'Each existing method figure must retain its own editable PPTX');
+    if (!download) {
+      // An explicitly skipped reconstruction is a valid collected preview,
+      // not permission to substitute the paper's combined/source-variant deck.
+      assert.deepEqual(pptAsset.downloads.filter((row) => row.format === 'pptx'), []);
+      assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 0);
+      assert.match(h.find('#no-code h3').textContent, /PPTX 尚未收录/);
+      assert.equal(h.find('#method-palette').hidden, false);
+      assert.equal(h.find('#source-code').hidden, true);
+      h.click('#close-dialog');
+      continue;
+    }
     assert.equal(h.document.querySelectorAll('#extra-downloads a').length, 1);
     const link = [...h.document.querySelectorAll('#extra-downloads a')].find((node) => node.getAttribute('href') === download.url);
     assert.ok(link, 'Actual local PPTX must be linked from its detail');

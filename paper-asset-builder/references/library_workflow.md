@@ -6,7 +6,7 @@ Read this reference when helping a new user install the skill, create a personal
 
 ReFigure · 图续 has three separate layers:
 
-- The local agent uses `paper-asset-builder` to inspect PDFs, extract/classify assets, pause for human review, then automatically run its built-in method-PPT subprocess and other reconstructions after confirmation.
+- The local agent uses `paper-asset-builder` to inspect PDFs, extract/classify and visually screen assets, pause for human review, then automatically run its built-in method-PPT subprocess and other reconstructions after confirmation.
 - `papers/<paper_id>/README.md`, approved images, and delivered PPTX files form the library. Python, method reconstruction source, optional SVG/TikZ, and table LaTeX can live in README blocks; reconstruction scope, editability, verification status, and original provenance travel with each asset.
 - `website/build.py`, when present, generates a static browsing/export surface. It does not run the agent, execute copied Python, or accept arbitrary online compilation jobs.
 
@@ -29,10 +29,10 @@ Explain dependencies by stage rather than making users install a large global en
 An example user prompt is:
 
 ```text
-$paper-asset-builder paper="Exact paper title or URL" repo_root="/path/to/my-library" selection=all
+$paper-asset-builder paper="Exact paper title or URL" repo_root="/path/to/my-library"
 ```
 
-Resolve metadata and an accessible PDF. Inventory all numbered figures/tables including appendices, extract verified regions into at most the three optional type folders, and maintain coverage/provenance. Report the absolute local path and stop. Do not immediately convert every extracted asset into a published library entry.
+Resolve metadata and an accessible PDF. Inventory all numbered figures/tables including appendices, extract complete regions, and apply default `selection=curated` screening from `paper_to_materials.md`: well-designed method diagrams, quantitative charts, and distinctive tables. Ordinary tables and non-quantitative result screenshots are excluded with reasons. Keep only selected images in at most the three optional type folders, preserving full inventory/provenance and recoverable excluded crops outside the material directory. Explicit `selection=all` keeps every recoverable numbered item. Report the absolute local path, selected/excluded counts and any unresolved gaps, then stop. Do not immediately convert the selection into a published library entry.
 
 The human may delete, replace, reclassify, rename, or add images. On `检查好了，继续`, rescan the current directory and use it as truth. Never rerun extraction to restore deleted files. Automatically run the built-in method-PPT subprocess for retained method figures, reconstruct the other retained assets, generate the canonical paper README, update the approved index selected by `SKILL.md` (normally `PAPER_INDEX.md`), and rebuild the available local static website. Keep the main README as the project introduction instead of duplicating the index there. Rebuilding does not authorize external publishing.
 

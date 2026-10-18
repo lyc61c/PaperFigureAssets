@@ -78,16 +78,16 @@
       <div class="asset-grid" id="asset-grid" data-density="comfortable"></div><div class="paper-list" id="paper-list" hidden></div>
       <div class="empty-state" id="empty-state" hidden><span data-icon="search"></span><h3 id="empty-title">暂时没有匹配的图表</h3><p id="empty-description">试试其他关键词，或者调整筛选条件。</p><button class="button button-dark" id="reset-filters">重置筛选</button></div><button class="load-more button button-outline" id="load-more" hidden>再看 18 张 <span aria-hidden="true">↓</span></button>
     </section>
-    <section class="workflow-callout" id="process-strip" aria-label="采集流程"><div><p class="eyebrow">收录一篇新论文</p><h2>你的下一篇收藏，只需要一个论文链接。</h2><p>自动提取 → 人工筛选 → 可编辑重建 → 加入你的图库。</p></div><button class="button button-outline" data-view="workflow">查看采集流程</button></section>
+    <section class="workflow-callout" id="process-strip" aria-label="采集流程"><div><p class="eyebrow">收录一篇新论文</p><h2>你的下一篇收藏，只需要一个论文链接。</h2><p>提取与初筛 → 人工确认 → 可编辑重建 → 加入你的图库。</p></div><button class="button button-outline" data-view="workflow">查看采集流程</button></section>
     <section class="story-view" id="workflow-view" hidden>
       <p class="eyebrow">采集工作流</p><h1 class="page-title">机器负责整理，<br>你决定值得留下什么。</h1><p class="page-intro">不是一份固定图单，而是一套可以在自己的目录里重复运行的采集与复现流程。</p>
       <div class="workflow-layout"><div class="workflow-timeline">
         <article><span>1</span><div><small>提供论文</small><h2>给一个论文名，或一条链接</h2><p>Skill 查找准确来源、读取完整论文，并清点所有编号图和表。方法框架、实验结果和表格，各归其位。</p></div></article>
-        <article><span>2</span><div><small>提取图表</small><h2>完整提取，保留来路</h2><p>保留多子图、坐标轴、图例和标签，记录原图编号、页码与裁剪区域。附录里的图表，也不会被默认跳过。</p></div></article>
+        <article><span>2</span><div><small>提取与初筛</small><h2>精选好图，保留来路</h2><p>从正文和附录中筛选方法图、定量图表与特色表格，排除普通表格和定性截图。完整保留图中标签与图例，记录来源和取舍原因。</p></div></article>
         <article class="pause-step"><span>3</span><div><small>人工筛选</small><h2>停下来，等你挑选</h2><p>收到真实的本地目录后，你可以删除、替换、重命名或新增图片。没有确认，就不会继续生成条目。</p><code>“检查好了，用目录里的图片继续。”</code></div></article>
         <article><span>4</span><div><small>重建可编辑资源</small><h2>留下原图，也留下重建配方</h2><p>方法图提供对应的可编辑 PPTX，每张图一个下载入口。实验图提供 Python，表格提供 LaTeX。估读数据、简化结构和未完成的重建都会说明。</p></div></article>
         <article><span>5</span><div><small>更新图库</small><h2>README 与网页，一起更新</h2><p>使用你确认后的当前图片，生成论文 README、更新主索引，再构建网页。收藏、品牌和研究方向，由你掌控。</p></div></article>
-      </div><aside class="workflow-note"><p class="eyebrow">由你确认</p><h3>自动化流程，<br>不自动替你决定。</h3><p>AI 辅助发现与整理，人做最后的选择。重建不是原作者源码恢复，也不等同于原始实验数据。</p><div class="folder-tree"><span>materials / YourPaper /</span><br>├─ <b>method_figures/</b><br>├─ <b>result_figures/</b><br>└─ <b>tables/</b></div><button class="button button-dark" data-view="guide">建立我的图库</button></aside></div>
+      </div><aside class="workflow-note"><p class="eyebrow">由你确认</p><h3>自动化流程，<br>不自动替你决定。</h3><p>AI 先按视觉与复用价值初筛，人做最后的选择。重建不是原作者源码恢复，也不等同于原始实验数据。</p><div class="folder-tree"><span>materials / YourPaper /</span><br>├─ <b>method_figures/</b><br>├─ <b>result_figures/</b><br>└─ <b>tables/</b></div><button class="button button-dark" data-view="guide">建立我的图库</button></aside></div>
     </section>
     <section class="story-view" id="guide-view" hidden>
       <p class="eyebrow">搭建指南</p><h1 class="page-title">把这套工作流，<br>带进你的研究。</h1><p class="page-intro">Fork 项目，安装 Skill，从你关心的第一篇论文开始。网页负责浏览和下载，采集与筛选在本机完成。</p>

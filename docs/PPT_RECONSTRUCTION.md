@@ -40,6 +40,6 @@
 
 这不是 Microsoft PowerPoint 或 LibreOffice 的桌面应用兼容性测试。不同软件及字体环境仍可能有排版差异；建议下载后用自己的 PowerPoint 检查。完整 authoring scene、源 PDF、对照渲染和 SHA 绑定的检查记录保留在本地隔离任务目录，不默认公开。
 
-后续新论文遵循[使用指南](GETTING_STARTED.md)：提供论文 → 提取分类 → 返回本地目录等待人工筛选 → 确认后 skill 自动复现 Method Figures、生成 README、更新索引与图库。显式指定 `method_pptx=off` 才跳过 PPT。
+后续新论文遵循[使用指南](GETTING_STARTED.md)：提供论文 → 全文清点与提取 → 视觉/复用价值初筛 → 返回本地目录等待人工确认 → 确认后 skill 自动复现 Method Figures、生成 README、更新索引与图库。显式指定 `method_pptx=off` 才跳过 PPT。
 
 原图、截图、标志及重建内容仍受原作者许可约束；本项目代码的 MIT 许可不扩大第三方素材使用权。请同时阅读各论文 README 的来源和许可说明。
